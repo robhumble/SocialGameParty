@@ -1,60 +1,56 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
+    <v-app-bar app color="deep-orange accent-4" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
           class="shrink mr-2"
           contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
+          :src="require('./assets/Puzzle_OrangeFace.png')"
           transition="scale-transition"
           width="40"
         />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
+        <h1>Social Game Party Thing!</h1>
       </div>
 
       <v-spacer></v-spacer>
 
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
+      <h2>ChittyChatty POC</h2>
     </v-app-bar>
 
     <v-content>
-      <HelloWorld/>
+      <!-- Tie in vue router router-view component here in the future ... Until then we do this -->
+
+
+      <!-- ===PAGE CONTENT=== -->
+      <v-container>
+        <v-row class="text-center">
+          <v-col cols="12">
+            <v-btn @click="inChatRoom = true">Enter Chat Room</v-btn>
+            <ChatRoom v-if="inChatRoom"></ChatRoom>
+          </v-col>
+        </v-row>
+      </v-container>
+
     </v-content>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+//import HelloWorld from './components/HelloWorld';
+import ChatRoom from "./components/ChatRoom";
 
 export default {
-  name: 'App',
+  name: "App",
 
   components: {
-    HelloWorld,
+    //HelloWorld,
+    ChatRoom
   },
 
   data: () => ({
     //
-  }),
+    inChatRoom: false
+  })
 };
 </script>
