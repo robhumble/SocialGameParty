@@ -26,7 +26,8 @@
       <v-container>
         <v-row class="text-center">
           <v-col cols="12">
-            <v-btn @click="inChatRoom = true">Enter Chat Room</v-btn>
+            <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
+            <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
             <ChatRoom v-if="inChatRoom"></ChatRoom>
           </v-col>
         </v-row>
