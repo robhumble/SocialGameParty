@@ -10,7 +10,8 @@
           transition="scale-transition"
           width="40"
         />
-        <h1>Social Game Party Thing!</h1>
+        <h1  class="d-none d-lg-flex">Social Game Party Thing!</h1>
+        <h1 class="d-lg-none"> SGPT!</h1> 
       </div>
 
       <v-spacer></v-spacer>

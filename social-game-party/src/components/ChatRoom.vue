@@ -10,7 +10,7 @@
           v-model="displayUserName"
         ></v-text-field>
 
-        <v-textarea outlined name="main-chat" label="Main Chat" v-model="chatText" disabled></v-textarea>
+        <v-textarea outlined id="mainChat" ref="mainChat" name="main-chat" label="Main Chat" v-model="chatText" readonly></v-textarea>
 
         <div v-if="displayUserName != ''" class="submit-area" >
 
@@ -22,6 +22,8 @@
         ></v-textarea>
 
         <v-btn @click="submit">Submit</v-btn>
+
+        <v-btn v-if="isAdmin" @click="clearChat">Clear History</v-btn>
         
         </div>
       </v-col>
@@ -44,6 +46,7 @@ export default {
     displayUserName: "",
     chatText: "",
     submitText: "",
+    adminClearMsg: "!!! Admin has cleared the chat history !!!",
 
     //Firestore work
     firestoreDb: null
@@ -53,6 +56,23 @@ export default {
 
     this.read;
   },
+  computed:{
+
+    isAdmin: function(){
+      if(this.displayUserName.toLowerCase() == 'admin')
+        return true;
+
+      return false;
+    }
+
+  },
+  watch:{
+  // chatText: function(){
+  //   this.mainChatScrollToBottom();
+  // }
+
+  },
+
   methods: {
     setupFirestore: function() {
       let that = this;
@@ -75,9 +95,14 @@ export default {
         .doc("VjfeioUKWHqyApwbU7X2")
         .onSnapshot(function(doc) {
           let remoteChatText = doc.data().chatText;
+          that.chatText = remoteChatText;          
+          console.log("There was an update: " + remoteChatText); 
 
-          that.chatText = remoteChatText;
-          console.log("There was an update: " + remoteChatText);
+          //scroll to bottom
+           that.$nextTick(function() {
+           that.mainChatScrollToBottom();
+            });
+        
         });
     },
 
@@ -90,7 +115,12 @@ export default {
 
     submit: function() {
       let updateText = `${this.displayUserName}:${this.submitText} \n`;
-      let newChatText = this.chatText + updateText;
+      let newChatText = "";
+            
+      if(this.chatText == this.adminClearMsg)
+        newChatText = updateText;
+      else
+        newChatText = this.chatText + updateText;
 
       this.firestoreDb
         .collection("rooms")
@@ -106,6 +136,34 @@ export default {
         });
 
       this.submitText = "";
+    },
+
+    clearChat: function(){      
+
+      this.firestoreDb
+        .collection("rooms")
+        .doc("VjfeioUKWHqyApwbU7X2")
+        .set({
+          chatText: this.adminClearMsg
+        })
+        .then(success => {
+          console.log("Write Successful! :" + success);
+        })
+        .catch(err => {
+          console.error("There was a db write error:", err);
+        }); 
+    },
+
+    mainChatScrollToBottom: function(){
+    
+      // this.$nextTick(function() {
+      //     let mainChat = this.$refs.mainChat.$el;
+      // mainChat.scrollTop = mainChat.scrollHeight;
+      // });
+
+      var mainChat = document.getElementById('mainChat');
+      mainChat.scrollTop = mainChat.scrollHeight;
+
     }
   }
 };
