@@ -3,31 +3,37 @@
     <v-row class="text-center">
       <v-col />
       <v-col cols="12" sm="6" md="3">
-        You are in the ChatRoom.
+        <span class="in-room-text">You are in the ChatRoom.</span>
         <v-text-field
           label="Display Name"
           placeholder="Your Name here..."
           v-model="displayUserName"
         ></v-text-field>
 
-        <v-textarea outlined id="mainChat" ref="mainChat" name="main-chat" label="Main Chat" v-model="chatText" readonly></v-textarea>
-
-        <div v-if="displayUserName != ''" class="submit-area" >
-
         <v-textarea
-          name="submit-area"
-          label="Submit Area"
-          v-model="submitText"
-          hint="Type stuff here..."
+          outlined
+          id="mainChat"
+          ref="mainChat"
+          name="main-chat"
+          label="Main Chat"
+          v-model="chatText"
+          readonly
         ></v-textarea>
 
-        <v-btn @click="submit">Submit</v-btn>
+        <div v-if="displayUserName != ''" class="submit-area">
+          <v-textarea
+            name="submit-area"
+            label="Submit Area"
+            v-model="submitText"
+            hint="Type stuff here..."
+            @keydown.enter="submit"
+          ></v-textarea>
 
-        <v-btn v-if="isAdmin" @click="clearChat">Clear History</v-btn>
-        
+          <v-btn @click="submit">Submit</v-btn>
+
+          <v-btn v-if="isAdmin" @click="clearChat">Clear History</v-btn>
         </div>
       </v-col>
-
       <v-col />
     </v-row>
   </v-container>
@@ -48,7 +54,7 @@ export default {
     submitText: "",
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
 
-    //Firestore work
+    //Firestore vars ---
     firestoreDb: null
   }),
   mounted: function() {
@@ -56,24 +62,22 @@ export default {
 
     this.read;
   },
-  computed:{
-
-    isAdmin: function(){
-      if(this.displayUserName.toLowerCase() == 'admin')
-        return true;
+  computed: {
+    /**
+     * Determine if the user is an Admin based on the provided display name.
+     */
+    isAdmin: function() {
+      if (this.displayUserName.toLowerCase() == "admin") return true;
 
       return false;
     }
-
   },
-  watch:{
-  // chatText: function(){
-  //   this.mainChatScrollToBottom();
-  // }
-
-  },
+  watch: {},
 
   methods: {
+    /**
+     * Connect to the FireStore DB and listen to the chat room.
+     */
     setupFirestore: function() {
       let that = this;
 
@@ -95,32 +99,25 @@ export default {
         .doc("VjfeioUKWHqyApwbU7X2")
         .onSnapshot(function(doc) {
           let remoteChatText = doc.data().chatText;
-          that.chatText = remoteChatText;          
-          console.log("There was an update: " + remoteChatText); 
+          that.chatText = remoteChatText;
+          console.log("There was an update: " + remoteChatText);
 
           //scroll to bottom
-           that.$nextTick(function() {
-           that.mainChatScrollToBottom();
-            });
-        
+          that.$nextTick(function() {
+            that.mainChatScrollToBottom();
+          });
         });
     },
 
-    //(Obsolete) original test - just updates local data
-    simpleSubmit: function() {
-      let updateText = `${this.displayUserName}:${this.submitText} \n`;
-      this.chatText += updateText;
-      this.submitText = "";
-    },
-
+    /**
+     * Add the contents of the submit textArea FireStore DB.
+     */
     submit: function() {
-      let updateText = `${this.displayUserName}:${this.submitText} \n`;
+      let updateText = `${this.displayUserName}: ${this.submitText} \n`;
       let newChatText = "";
-            
-      if(this.chatText == this.adminClearMsg)
-        newChatText = updateText;
-      else
-        newChatText = this.chatText + updateText;
+
+      if (this.chatText == this.adminClearMsg) newChatText = updateText;
+      else newChatText = this.chatText + updateText;
 
       this.firestoreDb
         .collection("rooms")
@@ -138,8 +135,10 @@ export default {
       this.submitText = "";
     },
 
-    clearChat: function(){      
-
+    /**
+     * Clear the mainChat textArea.  (Should only be available to the Admin)
+     */
+    clearChat: function() {
       this.firestoreDb
         .collection("rooms")
         .doc("VjfeioUKWHqyApwbU7X2")
@@ -151,20 +150,23 @@ export default {
         })
         .catch(err => {
           console.error("There was a db write error:", err);
-        }); 
+        });
     },
 
-    mainChatScrollToBottom: function(){
-    
-      // this.$nextTick(function() {
-      //     let mainChat = this.$refs.mainChat.$el;
-      // mainChat.scrollTop = mainChat.scrollHeight;
-      // });
-
-      var mainChat = document.getElementById('mainChat');
+    /**
+     * Scroll to the bottom of the mainChat textArea.
+     */
+    mainChatScrollToBottom: function() {
+      var mainChat = document.getElementById("mainChat");
       mainChat.scrollTop = mainChat.scrollHeight;
-
     }
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.in-room-text {
+  color: red;
+  font-weight: bold;
+}
+</style>
