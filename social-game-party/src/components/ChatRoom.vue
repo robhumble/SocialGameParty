@@ -41,9 +41,8 @@
 
 
 <script>
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import * as sgf from "@/logic/socialGameFramework.js";
+import DataConnector from "@/logic/DataConnector.js";
 
 export default {
   name: "ChatRoom",
@@ -54,11 +53,11 @@ export default {
     submitText: "",
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
 
-    //Firestore vars ---
-    firestoreDb: null
+    //Data connection vars------------
+    dataConnector: new DataConnector()
   }),
   mounted: function() {
-    this.setupFirestore();
+    this.setupChatRoom();
 
     this.read;
   },
@@ -76,41 +75,26 @@ export default {
 
   methods: {
     /**
-     * Connect to the FireStore DB and listen to the chat room.
+     * Connect to the DB and listen to the chat room.
      */
-    setupFirestore: function() {
-      let that = this;
+    setupChatRoom: function() {
+      this.dataConnector.setupDataConnectorForChatRoom();
 
-      // Initialize Cloud Firestore through Firebase
-      if (!firebase.apps.length) {
-        firebase.initializeApp({
-          apiKey: "AIzaSyB9tDIaiwwE35jKUMOPvqmNsR4T1ZkHOcA",
-          authDomain: "socialgameparty.firebaseapp.com",
-          projectId: "socialgameparty"
+      var that = this;
+
+      this.dataConnector.listenToChatRoomPOC(function(remoteChatText) {
+        that.chatText = remoteChatText;
+        console.log("There was an update: " + remoteChatText);
+
+        //scroll to bottom
+        that.$nextTick(function() {
+          sgf.mainFramework.scrollToBottom("mainChat");
         });
-      }
-
-      //create db object
-      this.firestoreDb = firebase.firestore();
-
-      //subscribe/listen to room test doc
-      this.firestoreDb
-        .collection("rooms")
-        .doc("VjfeioUKWHqyApwbU7X2")
-        .onSnapshot(function(doc) {
-          let remoteChatText = doc.data().chatText;
-          that.chatText = remoteChatText;
-          console.log("There was an update: " + remoteChatText);
-
-          //scroll to bottom
-          that.$nextTick(function() {
-            that.mainChatScrollToBottom();
-          });
-        });
+      });
     },
 
     /**
-     * Add the contents of the submit textArea FireStore DB.
+     * Add the contents of the submit textArea to the DB.
      */
     submit: function() {
       let updateText = `${this.displayUserName}: ${this.submitText} \n`;
@@ -119,18 +103,7 @@ export default {
       if (this.chatText == this.adminClearMsg) newChatText = updateText;
       else newChatText = this.chatText + updateText;
 
-      this.firestoreDb
-        .collection("rooms")
-        .doc("VjfeioUKWHqyApwbU7X2")
-        .set({
-          chatText: newChatText
-        })
-        .then(success => {
-          console.log("Write Successful! :" + success);
-        })
-        .catch(err => {
-          console.error("There was a db write error:", err);
-        });
+      this.dataConnector.updateChatRoomText(newChatText);
 
       this.submitText = "";
     },
@@ -139,26 +112,7 @@ export default {
      * Clear the mainChat textArea.  (Should only be available to the Admin)
      */
     clearChat: function() {
-      this.firestoreDb
-        .collection("rooms")
-        .doc("VjfeioUKWHqyApwbU7X2")
-        .set({
-          chatText: this.adminClearMsg
-        })
-        .then(success => {
-          console.log("Write Successful! :" + success);
-        })
-        .catch(err => {
-          console.error("There was a db write error:", err);
-        });
-    },
-
-    /**
-     * Scroll to the bottom of the mainChat textArea.
-     */
-    mainChatScrollToBottom: function() {
-      var mainChat = document.getElementById("mainChat");
-      mainChat.scrollTop = mainChat.scrollHeight;
+      this.dataConnector.updateChatRoomText(this.adminClearMsg);
     }
   }
 };

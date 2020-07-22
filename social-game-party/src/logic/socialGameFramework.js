@@ -1,9 +1,22 @@
 export var mainFramework = {
 
-name : "Social Game Framework",
+    //Example property
+    name: "Social Game Framework",
 
-addStuff: function(x, y){
-    return x+y;
-}
+    //Example function
+    addStuff: function (x, y) {
+        return x + y;
+    },
+
+    //Begin Framework functions ------------------------------
+
+
+    /**
+    * Scroll to the bottom of a textArea.
+    */
+    scrollToBottom: function (elementId) {
+        var mainChat = document.getElementById(elementId);
+        mainChat.scrollTop = mainChat.scrollHeight;
+    }
 
 }
