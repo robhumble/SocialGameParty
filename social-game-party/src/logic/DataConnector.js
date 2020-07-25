@@ -16,8 +16,15 @@ export default class DataConnector {
     chatRoomCollection: "rooms",
     chatRoomDoc: "VjfeioUKWHqyApwbU7X2"
   };
-
+  // With this expression in the constructor, every new instance of DataConnector can connect to the data immediately.
+  // I moved this here because the separate method named for the chat room doesn't actually involve the chat room.
   constructor() {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(this.#firebaseSettings);
+    }
+
+    //create db object
+    this.firestoreDb = firebase.firestore();
   }
 
   //Firebase functions for chat--------------------------------
@@ -75,4 +82,103 @@ export default class DataConnector {
   };
 
 
+  // Firebase functions for room movement. -----------------------------
+
+// presently, make room does not check if the room already exists.
+// join room will fail if the room doesn't exist, but this is not reflected on the site
+// User IDs now correctly appear in rooms on the database and are deleted when the user leaves by any of the given buttons.
+// User IDs are not deleted by any other method of leaving the room. 
+  makeRoom = function (makeRoomName, sessionID, clientInRoom) {
+    // This line creates both the room and the document inside that will hold the array of users.
+    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({
+        users: [sessionID]
+      })
+      /*.then(success => {
+        console.log("Room created. " + success);
+      })
+      .catch(err => {
+        console.error("Error: " + err);
+      })*/
+      if (clientInRoom){ //remove the user from the room they are in when they move, if they are in a room
+        let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
+  
+        this.firestoreDb.runTransaction(function(transaction) {
+          return transaction.get(roomDocRef).then(function(roomDoc) {
+            let u = roomDoc.data().users;
+            u.sort(function(a,b){return a-b});
+            u.splice( u.findIndex((userID) => {
+              return userID == sessionID;
+            }) , 1);
+            transaction.update(roomDocRef, {users: u});
+          })
+        })/*.then(function() {
+          console.log("exit room success");
+        }).catch(function(err) {
+          console.log("exit room failed" + err);
+        });*/
+      } 
+
+  }
+  joinRoom = function (joinRoomName, sessionID, clientInRoom) {
+    let joinRef = "";
+
+    joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
+
+    // Add the user's ID to the list of users in the room
+    this.firestoreDb.runTransaction(function(transaction) {
+      return transaction.get(joinRef).then(function(joinDoc) {
+        let u = joinDoc.data().users;
+        u.push(sessionID);
+        transaction.update(joinRef, {users: u});
+        })
+      })/*.then(function() {
+        console.log("join room success");
+      }).catch(function(err) {
+        console.log("join room failed" + err);
+      }); */
+
+    if (clientInRoom){ //remove the user from the room they are in when they move, if they are in a room
+      let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
+
+      this.firestoreDb.runTransaction(function(transaction) {
+        return transaction.get(roomDocRef).then(function(roomDoc) {
+          let u = roomDoc.data().users;
+          u.sort(function(a,b){return a-b});
+          u.splice( u.findIndex((userID) => {
+            return userID == sessionID;
+          }) , 1);
+          transaction.update(roomDocRef, {users: u});
+        })
+      })/*.then(function() {
+        console.log("exit room success");
+      }).catch(function(err) {
+        console.log("exit room failed" + err);
+      });*/
+    } 
+    return true;
+
+  }
+  exitRoom = function (sessionID, clientInRoom) {
+    if (clientInRoom){ //remove the user from the room they are in when they move, if they are in a room
+      let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
+
+      this.firestoreDb.runTransaction(function(transaction) {
+        return transaction.get(roomDocRef).then(function(roomDoc) {
+          let u = roomDoc.data().users;
+          u.sort(function(a,b){return a-b});
+          u.splice( u.findIndex((userID) => {
+            return userID == sessionID;
+          }) , 1);
+          transaction.update(roomDocRef, {users: u});
+        })
+      })/*.then(function() {
+        console.log("exit room success");
+      }).catch(function(err) {
+        console.log("exit room failed" + err);
+      });*/
+    }
+  }
+
+
+  
 }

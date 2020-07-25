@@ -48,8 +48,8 @@ it was originally going to be hidden after joining a room, but it is currently o
 </template>
 
 <script>
-//import DataConnector from "@/logic/DataConnector.js";
-//actual database interaction pending, since the database doesn't know we're in a room without a user concept.
+import DataConnector from "@/logic/DataConnector.js";
+
 
 export default {
     data() {return{
@@ -57,12 +57,16 @@ export default {
         joinARoom: false,
         makeARoom: false,
         joinRoomName: "",
-        makeRoomName: ""
+        makeRoomName: "",
+        dataConnector: new DataConnector(),
+        // This user ID is created whenever the client loads the home page.
+        sessionID: Math.round( Math.random() * 1000000)
 
     }},
     methods: {
-        makeRoom() {
-
+        makeRoom(makeRoomName) {
+            this.dataConnector.makeRoom(makeRoomName, this.sessionID, this.clientInRoom);
+            this.clientInRoom=makeRoomName;
             this.joinARoom=false;
             this.makeARoom=false;
             this.joinRoomName="";
@@ -70,13 +74,19 @@ export default {
         },
 
         joinRoom(joinRoomName) {
-            this.clientInRoom=joinRoomName;
-            this.joinARoom=false;
-            this.makeARoom=false;
-            this.joinRoomName="";
-            this.makeRoomName="";
+            let success = this.dataConnector.joinRoom(joinRoomName, this.sessionID, this.clientInRoom);
+            if (success){
+                this.clientInRoom=joinRoomName;
+            }
+                this.joinARoom=false;
+                this.makeARoom=false;
+                this.joinRoomName="";
+                this.makeRoomName="";
+
+            
         },
         exitRoom(){
+            this.dataConnector.exitRoom(this.sessionID, this.clientInRoom);
             this.clientInRoom="";
             this.joinARoom=false;
             this.makeARoom=false;
