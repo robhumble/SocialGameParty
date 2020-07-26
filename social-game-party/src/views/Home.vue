@@ -1,7 +1,8 @@
 <template>
   <div>
     <!-- ===== Page Content ===== -->
-    <!-- Chat Room as Right Nav -->
+
+    <!-- Right Side Nav panel -->
     <v-container>
       <v-navigation-drawer
         v-model="drawer"
@@ -11,9 +12,10 @@
         :permanent="true"
         absolute
       >
+        <!-- Chat Room -->
         <div class="chat-controls" @click="toggleHideChat">
           <v-icon color="white" large>mdi-chat</v-icon>
-          <h2 v-show="!hideChat" >Chat!</h2>
+          <h2 v-show="!hideChat">Chat!</h2>
         </div>
 
         <v-container v-show="!hideChat">

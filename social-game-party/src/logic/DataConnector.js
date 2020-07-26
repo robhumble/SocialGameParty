@@ -19,7 +19,7 @@ export default class DataConnector {
   }  
 
   /**
-  * Connect to the FireStore DB and listen to the chat room.
+  * Connect to the FireStore DB and initialize the FireStore Db object.
   */
   initializeFireStoreDb = function () {
 
