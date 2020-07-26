@@ -1,41 +1,31 @@
 <template>
-  <v-container>
-    <v-row class="text-center">
-      <v-col />
-      <v-col cols="12" sm="6" md="3">
-        <span class="in-room-text">You are in the ChatRoom.</span>
-        <v-text-field
-          label="Display Name"
-          placeholder="Your Name here..."
-          v-model="displayUserName"
-        ></v-text-field>
+  <v-container class="chat-container">
+    <span class="in-room-text">You are in the ChatRoom.</span>
+    <v-text-field label="Display Name" placeholder="Your Name here..." v-model="displayUserName"></v-text-field>
 
-        <v-textarea
-          outlined
-          id="mainChat"
-          ref="mainChat"
-          name="main-chat"
-          label="Main Chat"
-          v-model="chatText"
-          readonly
-        ></v-textarea>
+    <v-textarea
+      outlined
+      id="mainChat"
+      ref="mainChat"
+      name="main-chat"
+      label="Main Chat"
+      v-model="chatText"
+      readonly
+    ></v-textarea>
 
-        <div v-if="displayUserName != ''" class="submit-area">
-          <v-textarea
-            name="submit-area"
-            label="Submit Area"
-            v-model="submitText"
-            hint="Type stuff here..."
-            @keydown.enter="submit"
-          ></v-textarea>
+    <div v-if="displayUserName != ''" class="submit-area">
+      <v-textarea
+        name="submit-area"
+        label="Submit Area"
+        v-model="submitText"
+        hint="Type stuff here..."
+        @keydown.enter="submit"
+      ></v-textarea>
 
-          <v-btn @click="submit">Submit</v-btn>
+      <v-btn @click="submit">Submit</v-btn>
 
-          <v-btn v-if="isAdmin" @click="clearChat">Clear History</v-btn>
-        </div>
-      </v-col>
-      <v-col />
-    </v-row>
+      <v-btn v-if="isAdmin" @click="clearChat">Clear History</v-btn>
+    </div>
   </v-container>
 </template>
 
@@ -54,9 +44,9 @@ export default {
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
 
     //Data connection vars------------
-    dataConnector: new DataConnector()
+    dataConnector: new DataConnector(),
   }),
-  mounted: function() {
+  mounted: function () {
     this.setupChatRoom();
 
     this.read;
@@ -65,11 +55,11 @@ export default {
     /**
      * Determine if the user is an Admin based on the provided display name.
      */
-    isAdmin: function() {
+    isAdmin: function () {
       if (this.displayUserName.toLowerCase() == "admin") return true;
 
       return false;
-    }
+    },
   },
   watch: {},
 
@@ -77,17 +67,15 @@ export default {
     /**
      * Connect to the DB and listen to the chat room.
      */
-    setupChatRoom: function() {
-      this.dataConnector.setupDataConnectorForChatRoom();
-
+    setupChatRoom: function () {
       var that = this;
 
-      this.dataConnector.listenToChatRoomPOC(function(remoteChatText) {
+      this.dataConnector.listenToChatRoomPOC(function (remoteChatText) {
         that.chatText = remoteChatText;
         console.log("There was an update: " + remoteChatText);
 
         //scroll to bottom
-        that.$nextTick(function() {
+        that.$nextTick(function () {
           sgf.mainFramework.scrollToBottom("mainChat");
         });
       });
@@ -96,7 +84,7 @@ export default {
     /**
      * Add the contents of the submit textArea to the DB.
      */
-    submit: function() {
+    submit: function () {
       let updateText = `${this.displayUserName}: ${this.submitText} \n`;
       let newChatText = "";
 
@@ -111,10 +99,10 @@ export default {
     /**
      * Clear the mainChat textArea.  (Should only be available to the Admin)
      */
-    clearChat: function() {
+    clearChat: function () {
       this.dataConnector.updateChatRoomText(this.adminClearMsg);
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -122,5 +110,11 @@ export default {
 .in-room-text {
   color: red;
   font-weight: bold;
+}
+
+.chat-container {
+  background-color: white;
+  padding: 5px;
+  margin-top: 10px;
 }
 </style>

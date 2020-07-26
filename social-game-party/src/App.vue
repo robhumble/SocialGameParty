@@ -17,7 +17,7 @@
 
       <v-spacer></v-spacer>
 
-      <h2>ChittyChatty POC</h2>
+      <h2>Game Night</h2>
     </v-app-bar>
 
     <v-content>
