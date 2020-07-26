@@ -1,24 +1,26 @@
 <template>
   <div>
     <!-- ===== Page Content ===== -->
+    <div class="chat-controls float-right" @click="toggleShowChat">
+       <v-icon color="deep-orange accent-4" large>mdi-chat</v-icon>
+      </div>
 
     <!-- Right Side Nav panel -->
-    <v-container>
+    <v-container>      
+      
       <v-navigation-drawer
-        v-model="drawer"
-        color="deep-orange accent-4"
-        :mini-variant="hideChat"
-        :right="true"
-        :permanent="true"
+        v-model="showChat"
+        color="deep-orange accent-4"        
+        :right="true"        
         absolute
       >
         <!-- Chat Room -->
-        <div class="chat-controls" @click="toggleHideChat">
+        <div class="chat-controls" @click="toggleShowChat">
           <v-icon color="white" large>mdi-chat</v-icon>
-          <h2 v-show="!hideChat">Chat!</h2>
+          <h2 v-show="showChat">Chat!</h2>
         </div>
 
-        <v-container v-show="!hideChat">
+        <v-container v-show="showChat">
           <v-row class="text-center">
             <v-col cols="12">
               <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
@@ -54,14 +56,12 @@ export default {
   },
   data: () => ({
     inChatRoom: false,
-
-    hideChat: true,
-    drawer: true,
+    showChat: false,
   }),
   methods: {
-    toggleHideChat() {
-      if (this.hideChat) this.hideChat = false;
-      else this.hideChat = true;
+    toggleShowChat() {
+      if (this.showChat) this.showChat = false;
+      else this.showChat = true;    
     },
   },
 };
