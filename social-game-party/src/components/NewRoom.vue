@@ -1,5 +1,4 @@
-<!-- This component lets the user choose what room they will join or make. It doesn't actually hit the database yet. Join pretends it works.
-it was originally going to be hidden after joining a room, but it is currently our only navigation, so I left it persistent.-->
+<!-- This component lets the user choose what room they will join or make. -->
 <template>
     <div>
         <h1 v-if=!clientInRoom>You are not in a game room!</h1>
@@ -42,7 +41,29 @@ it was originally going to be hidden after joining a room, but it is currently o
                 </v-row>
             </v-container>
         </div>
+        <!-- code to be ripped from NewRoom and put in GameRoom -->
+        <div v-if="clientInRoom">
+            <h3 v-if=!inGame>You are currently spectating.</h3>
+            <h3 v-if=inGame>You are in game!</h3>
+            <v-btn v-if="!clientIsPlayer" @click="wantToJoin=true;">Join Game</v-btn>
+            <v-btn v-if="clientIsPlayer" @click=exitGame()>Exit Game</v-btn>
 
+            <v-container align-center v-if=wantToJoin>
+                <v-row>
+                    <v-col>
+                        <v-text-field
+                            outlined
+                            v-model="clientIsPlayer"
+                            placeholder="Type Username Here"
+                        ></v-text-field>
+                    </v-col>
+                    <v-col @click=joinGame()><v-btn>Join</v-btn></v-col>
+                </v-row>
+            </v-container>
+            <h2 v-if="clientInRoom">Players In Game: {{userList}}</h2>
+
+        </div>
+        <!-- end gameroom block -->
     </div>
 
 </template>
@@ -62,6 +83,13 @@ export default {
         // This user ID is created whenever the client loads the home page.
         sessionID: Math.round( Math.random() * 1000000)
 
+        // gameRoom data
+        ,
+        clientIsPlayer: "",
+        wantToJoin: false,
+        inGame: false,
+        userList: ""
+
     }},
     methods: {
         makeRoom(makeRoomName) {
@@ -71,6 +99,10 @@ export default {
             this.makeARoom=false;
             this.joinRoomName="";
             this.makeRoomName="";
+
+            this.setupUserDisplay();
+            this.inGame = false;
+            this.wantToJoin = false;
         },
 
         joinRoom(joinRoomName) {
@@ -78,12 +110,15 @@ export default {
             if (success){
                 this.clientInRoom=joinRoomName;
             }
-                this.joinARoom=false;
-                this.makeARoom=false;
-                this.joinRoomName="";
-                this.makeRoomName="";
+            this.joinARoom=false;
+            this.makeARoom=false;
+            this.joinRoomName="";
+            this.makeRoomName="";
 
-            
+            this.setupUserDisplay();
+            this.inGame = false;
+            this.wantToJoin = false;
+
         },
         exitRoom(){
             this.dataConnector.exitRoom(this.sessionID, this.clientInRoom);
@@ -92,6 +127,40 @@ export default {
             this.makeARoom=false;
             this.joinRoomName="";
             this.makeRoomName="";
+
+            this.inGame = false;
+            this.wantToJoin = false;
+        }
+        // gameRoom methods
+        ,
+        joinGame() {
+            this.dataConnector.joinGame(this.sessionID, this.clientIsPlayer, this.clientInRoom);
+            this.inGame = true;
+            this.wantToJoin = false;
+
+        },
+        exitGame() {
+            this.dataConnector.exitGame(this.sessionID, this.clientInRoom);
+            this.clientIsPlayer="";
+            this.inGame = false;
+            this.wantToJoin = false;
+
+        },
+        setupUserDisplay: function () {
+            // allows us to use a reference to the class data outside of the dataConnector method
+            var that = this;
+
+            this.dataConnector.listenToUsers(function (remoteUserList) {
+            let tempUserList="";
+            remoteUserList.forEach(function (user){
+                let appendName = Object.values(user);
+                if(appendName != "")
+                    {tempUserList += `${appendName}, `;}
+            });
+            that.userList = tempUserList;
+            //console.log("There may have been an update to the user list.");
+
+            }, that.clientInRoom);
         }
     }
   }  
