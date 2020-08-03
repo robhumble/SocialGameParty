@@ -3,13 +3,15 @@ export default class SessionInfo {
 
     #localStorageKey = "SessionInfo";
 
-    currentRoom = {};
-    currentUser = {};
+    currentRoom = null;
+    currentUser = null;
 
     constructor(room, user) {
         this.currentRoom = room;
         this.currentUser = user;
     }
+
+    //Local storage -------------------------------------------->
 
     saveToLocalStorage = function () {
 
@@ -21,15 +23,25 @@ export default class SessionInfo {
 
         let dataFromLocalStorage = localStorage.getItem(this.#localStorageKey);
 
-        if(dataFromLocalStorage && dataFromLocalStorage.length > 0) 
-             this.populateFromStringRepresentation(dataFromLocalStorage);
+        if (dataFromLocalStorage && dataFromLocalStorage.length > 0)
+            this.populateFromStringRepresentation(dataFromLocalStorage);
     }
 
+    eraseSessionInfoFromLocalStorage = function(){
+        localStorage.removeItem(this.#localStorageKey);
+    }
+
+    //Convert back and forth between string representation---------------------->
+
     getStringRepresentation = function () {
-        let toFlatten = {
-            roomName:  this.currentRoom.name,
-            userUniqueId: this.currentUser.uniqueId,
-            userName: this.currentUser.name
+        let toFlatten = {};
+
+        if (this.currentRoom)
+            toFlatten.roomName = this.currentRoom.name;
+
+        if (this.currentUser) {
+            toFlatten.userUniqueId = this.currentUser.uniqueId;
+            toFlatten.userName = this.currentUser.name;
         }
 
         let flattened = JSON.stringify(toFlatten);

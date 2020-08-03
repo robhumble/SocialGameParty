@@ -85,9 +85,12 @@ export default class DataConnector {
   // User IDs now correctly appear in rooms on the database and are deleted when the user leaves by any of the given buttons.
   // User IDs are not deleted by any other method of leaving the room. 
   makeRoom = function (makeRoomName, sessionID, clientInRoom) {
+
+    let userArr = [{[sessionID]:""}];
+
     // This line creates both the room and the document inside that will hold the array of users.
-    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({
-      users: `{"${sessionID}":""}`
+    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({    
+      users: userArr
     })
     /*.then(success => {
       console.log("Room created. " + success);
@@ -100,7 +103,9 @@ export default class DataConnector {
 
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
-          let uobj = roomDoc.data().users
+
+          let uobj = roomDoc.data().users;
+
           uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
           uobj.splice(uobj.findIndex((u) => {
             return Object.keys(u) == sessionID;
@@ -183,7 +188,9 @@ export default class DataConnector {
     // this only worked because i started with a set that was only the first bits.
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
-        let uobj = roomDoc.data().users
+
+        let uobj = roomDoc.data().users;
+
         uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
         uobj.splice(uobj.findIndex((u) => {
           return Object.keys(u) == sessionID;

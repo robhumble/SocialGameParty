@@ -17,7 +17,7 @@
 
       <v-spacer></v-spacer>
 
-      <h2>Game Night</h2>
+      <h2 class="d-none d-lg-flex">Game Night</h2>
     </v-app-bar>
 
     <v-content>

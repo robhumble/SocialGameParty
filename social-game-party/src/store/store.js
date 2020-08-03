@@ -48,13 +48,17 @@ export default new Vuex.Store({
     },
     //Async (More complex functions) 
     actions: {
+
+        /**
+         * Update the CurrentSession and write the new session to local storage
+         */        
         UpdateCurrentSession:(context, payload) => {
           
             if(payload instanceof SessionInfo)
             {
                 payload.saveToLocalStorage();
           
-                context.commit('setCurrentSession',payload);
+                context.commit('setCurrentSession', payload);
             }
         }
     },
