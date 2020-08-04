@@ -51,7 +51,7 @@
 import { mapGetters } from "vuex";
 import * as sgf from "@/logic/socialGameFramework.js";
 import SessionInfo from "@/logic/SessionInfo.js";
-import { Room, User } from "@/logic/SessionInfo.js";
+import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
@@ -109,8 +109,8 @@ export default {
     },
 
     updateSession() {
-      let room = new Room(this.newRoomName);
-      let usr = new User(1, this.newUserName);
+      let room = new SessionRoom(this.newRoomName);
+      let usr = new SessionUser(1, this.newUserName);
 
       let sess = new SessionInfo(room, usr);
 

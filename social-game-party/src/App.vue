@@ -21,6 +21,15 @@
     </v-app-bar>
 
     <v-content>
+      <div>
+        <span>
+          Current User name:
+          <b>{{currentUserName}}</b>
+          ||| User UniqueID : {{currentUserId}}
+        </span>
+        <v-btn small @click="clearSessionFromMemory">Clear Memory!</v-btn>
+      </div>
+
       <!-- ===== Router views/components injected here ===== -->
       <router-view></router-view>
     </v-content>
@@ -28,8 +37,29 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "App",
-  components: {}
+  components: {},
+  computed: {
+    ...mapGetters(["projectName", "currentSession"]),
+
+    currentUserName: function () {
+      if (this.currentSession)
+        return this.currentSession.currentUser.name ?? "Nada";
+      return "Nada";
+    },
+
+    currentUserId: function () {
+      if (this.currentSession)
+        return this.currentSession.currentUser.uniqueId ?? "Nada";
+      return "Nada";
+    },
+  },
+  methods: {
+    clearSessionFromMemory() {
+      this.$store.dispatch("clearSession");
+    },
+  },
 };
 </script>

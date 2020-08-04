@@ -7,8 +7,8 @@ export default class SessionInfo {
     currentUser = null;
 
     constructor(room, user) {
-        this.currentRoom = room;
-        this.currentUser = user;
+        this.currentRoom = room ?? new SessionRoom();
+        this.currentUser = user ?? new SessionUser();
     }
 
     //Local storage -------------------------------------------->
@@ -27,7 +27,7 @@ export default class SessionInfo {
             this.populateFromStringRepresentation(dataFromLocalStorage);
     }
 
-    eraseSessionInfoFromLocalStorage = function(){
+    eraseSessionInfoFromLocalStorage = function () {
         localStorage.removeItem(this.#localStorageKey);
     }
 
@@ -54,8 +54,8 @@ export default class SessionInfo {
         let dataObj = JSON.parse(dataString);
 
         if (dataObj) {
-            let room = new Room(dataObj.roomName);
-            let usr = new User(dataObj.userUniqueId, dataObj.userName);
+            let room = new SessionRoom(dataObj.roomName);
+            let usr = new SessionUser(dataObj.userUniqueId, dataObj.userName);
 
             this.currentRoom = room;
             this.currentUser = usr;
@@ -65,7 +65,8 @@ export default class SessionInfo {
 
 }
 
-export class Room {
+//Room information necessary for the current session in the client
+export class SessionRoom {
 
     name = "";
 
@@ -75,14 +76,19 @@ export class Room {
 
 }
 
-export class User {
+//User information necessary for the current session in the client
+export class SessionUser {
 
     uniqueId = "";
     name = "";
 
     constructor(uid, inName) {
-        this.uniqueId = uid;
+        this.uniqueId = uid ?? this.generateNewUniqueID();
         this.name = inName;
+    }
+
+    generateNewUniqueID() {
+        return Math.round(Math.random() * 1000000);
     }
 
 }

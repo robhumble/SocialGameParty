@@ -34,6 +34,12 @@
 
     <!-- Room navigation. Still in progress. -->
     <v-container>
+      <v-row v-if="!currentSession.currentUser.name" class="text-center">
+        <v-col>
+          <UserSetup></UserSetup>
+        </v-col>
+      </v-row>
+
       <v-row class="text-center">
         <v-col>
           <NewRoom></NewRoom>
@@ -45,19 +51,25 @@
 
 <script>
 // @ is an alias to /src
+import { mapGetters } from "vuex";
 import ChatRoom from "@/components/ChatRoom.vue";
-import NewRoom from "@/components/NewRoom.vue";
+import NewRoom from "@/components/RoomBuilder/NewRoom.vue";
+import UserSetup from "@/components/RoomBuilder/UserSetup.vue";
 
 export default {
   name: "Home",
   components: {
     NewRoom,
     ChatRoom,
+    UserSetup
   },
   data: () => ({
     inChatRoom: false,
     showChat: false,
   }),
+  computed:{
+    ...mapGetters(["projectName", "currentSession"]),
+  },
   methods: {
     toggleShowChat() {
       if (this.showChat) this.showChat = false;

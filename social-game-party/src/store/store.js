@@ -27,7 +27,9 @@ export default new Vuex.Store({
             {
                 let s = new SessionInfo();
                 s.loadFromLocalStorage();
+                s.saveToLocalStorage();
                 state.currentSession = s;
+                
             }
 
             return state.currentSession;
@@ -47,7 +49,8 @@ export default new Vuex.Store({
 
     },
     //Async (More complex functions) 
-    actions: {
+    actions: {               
+
 
         /**
          * Update the CurrentSession and write the new session to local storage
@@ -60,7 +63,42 @@ export default new Vuex.Store({
           
                 context.commit('setCurrentSession', payload);
             }
+        },
+
+        UpdateCurrentUserDisplayName:(context, payload) => {
+          
+            if(typeof payload === 'string' && context.state.currentSession)
+            {
+                context.state.currentSession.currentUser.name = payload;
+                context.state.currentSession.saveToLocalStorage();
+            }
+        },
+
+        UpdateCurrentUserUniqueId:(context, payload) => {
+          
+            if(typeof payload === 'number' && context.state.currentSession)
+            {
+                context.state.currentSession.currentUser.uniqueId = payload;
+                context.state.currentSession.saveToLocalStorage();
+            }
+        },
+
+        UpdateCurrentRoomName:(context, payload) => {
+          
+            if(typeof payload === 'string' && context.state.currentSession)
+            {
+                context.state.currentSession.currentRoom.name = payload;
+                context.state.currentSession.saveToLocalStorage();
+            }
+        },
+
+        clearSession:(context) => {        
+            context.state.currentSession.eraseSessionInfoFromLocalStorage();
+            context.state.currentSession = null;
         }
+
+
+
     },
     modules: {
     }
