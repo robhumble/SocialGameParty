@@ -16,7 +16,7 @@ export default class DataConnector {
 
   constructor() {
     this.initializeFireStoreDb();
-  }  
+  }
 
   /**
   * Connect to the FireStore DB and initialize the FireStore Db object.
@@ -33,7 +33,7 @@ export default class DataConnector {
   };
 
   //Chat Section--------------------------------
-  
+
   chatRoomInfo = {
     chatRoomCollection: "chatRooms",
     chatRoomDoc: "globalChatRoom"
@@ -86,10 +86,10 @@ export default class DataConnector {
   // User IDs are not deleted by any other method of leaving the room. 
   makeRoom = function (makeRoomName, sessionID, clientInRoom) {
 
-    let userArr = [{[sessionID]:""}];
+    let userArr = [{ [sessionID]: "" }];
 
     // This line creates both the room and the document inside that will hold the array of users.
-    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({    
+    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({
       users: userArr
     })
     /*.then(success => {
@@ -106,7 +106,7 @@ export default class DataConnector {
 
           let uobj = roomDoc.data().users;
 
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
+          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
           uobj.splice(uobj.findIndex((u) => {
             return Object.keys(u) == sessionID;
           }), 1);
@@ -128,7 +128,7 @@ export default class DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(joinRef).then(function (joinDoc) {
         let u = joinDoc.data().users;
-        u.push( JSON.parse(`{"${sessionID}":""}`) );
+        u.push(JSON.parse(`{"${sessionID}":""}`));
         transaction.update(joinRef, { users: u });
       })
     })/*.then(function() {
@@ -143,7 +143,7 @@ export default class DataConnector {
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
           let uobj = roomDoc.data().users
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
+          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
           uobj.splice(uobj.findIndex((u) => {
             return Object.keys(u) == sessionID;
           }), 1);
@@ -165,7 +165,7 @@ export default class DataConnector {
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
           let uobj = roomDoc.data().users
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
+          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
           uobj.splice(uobj.findIndex((u) => {
             return Object.keys(u) == sessionID;
           }), 1);
@@ -191,7 +191,7 @@ export default class DataConnector {
 
         let uobj = roomDoc.data().users;
 
-        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
+        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
         uobj.splice(uobj.findIndex((u) => {
           return Object.keys(u) == sessionID;
         }), 1, userObject);
@@ -206,7 +206,7 @@ export default class DataConnector {
 
   }
   exitGame = function (sessionID, clientInRoom) {
-    console.log (sessionID + clientInRoom);
+    console.log(sessionID + clientInRoom);
     let userObject = JSON.parse(`{"${sessionID}":""}`);
     let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
 
@@ -216,10 +216,10 @@ export default class DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
         let uobj = roomDoc.data().users
-        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) }); 
+        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
         uobj.splice(uobj.findIndex((u) => {
           return Object.keys(u) == sessionID;
-        }), 1, userObject);
+        }), 11, userObject);
         transaction.update(roomDocRef, { users: uobj });
       })
     })/*.then(function() {
@@ -241,6 +241,140 @@ export default class DataConnector {
         onSnapshotFunction(remoteUserList);
       });
   };
+
+
+
+
+
+
+
+
+  //New Operations-------------------------------------------------------------------
+
+  new_makeRoom = function (newRoomName, userId) {
+
+    let userArr = [{ [userId]: "" }];
+
+    // This line creates both the room and the document inside that will hold the array of users.
+    this.firestoreDb.doc(`rooms/${newRoomName}`).set({
+      users: userArr
+    })
+    /*.then(success => {
+      console.log("Room created. " + success);
+    })
+    .catch(err => {
+      console.error("Error: " + err);
+    })*/
+  };
+
+  new_joinRoom = function (joinRoomName, userId) {
+    let joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
+
+    // Add the user's ID to the list of users in the room
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(joinRef).then(function (joinDoc) {
+        let u = joinDoc.data().users;
+        let usr = { [userId]: "" };
+        u.push(usr);
+        transaction.update(joinRef, { users: u });
+      })
+    })/*.then(function() {
+        console.log("join room success");
+      }).catch(function(err) {
+        console.log("join room failed" + err);
+      }); */
+
+    return true;
+  }
+
+
+  new_exitRoom = function (userId, roomName) {
+    if (roomName) { //remove the user from the room they are in when they move, if they are in a room
+      let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+      this.firestoreDb.runTransaction(function (transaction) {
+        return transaction.get(roomDocRef).then(function (roomDoc) {
+          let uobj = roomDoc.data().users
+          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
+          uobj.splice(uobj.findIndex((u) => {
+            return Object.keys(u) == userId;
+          }), 1);
+          transaction.update(roomDocRef, { users: uobj });
+        })
+      })/*.then(function() {
+        console.log("exit room success");
+      }).catch(function(err) {
+        console.log("exit room failed" + err);
+      });*/
+    }
+  }
+
+
+  //REDO THIS
+  new_joinGame = function (userId, userName, roomName) {
+    //console.log (sessionID + clientIsPlayer + clientInRoom);
+    let userObject = { [userId]: userName }; //JSON.parse(`{"${userId}":"${userName}"}`);
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    // this only worked because i started with a set that was only the first bits.
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let uobj = roomDoc.data().users;
+
+        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
+        uobj.splice(uobj.findIndex((u) => {
+          return Object.keys(u) == userId;
+        }), 1, userObject);
+        transaction.update(roomDocRef, { users: uobj });
+      })
+    })/*.then(function() {
+      console.log("game join success");
+    }).catch(function(err) {
+      console.log("game join failed" + err);
+    });*/
+
+
+  }
+
+  //REDO THIS
+  new_exitGame = function (userId, roomName) {
+    console.log(userId + roomName);
+    let userObject = { [userId]: "" };//JSON.parse(`{"${userId}":""}`);
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    // joingame and exitgame contain an identical transaction block, the only change is the construction of the user object
+    // there is potential here for this block to be extracted to its own callable function, something like "updateUser"
+    // since it just finds the matching sessionID and wholesale swaps out the user object.
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+        let uobj = roomDoc.data().users
+        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
+        uobj.splice(uobj.findIndex((u) => {
+          return Object.keys(u) == userId;
+        }), 11, userObject);
+        transaction.update(roomDocRef, { users: uobj });
+      })
+    })/*.then(function() {
+      console.log("game exit success");
+    }).catch(function(err) {
+      console.log("game exit failed" + err);
+    });*/
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

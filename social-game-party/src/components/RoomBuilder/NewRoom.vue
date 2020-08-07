@@ -1,48 +1,61 @@
 <!-- This component lets the user choose what room they will join or make. -->
 <template>
-  <div>
-    <h1 v-if="!clientInRoom">You are not in a game room!</h1>
-    <h1 v-if="clientInRoom">You are in room: {{clientInRoom}}</h1>
+  <div style="text-align:center;">
+    <div class="d-flex justify-center">
+      <v-card max-width="80%" rounded outlined class="room-menu-card">
+        <v-card-title class="text-center">Room Menu</v-card-title>
 
-    <h3>Would you like to:</h3>
-    <!-- prevent loading both options at once by making the other button's value false -->
-    <v-btn @click="joinARoom = true, makeARoom = false">Join a room!</v-btn>
-    <span style="font-weight:bold">Or</span>
-    <v-btn @click="makeARoom = true, joinARoom = false">Make a new room!</v-btn>
-    <span v-if="clientInRoom" style="font-weight:bold">Or</span>
-    <v-btn v-if="clientInRoom" @click="exitRoom(), joinARoom=false, makeARoom=false">Exit!</v-btn>
+        <div class="room-status">
+          <h1 v-if="!clientInRoom">You are not in a game room!</h1>
+          <h1 v-if="clientInRoom">You are in room: {{clientInRoom}}</h1>
+        </div>
 
-    <!-- forms for joining and making rooms respectively -->
-    <div v-if="joinARoom">
-      <h3>What is your room name?</h3>
-      <v-container align-center>
-        <v-row>
-          <v-col />
-          <v-col>
-            <v-text-field outlined v-model="joinRoomName"></v-text-field>
-          </v-col>
-          <v-col @click="joinRoom(joinRoomName)">
-            <v-btn>Join</v-btn>
-          </v-col>
-          <v-col />
-        </v-row>
-      </v-container>
+        <!-- <div class="RoomMenu" style="max-width:60%">
+        <h2>Room Menu</h2>-->
+        <!-- prevent loading both options at once by making the other button's value false -->
+        <div v-if="!clientInRoom && !joinARoom && !makeARoom" class="join-or-make">
+          <h3>Would you like to:</h3>
+          <v-btn @click="joinARoom = true">Join a room!</v-btn>
+          <span style="font-weight:bold">Or</span>
+          <v-btn @click="makeARoom = true">Make a new room!</v-btn>
+        </div>
+        <v-btn v-if="clientInRoom" @click="exitRoom">Exit!</v-btn>
+
+        <!-- forms for joining and making rooms respectively -->
+        <div v-if="joinARoom">
+          <h3>What is your room name?</h3>
+          <v-container align-center>
+            <v-row>
+              <v-col />
+              <v-col>
+                <v-text-field outlined v-model="joinRoomName"></v-text-field>
+              </v-col>
+              <v-col @click="joinRoom(joinRoomName)">
+                <v-btn>Join</v-btn>
+              </v-col>
+              <v-col />
+            </v-row>
+          </v-container>
+        </div>
+        <div v-if="makeARoom">
+          <h3>What will you name your room?</h3>
+          <v-container align-center>
+            <v-row>
+              <v-col />
+              <v-col>
+                <v-text-field outlined v-model="makeRoomName"></v-text-field>
+              </v-col>
+              <v-col @click="makeRoom(makeRoomName)">
+                <v-btn>Make</v-btn>
+              </v-col>
+              <v-col />
+            </v-row>
+          </v-container>
+        </div>
+      </v-card>
     </div>
-    <div v-if="makeARoom">
-      <h3>What will you name your room?</h3>
-      <v-container align-center>
-        <v-row>
-          <v-col />
-          <v-col>
-            <v-text-field outlined v-model="makeRoomName"></v-text-field>
-          </v-col>
-          <v-col @click="makeRoom(makeRoomName)">
-            <v-btn>Make</v-btn>
-          </v-col>
-          <v-col />
-        </v-row>
-      </v-container>
-    </div>
+
+    <!-- </div> -->
     <!-- code to be ripped from NewRoom and put in GameRoom -->
     <div v-if="clientInRoom">
       <h3 v-if="!inGame">You are currently spectating.</h3>
@@ -75,8 +88,8 @@ export default {
   data() {
     return {
       clientInRoom: "", //current room name
-      joinARoom: false,
-      makeARoom: false,
+      joinARoom: false, // Join Room "state"
+      makeARoom: false, // Make Room "state"
       joinRoomName: "", //name of room to find/join
       makeRoomName: "", //name of room to create
       dataConnector: new DataConnector(),
@@ -191,3 +204,10 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.room-menu-card {
+  color: #dd2c00 !important;
+  border-color: #dd2c00 !important;
+}
+</style>
