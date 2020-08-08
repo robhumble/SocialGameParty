@@ -26,7 +26,7 @@
           <v-col cols="12">
             <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
             <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
-            <ChatRoom v-if="inChatRoom"></ChatRoom>
+            <ChatArea v-if="inChatRoom"></ChatArea>
           </v-col>
         </v-row>
       </v-container>
@@ -42,7 +42,7 @@
 
       <v-row class="text-center">
         <v-col>
-          <NewRoom></NewRoom>
+          <RoomMenu></RoomMenu>
         </v-col>
       </v-row>
     </v-container>
@@ -52,15 +52,15 @@
 <script>
 // @ is an alias to /src
 import { mapGetters } from "vuex";
-import ChatRoom from "@/components/ChatRoom.vue";
-import NewRoom from "@/components/RoomBuilder/NewRoom.vue";
+import ChatArea from "@/components/ChatArea.vue";
+import RoomMenu from "@/components/RoomBuilder/RoomMenu.vue";
 import UserSetup from "@/components/RoomBuilder/UserSetup.vue";
 
 export default {
   name: "Home",
   components: {
-    NewRoom,
-    ChatRoom,
+    RoomMenu,
+    ChatArea,
     UserSetup
   },
   data: () => ({

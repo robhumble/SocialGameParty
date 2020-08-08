@@ -209,5 +209,6 @@ export default {
 .room-menu-card {
   color: #dd2c00 !important;
   border-color: #dd2c00 !important;
+  padding:5px;
 }
 </style>
