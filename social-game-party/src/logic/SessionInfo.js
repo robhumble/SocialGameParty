@@ -87,6 +87,7 @@ export class SessionUser {
         this.name = inName;
     }
 
+    //TODO: Update this method to use an actual GUID/UUID - see https://github.com/uuidjs/uuid
     generateNewUniqueID() {
         return Math.round(Math.random() * 1000000);
     }

@@ -6,20 +6,20 @@
         <v-card-title class="text-center">Room Menu</v-card-title>
 
         <div class="room-status">
-          <h1 v-if="!clientInRoom">You are not in a game room!</h1>
-          <h1 v-if="clientInRoom">You are in room: {{clientInRoom}}</h1>
+          <h1 v-if="!currentRoomName">You are not in a game room!</h1>
+          <h1 v-if="currentRoomName">You are in room: {{currentRoomName}}</h1>
         </div>
 
         <!-- <div class="RoomMenu" style="max-width:60%">
         <h2>Room Menu</h2>-->
         <!-- prevent loading both options at once by making the other button's value false -->
-        <div v-if="!clientInRoom && !joinARoom && !makeARoom" class="join-or-make">
+        <div v-if="!currentRoomName && !joinARoom && !makeARoom" class="join-or-make">
           <h3>Would you like to:</h3>
           <v-btn @click="joinARoom = true">Join a room!</v-btn>
           <span style="font-weight:bold">Or</span>
           <v-btn @click="makeARoom = true">Make a new room!</v-btn>
         </div>
-        <v-btn v-if="clientInRoom" @click="exitRoom">Exit!</v-btn>
+        <v-btn v-if="currentRoomName" @click="exitRoom">Exit!</v-btn>
 
         <!-- forms for joining and making rooms respectively -->
         <div v-if="joinARoom">
@@ -57,24 +57,17 @@
 
     <!-- </div> -->
     <!-- code to be ripped from NewRoom and put in GameRoom -->
-    <div v-if="clientInRoom">
-      <h3 v-if="!inGame">You are currently spectating.</h3>
-      <h3 v-if="inGame">You are in game!</h3>
-      <v-btn v-if="!clientIsPlayer" @click="wantToJoin=true;">Join Game</v-btn>
-      <v-btn v-if="clientIsPlayer" @click="exitGame()">Exit Game</v-btn>
-
-      <v-container align-center v-if="wantToJoin">
-        <v-row>
-          <v-col>
-            <!-- <v-text-field outlined v-model="clientIsPlayer" placeholder="Type Username Here"></v-text-field> -->
-            Are you sure you want to join?
-          </v-col>
-          <v-col @click="joinGame()">
-            <v-btn>Join</v-btn>
-          </v-col>
-        </v-row>
-      </v-container>
-      <h2 v-if="clientInRoom">Players In Game: {{userList}}</h2>
+    <div v-if="currentRoomName">
+      <div v-if="!inGame">
+        <h3>You are currently spectating.</h3>
+        <v-btn @click="joinGame">Join Game</v-btn>
+      </div>
+      <div v-if="inGame">
+        <h3>You are in game!</h3>
+        <v-btn @click="exitGame()">Leave Game</v-btn>
+      </div>
+      <h2 v-if="currentRoomName">Specators In Room: {{peopleSpectating}}</h2>
+      <h2 v-if="currentRoomName">Active Players In Room: {{peoplePlaying}}</h2>
     </div>
     <!-- end gameroom block -->
   </div>
@@ -87,7 +80,7 @@ import DataConnector from "@/logic/DataConnector.js";
 export default {
   data() {
     return {
-      clientInRoom: "", //current room name
+      currentRoomName: "", //current room name
       joinARoom: false, // Join Room "state"
       makeARoom: false, // Make Room "state"
       joinRoomName: "", //name of room to find/join
@@ -97,55 +90,134 @@ export default {
       sessionID: Math.round(Math.random() * 1000000), //user id
 
       // gameRoom data
-      clientIsPlayer: "", //current user/player name
+      currentPlayerName: "", //current user/player name
       wantToJoin: false,
       inGame: false,
-      userList: "", //list of all users in the current game.
+      userList: [], //list of all users in the current game.
     };
+  },
+  mounted: function () {
+    this.attemptToRejoinRoom();
   },
   computed: {
     ...mapGetters(["currentSession"]),
+
+    peopleSpectating: function () {
+      let userStr = "";
+
+      this.userList
+        .filter((x) => !x.isPlaying)
+        .forEach(function (user) {
+          //let appendName = Object.values(user);
+          let appendName = user.name;
+          if (appendName != "") {
+            userStr += `${appendName}, `;
+          }
+        });
+
+      return userStr;
+    },
+
+    peoplePlaying: function () {
+      let userStr = "";
+
+      this.userList
+        .filter((x) => x.isPlaying)
+        .forEach(function (user) {
+          //let appendName = Object.values(user);
+          let appendName = user.name;
+          if (appendName != "") {
+            userStr += `${appendName}, `;
+          }
+        });
+
+      return userStr;
+    },
   },
   methods: {
     //Create a room
     makeRoom(makeRoomName) {
-      this.dataConnector.makeRoom(
-        makeRoomName,
-        this.sessionID,
-        this.clientInRoom
-      );
-      this.clientInRoom = makeRoomName;
-      this.resetCommonProperties();
+      let curUser = this.getDbModelFromCurrentUser();
 
-      this.setupUserDisplay();
+      this.dataConnector.new_makeRoom(makeRoomName, curUser);
+
+      this.updateCurrentRoom(makeRoomName);
+
+      this.resetNavProperties();
     },
 
-    //Join an existing room
+    // //Join an existing room
     joinRoom(joinRoomName) {
-      let success = this.dataConnector.joinRoom(
-        joinRoomName,
-        this.sessionID,
-        this.clientInRoom
-      );
-      if (success) {
-        this.clientInRoom = joinRoomName;
-      }
-      this.resetCommonProperties();
+      let curUser = this.getDbModelFromCurrentUser();
 
-      this.setupUserDisplay();
+      let success = this.dataConnector.new_joinRoom(joinRoomName, curUser);
+
+      if (success) this.updateCurrentRoom(joinRoomName);
+
+      this.resetNavProperties();
     },
 
-    //Leave the users current room
+    // //Leave the users current room
     exitRoom() {
-      this.dataConnector.exitRoom(this.sessionID, this.clientInRoom);
-      this.clientInRoom = "";
-      this.resetCommonProperties();
+      this.dataConnector.exitRoom(
+        this.currentSession.currentUser.uniqueId,
+        this.currentRoomName
+      );
+
+      this.updateCurrentRoom("");
+
+      this.resetNavProperties();
     },
 
-    //helpers-----------------------------
+    // // gameRoom methods
 
+    // //Join the game in the current room
+    joinGame() {
+      let userId = this.currentSession?.currentUser?.uniqueId;
+
+      this.dataConnector.new_joinGame(userId, this.currentRoomName);
+
+      this.inGame = true;
+      this.wantToJoin = false;
+    },
+
+    //TODO: There is a bug here - I'm not sure this kicks the right user if there are multiple users - might make more sense to just do a filter where != to this user id.
+    // //exit the current game but stay in the room     
+    exitGame() {
+      let userId = this.currentSession?.currentUser?.uniqueId;
+
+      this.dataConnector.new_exitGame(userId, this.currentRoomName);
+      //this.currentPlayerName = "";
+      this.inGame = false;
+      this.wantToJoin = false;
+    },
+
+    //Get list of users in the current room
+    listenToRoomUsers: function () {
+      // allows us to use a reference to the class data outside of the dataConnector method
+      var that = this;
+
+      this.dataConnector.listenToUsers(function (remoteUserList) {
+        that.userList = remoteUserList;
+      }, that.currentRoomName);
+    },
+
+    attemptToRejoinRoom: function () {
+      let roomFromPreviousSession = this.currentSession.currentRoom.name;
+      let curUser = this.getDbModelFromCurrentUser();
+
+      if (roomFromPreviousSession) {
+        this.dataConnector.rejoinRoom(
+          roomFromPreviousSession,
+          curUser,
+          this.updateCurrentRoom
+        );
+      }
+    },
+
+    //Helpers--------------------------------------
     //reset common nav/menu properties
-    resetCommonProperties() {
+    resetNavProperties() {
       this.joinARoom = false;
       this.makeARoom = false;
       this.joinRoomName = "";
@@ -155,51 +227,26 @@ export default {
       this.wantToJoin = false;
     },
 
-    // gameRoom methods
+    updateCurrentRoom: function (newRoomName) {
+      this.$store.dispatch("UpdateCurrentRoomName", newRoomName);
+      this.currentRoomName = newRoomName;
 
-    //Join the game in the current room
-    joinGame() {
-      let displayName = this.currentSession?.currentUser?.name;
-
-      if (displayName) {
-        this.dataConnector.joinGame(
-          this.sessionID,
-          //this.clientIsPlayer,
-          displayName,
-          this.clientInRoom
-        );
-
-        this.inGame = true;
-        this.wantToJoin = false;
-      } else alert("You must have a display to join a game !");
+      if (newRoomName) this.listenToRoomUsers();
     },
 
-    //exit the current game but stay in the room
-    exitGame() {
-      this.dataConnector.exitGame(this.sessionID, this.clientInRoom);
-      this.clientIsPlayer = "";
-      this.inGame = false;
-      this.wantToJoin = false;
+    //Get a representation for the user that we want to use in the database.
+    getDbModelFromCurrentUser: function () {
+      let userDbModel = {
+        id: this.currentSession.currentUser.uniqueId,
+        name: this.currentSession.currentUser.name,
+        isPlaying: false,
+      };
+
+      return userDbModel;
     },
 
-    //Get list of users in the current room
-    setupUserDisplay: function () {
-      // allows us to use a reference to the class data outside of the dataConnector method
-      var that = this;
-
-      this.dataConnector.listenToUsers(function (remoteUserList) {
-        let tempUserList = "";
-        // remoteUserList = JSON.parse(remoteUserList);
-
-        remoteUserList.forEach(function (user) {
-          let appendName = Object.values(user);
-          if (appendName != "") {
-            tempUserList += `${appendName}, `;
-          }
-        });
-        that.userList = tempUserList;
-        //console.log("There may have been an update to the user list.");
-      }, that.clientInRoom);
+    clearCurrentRoom: function () {
+      this.updateCurrentRoom("");
     },
   },
 };
@@ -209,6 +256,6 @@ export default {
 .room-menu-card {
   color: #dd2c00 !important;
   border-color: #dd2c00 !important;
-  padding:5px;
+  padding: 5px;
 }
 </style>

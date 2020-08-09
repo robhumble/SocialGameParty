@@ -26,6 +26,7 @@
           Current User name:
           <b>{{currentUserName}}</b>
           ||| User UniqueID : {{currentUserId}}
+          ||| Room Name : {{currentRoomName}}
         </span>
         <v-btn small @click="clearSessionFromMemory">Clear Memory!</v-btn>
       </div>
@@ -53,6 +54,12 @@ export default {
     currentUserId: function () {
       if (this.currentSession)
         return this.currentSession.currentUser.uniqueId ?? "Nada";
+      return "Nada";
+    },
+
+    currentRoomName: function () {
+      if (this.currentSession)
+        return this.currentSession.currentRoom.name ?? "Nada";
       return "Nada";
     },
   },
