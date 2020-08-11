@@ -23,6 +23,7 @@
     <v-content>
       <div>
         <span>
+          !!!DEBUG!!! ---> 
           Current User name:
           <b>{{currentUserName}}</b>
           ||| User UniqueID : {{currentUserId}}

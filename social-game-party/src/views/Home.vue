@@ -53,8 +53,8 @@
 // @ is an alias to /src
 import { mapGetters } from "vuex";
 import ChatArea from "@/components/ChatArea.vue";
-import RoomMenu from "@/components/RoomBuilder/RoomMenu.vue";
-import UserSetup from "@/components/RoomBuilder/UserSetup.vue";
+import RoomMenu from "@/components/RoomParts/RoomMenu.vue";
+import UserSetup from "@/components/UserSetup.vue";
 
 export default {
   name: "Home",

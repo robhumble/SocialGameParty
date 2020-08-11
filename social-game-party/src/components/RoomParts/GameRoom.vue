@@ -30,8 +30,11 @@
               <v-col>
                 <v-text-field outlined v-model="joinRoomName"></v-text-field>
               </v-col>
-              <v-col @click="joinRoom(joinRoomName)">
-                <v-btn>Join</v-btn>
+              <v-col >
+                <v-btn @click="joinRoom(joinRoomName)">Join</v-btn>
+              </v-col>
+              <v-col >
+                <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
               <v-col />
             </v-row>
@@ -45,8 +48,11 @@
               <v-col>
                 <v-text-field outlined v-model="makeRoomName"></v-text-field>
               </v-col>
-              <v-col @click="makeRoom(makeRoomName)">
-                <v-btn>Make</v-btn>
+              <v-col >
+                <v-btn @click="makeRoom(makeRoomName)">Make</v-btn>
+              </v-col>
+              <v-col >
+                <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
               <v-col />
             </v-row>
@@ -93,15 +99,15 @@ export default {
       currentPlayerName: "", //current user/player name
       wantToJoin: false,
       inGame: false,
-      userList: [], //list of all users in the current game.
+      //userList: [], //list of all users in the current game.
     };
   },
   mounted: function () {
     this.attemptToRejoinRoom();
   },
   computed: {
-    ...mapGetters(["currentSession"]),
-
+    ...mapGetters(["currentSession","userList"]),
+    
     peopleSpectating: function () {
       let userStr = "";
 
@@ -139,7 +145,7 @@ export default {
     makeRoom(makeRoomName) {
       let curUser = this.getDbModelFromCurrentUser();
 
-      this.dataConnector.new_makeRoom(makeRoomName, curUser);
+      this.dataConnector.makeRoom(makeRoomName, curUser);
 
       this.updateCurrentRoom(makeRoomName);
 
@@ -150,9 +156,7 @@ export default {
     joinRoom(joinRoomName) {
       let curUser = this.getDbModelFromCurrentUser();
 
-      let success = this.dataConnector.new_joinRoom(joinRoomName, curUser);
-
-      if (success) this.updateCurrentRoom(joinRoomName);
+      this.dataConnector.joinRoom(joinRoomName, curUser, this.updateCurrentRoom);
 
       this.resetNavProperties();
     },
@@ -175,7 +179,7 @@ export default {
     joinGame() {
       let userId = this.currentSession?.currentUser?.uniqueId;
 
-      this.dataConnector.new_joinGame(userId, this.currentRoomName);
+      this.dataConnector.joinGame(userId, this.currentRoomName);
 
       this.inGame = true;
       this.wantToJoin = false;
@@ -186,7 +190,7 @@ export default {
     exitGame() {
       let userId = this.currentSession?.currentUser?.uniqueId;
 
-      this.dataConnector.new_exitGame(userId, this.currentRoomName);
+      this.dataConnector.exitGame(userId, this.currentRoomName);
       //this.currentPlayerName = "";
       this.inGame = false;
       this.wantToJoin = false;
@@ -198,7 +202,10 @@ export default {
       var that = this;
 
       this.dataConnector.listenToUsers(function (remoteUserList) {
-        that.userList = remoteUserList;
+        //that.userList = remoteUserList;
+
+        that.$store.commit("setUserList",remoteUserList);
+
       }, that.currentRoomName);
     },
 

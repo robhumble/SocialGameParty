@@ -80,180 +80,13 @@ export default class DataConnector {
 
   // Firebase functions for room movement. -----------------------------
 
-  // presently, make room does not check if the room already exists.
-  // join room will fail if the room doesn't exist, but this is not reflected on the site
-  // User IDs now correctly appear in rooms on the database and are deleted when the user leaves by any of the given buttons.
-  // User IDs are not deleted by any other method of leaving the room. 
-  makeRoom = function (makeRoomName, sessionID, clientInRoom) {
-
-    let userArr = [{ [sessionID]: "" }];
-
-    // This line creates both the room and the document inside that will hold the array of users.
-    this.firestoreDb.doc(`rooms/${makeRoomName}`).set({
-      users: userArr
-    })
-    /*.then(success => {
-      console.log("Room created. " + success);
-    })
-    .catch(err => {
-      console.error("Error: " + err);
-    })*/
-    if (clientInRoom) { //remove the user from the room they are in when they move, if they are in a room
-      let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
-
-      this.firestoreDb.runTransaction(function (transaction) {
-        return transaction.get(roomDocRef).then(function (roomDoc) {
-
-          let uobj = roomDoc.data().users;
-
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-          uobj.splice(uobj.findIndex((u) => {
-            return Object.keys(u) == sessionID;
-          }), 1);
-          transaction.update(roomDocRef, { users: uobj });
-        })
-      })/*.then(function() {
-        console.log("exit room success");
-      }).catch(function(err) {
-        console.log("exit room failed" + err);
-      });*/
-    }
-
-  }
-  // PLEASE remember these commands are caps sensitive in firebase.
-  joinRoom = function (joinRoomName, sessionID, clientInRoom) {
-    let joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
-
-    // Add the user's ID to the list of users in the room
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(joinRef).then(function (joinDoc) {
-        let u = joinDoc.data().users;
-        u.push(JSON.parse(`{"${sessionID}":""}`));
-        transaction.update(joinRef, { users: u });
-      })
-    })/*.then(function() {
-        console.log("join room success");
-      }).catch(function(err) {
-        console.log("join room failed" + err);
-      }); */
-
-    if (clientInRoom) { //remove the user from the room they are in when they move, if they are in a room
-      let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
-
-      this.firestoreDb.runTransaction(function (transaction) {
-        return transaction.get(roomDocRef).then(function (roomDoc) {
-          let uobj = roomDoc.data().users
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-          uobj.splice(uobj.findIndex((u) => {
-            return Object.keys(u) == sessionID;
-          }), 1);
-          transaction.update(roomDocRef, { users: uobj });
-        })
-      })/*.then(function() {
-        console.log("exit room success");
-      }).catch(function(err) {
-        console.log("exit room failed" + err);
-      });*/
-    }
-    return true;
-
-  }
-  exitRoom = function (sessionID, clientInRoom) {
-    if (clientInRoom) { //remove the user from the room they are in when they move, if they are in a room
-      let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
-
-      this.firestoreDb.runTransaction(function (transaction) {
-        return transaction.get(roomDocRef).then(function (roomDoc) {
-          let uobj = roomDoc.data().users
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-          uobj.splice(uobj.findIndex((u) => {
-            return Object.keys(u) == sessionID;
-          }), 1);
-          transaction.update(roomDocRef, { users: uobj });
-        })
-      })/*.then(function() {
-        console.log("exit room success");
-      }).catch(function(err) {
-        console.log("exit room failed" + err);
-      });*/
-    }
-  }
-
-  // firebase code for joining and exiting the game inside the game room
-  joinGame = function (sessionID, clientIsPlayer, clientInRoom) {
-    //console.log (sessionID + clientIsPlayer + clientInRoom);
-    let userObject = JSON.parse(`{"${sessionID}":"${clientIsPlayer}"}`);
-    let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
-
-    // this only worked because i started with a set that was only the first bits.
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
-
-        let uobj = roomDoc.data().users;
-
-        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-        uobj.splice(uobj.findIndex((u) => {
-          return Object.keys(u) == sessionID;
-        }), 1, userObject);
-        transaction.update(roomDocRef, { users: uobj });
-      })
-    })/*.then(function() {
-      console.log("game join success");
-    }).catch(function(err) {
-      console.log("game join failed" + err);
-    });*/
-
-
-  }
-  exitGame = function (sessionID, clientInRoom) {
-    console.log(sessionID + clientInRoom);
-    let userObject = JSON.parse(`{"${sessionID}":""}`);
-    let roomDocRef = this.firestoreDb.doc(`rooms/${clientInRoom}`);
-
-    // joingame and exitgame contain an identical transaction block, the only change is the construction of the user object
-    // there is potential here for this block to be extracted to its own callable function, something like "updateUser"
-    // since it just finds the matching sessionID and wholesale swaps out the user object.
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
-        let uobj = roomDoc.data().users
-        uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-        uobj.splice(uobj.findIndex((u) => {
-          return Object.keys(u) == sessionID;
-        }), 11, userObject);
-        transaction.update(roomDocRef, { users: uobj });
-      })
-    })/*.then(function() {
-      console.log("game exit success");
-    }).catch(function(err) {
-      console.log("game exit failed" + err);
-    });*/
-
-  }
-  // Listen to the users list to display active players in the game room
-  listenToUsers = function (onSnapshotFunction, clientInRoom) {
-
-    //While this should be a listener, I am concerned changes that aren't the userlist will be sent. 
-    this.firestoreDb
-      .collection("rooms")
-      .doc(clientInRoom)
-      .onSnapshot(function (doc) {
-        let remoteUserList = doc.data().users;
-        onSnapshotFunction(remoteUserList);
-      });
-  };
-
-
-
-
-
-
-
-
-
-
-  //New Operations-------------------------------------------------------------------
-
-  new_makeRoom = function (newRoomName, userObj) {
+  // presently, make room does not check if the room already exists. 
+  /**
+   * Create a new Room and automatically join it as a specatator.
+   * @param {string} newRoomName 
+   * @param {userObj} userObj 
+   */
+  makeRoom = function (newRoomName, userObj) {
 
     let userArr = [userObj];
 
@@ -264,83 +97,16 @@ export default class DataConnector {
 
   };
 
-  new_joinRoom = function (joinRoomName, userObj) {
-    let joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
-
-    // Add the user's ID to the list of users in the room
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(joinRef).then(function (joinDoc) {
-        let u = joinDoc.data().users;
-        u.push(userObj);
-        transaction.update(joinRef, { users: u });
-      })
-    })
-
-    return true;
-  }
-
-
-  new_exitRoom = function (userId, roomName) {
-    if (roomName) { //remove the user from the room they are in when they move, if they are in a room
-      let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
-
-      this.firestoreDb.runTransaction(function (transaction) {
-        return transaction.get(roomDocRef).then(function (roomDoc) {
-          let uobj = roomDoc.data().users
-          uobj.sort(function (a, b) { return Object.keys(a) - Object.keys(b) });
-          uobj.splice(uobj.findIndex((u) => {
-            return Object.keys(u) == userId;
-          }), 1);
-          transaction.update(roomDocRef, { users: uobj });
-        })
-      })
-
-    }
-  }
-
-  new_joinGame = function (userId, roomName) {
-
-    let that = this;
-
-    //let userObject = { [userId]: userName }; 
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
-
-    // this only worked because i started with a set that was only the first bits.
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
-
-        let allUsers = roomDoc.data().users;
-
-        allUsers.forEach(user => that.updateUserPlayingStatus(user, userId, true));
-
-        transaction.update(roomDocRef, { users: allUsers });
-      })
-    })
-
-  }
-
-  //REDO THIS
-  new_exitGame = function (userId, roomName) {
-    let that = this;
-    console.log(userId + roomName);
-
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
-
-
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
-        let allUsers = roomDoc.data().users
-
-        allUsers.forEach(user => that.updateUserPlayingStatus(user, userId, false));
-
-        transaction.update(roomDocRef, { users: allUsers });
-      })
-    })
-  }
-
-  rejoinRoom = function (joinRoomName, userObj, updateRoomFunction) {
+  // PLEASE remember these commands are caps sensitive in firebase.
+  /**
+   * Join the target room if found.
+   * @param {string} joinRoomName 
+   * @param {userObj} userObj 
+   * @param {function} updateRoomFunction - runs after transaction to update the UI.
+   * @param {boolean} alertUser - true alerts the user if the room wasn't found, false suppresses the alert.
+   */
+  joinRoom = function (joinRoomName, userObj, updateRoomFunction, alertUser = true) {
     var that = this;
-
     let joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
 
     // Add the user's ID to the list of users in the room
@@ -359,20 +125,123 @@ export default class DataConnector {
             allUsers.push(userObj);
 
           transaction.update(joinRef, { users: allUsers });
-
           updateRoomFunction(joinRoomName);
 
         }
-        else
+        else {
+          if (alertUser)
+            alert("The Room you tried to join doesn't exist, try again or make a new room.");
+
           //The room doesn't exist, run the fail function
           updateRoomFunction("");
+        }
+
+
+      })
+    })
+  }
+
+  /**
+   * Exit the current room.
+   * @param {number} userId - users unique id 
+   * @param {string} roomName 
+   */
+  exitRoom = function (userId, roomName) {
+    if (roomName) { //remove the user from the room they are in when they move, if they are in a room
+      let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+      this.firestoreDb.runTransaction(function (transaction) {
+        return transaction.get(roomDocRef).then(function (roomDoc) {
+          let allUsers = roomDoc.data().users;
+
+          let updatedUsers = allUsers.filter(x => x.id != userId);
+
+          transaction.update(roomDocRef, { users: updatedUsers });
+        })
+      })
+
+    }
+  }
+
+  // firebase code for joining and exiting the game inside the game room
+  /**
+   * 
+   * @param {number} userId - user's unique id 
+   * @param {string} roomName 
+   */
+  joinGame = function (userId, roomName) {
+
+    let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let allUsers = roomDoc.data().users;
+        allUsers.forEach(user => that.updateUserPlayingStatus(user, userId, true));
+        transaction.update(roomDocRef, { users: allUsers });
 
       })
     })
 
-    return true;
   }
 
+  /**
+   * Exit the current game.
+   * @param {number} userId - user's unique id
+   * @param {string} roomName 
+   */
+  exitGame = function (userId, roomName) {
+    let that = this;
+    console.log(userId + roomName);
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let allUsers = roomDoc.data().users
+        allUsers.forEach(user => that.updateUserPlayingStatus(user, userId, false));
+        transaction.update(roomDocRef, { users: allUsers });
+
+      })
+    })
+  }
+
+  /**
+   * Listen to the target room's user list.
+   * @param {function} onSnapshotFunction - function runs after the user list is retrieved.
+   * @param {string} roomName 
+   */
+  listenToUsers = function (onSnapshotFunction, roomName) {
+
+    //While this should be a listener, I am concerned changes that aren't the userlist will be sent. 
+    this.firestoreDb
+      .collection("rooms")
+      .doc(roomName)
+      .onSnapshot(function (doc) {
+        let remoteUserList = doc.data().users;
+        onSnapshotFunction(remoteUserList);
+      });
+  };
+
+  /**
+   * Attempt to join the room, but don't alert the user if it can't be found.
+   * @param {string} joinRoomName 
+   * @param {userObj} userObj 
+   * @param {function} updateRoomFunction - runs after transaction to update the UI.
+   */
+  rejoinRoom = function (joinRoomName, userObj, updateRoomFunction) {
+    this.joinRoom(joinRoomName, userObj, updateRoomFunction, false);
+  }
+
+  /**
+   * Set's whether or not a user is playing the game.
+   * @param {userObj} userObj 
+   * @param {number} targetId 
+   * @param {boolean} isPlayingStatus 
+   */
   updateUserPlayingStatus = function (userObj, targetId, isPlayingStatus) {
     if (userObj.id == targetId)
       userObj.isPlaying = isPlayingStatus;
