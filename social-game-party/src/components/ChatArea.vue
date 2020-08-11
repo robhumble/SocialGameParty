@@ -1,7 +1,11 @@
 <template>
   <v-container class="chat-container">
     <span class="in-room-text">You are in the ChatRoom.</span>
-    <v-text-field label="Display Name" placeholder="Your Name here..." v-model="displayUserName"></v-text-field>
+    <v-text-field
+      label="Display Name"
+      placeholder="Your Name here..."
+      v-model="providedDisplayName"
+    ></v-text-field>
 
     <v-textarea
       outlined
@@ -33,12 +37,14 @@
 <script>
 import * as sgf from "@/logic/socialGameFramework.js";
 import DataConnector from "@/logic/DataConnector.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "ChatRoom",
 
   data: () => ({
-    displayUserName: "",
+    providedDisplayName: "",
+    //displayUserName: "",
     chatText: "",
     submitText: "",
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
@@ -47,30 +53,67 @@ export default {
     dataConnector: new DataConnector(),
   }),
   mounted: function () {
-    this.setupChatRoom();
+    this.setupChatRoom(this.sessionRoomName);
 
     this.read;
   },
   computed: {
+    ...mapGetters(["currentSession"]),
+
     /**
      * Determine if the user is an Admin based on the provided display name.
      */
     isAdmin: function () {
-      if (this.displayUserName.toLowerCase() == "admin") return true;
+      if (this.providedDisplayName.toLowerCase() == "admin") return true;
 
       return false;
     },
+
+    sessionRoomName: function () {
+      return this.currentSession?.currentRoom?.name;
+    },
+    sessionDisplayName: function () {
+      return this.currentSession?.currentUser?.name;
+    },
+    isGlobal: function () {
+      return this.roomName && this.roomName != "";
+    },
+
+    displayUserName: function () {
+      let un = "";
+
+      if (this.providedDisplayName && this.sessionDisplayName)
+        un = `(${this.sessionDisplayName}) ${this.providedDisplayName} `;
+      else if(this.sessionDisplayName)  
+        un = this.sessionDisplayName;
+      else 
+        un = this.providedDisplayName;
+
+      return un;
+    },
   },
-  watch: {},
+  watch: {
+    //... n = new, o = old
+    sessionRoomName: function (n, o) {
+      if (n != o) {
+        this.setupChatRoom(n);
+      }
+    },
+    sessionDisplayName: function (n, o) {
+      if (n != o) {
+        this.displayUserName = n;
+      }
+    },
+  },
 
   methods: {
     /**
      * Connect to the DB and listen to the chat room.
      */
-    setupChatRoom: function () {
+    setupChatRoom: function (roomName) {
       var that = this;
 
-      this.dataConnector.listenToChatRoomPOC(function (remoteChatText) {
+      this.dataConnector.listenToChatRoom(roomName, function (remoteChatText) {
         that.chatText = remoteChatText;
         console.log("There was an update: " + remoteChatText);
 
@@ -91,7 +134,7 @@ export default {
       if (this.chatText == this.adminClearMsg) newChatText = updateText;
       else newChatText = this.chatText + updateText;
 
-      this.dataConnector.updateChatRoomText(newChatText);
+      this.dataConnector.updateChatRoomText(this.sessionRoomName, newChatText);
 
       this.submitText = "";
     },
@@ -100,7 +143,7 @@ export default {
      * Clear the mainChat textArea.  (Should only be available to the Admin)
      */
     clearChat: function () {
-      this.dataConnector.updateChatRoomText(this.adminClearMsg);
+      this.dataConnector.updateChatRoomText(this.sessionRoomName,this.adminClearMsg);
     },
   },
 };

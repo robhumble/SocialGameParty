@@ -34,6 +34,7 @@ export default class DataConnector {
 
   //Chat Section--------------------------------
 
+  //Default Global Chat Room
   chatRoomInfo = {
     chatRoomCollection: "chatRooms",
     chatRoomDoc: "globalChatRoom"
@@ -44,28 +45,69 @@ export default class DataConnector {
    * 
    * @param onSnapshotFunction function to run if the document we listen to is updated, this function expects the new chatText as a param.
    */
-  listenToChatRoomPOC = function (onSnapshotFunction) {
+  listenToChatRoom = function (roomName, onSnapshotFunction) {
+
+    let hasRoom = (roomName && roomName != "");
+
+    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
+    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
 
     //subscribe/listen to room test doc
     this.firestoreDb
-      .collection(this.chatRoomInfo.chatRoomCollection)
-      .doc(this.chatRoomInfo.chatRoomDoc)
+      .collection(col)
+      .doc(docu)
       .onSnapshot(function (doc) {
         let remoteChatText = doc.data().chatText;
         onSnapshotFunction(remoteChatText);
       });
   };
 
+  unsubscribeToChat = function (roomName) {
+
+    let hasRoom = (roomName && roomName != "");
+
+    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
+    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
+
+    this.firestoreDb
+      .collection(col)
+      .doc(docu)
+      .onSnapshot(
+        () => { 
+          //..Do Nothing
+        }       
+      );
+  }
+
   /**
   * Set the chat room text in FireStore DB.
   * 
   * @param newChatText set chatText in the FireStore Db to this.
   */
-  updateChatRoomText = function (newChatText) {
+  updateChatRoomText = function (roomName, newChatText) { 
+    let hasRoom = (roomName && roomName != "");
 
+    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
+    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
+
+    if(hasRoom)
+    {
+      let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+      this.firestoreDb.runTransaction(function (transaction) {
+        return transaction.get(roomDocRef).then(function (roomDoc) {
+  
+          let docData = roomDoc.data();
+          docData.chatText = newChatText;
+          
+          transaction.update(roomDocRef, docData);
+  
+        })
+      })
+    }
+    else{
     this.firestoreDb
-      .collection(this.chatRoomInfo.chatRoomCollection)
-      .doc(this.chatRoomInfo.chatRoomDoc)
+      .collection(col)
+      .doc(docu)
       .set({
         chatText: newChatText
       })
@@ -75,6 +117,7 @@ export default class DataConnector {
       .catch(err => {
         console.error("There was a db write error:", err);
       });
+    }
   };
 
 
@@ -92,7 +135,8 @@ export default class DataConnector {
 
     // This line creates both the room and the document inside that will hold the array of users.
     this.firestoreDb.doc(`rooms/${newRoomName}`).set({
-      users: userArr
+      users: userArr,
+      chatText: ""
     });
 
   };

@@ -43,6 +43,7 @@
       <v-row class="text-center">
         <v-col>
           <RoomMenu></RoomMenu>
+           <GameRoom></GameRoom>
         </v-col>
       </v-row>
     </v-container>
@@ -54,6 +55,7 @@
 import { mapGetters } from "vuex";
 import ChatArea from "@/components/ChatArea.vue";
 import RoomMenu from "@/components/RoomParts/RoomMenu.vue";
+import GameRoom from "@/components/RoomParts/GameRoom.vue";
 import UserSetup from "@/components/UserSetup.vue";
 
 export default {
@@ -61,7 +63,8 @@ export default {
   components: {
     RoomMenu,
     ChatArea,
-    UserSetup
+    UserSetup,
+    GameRoom
   },
   data: () => ({
     inChatRoom: false,

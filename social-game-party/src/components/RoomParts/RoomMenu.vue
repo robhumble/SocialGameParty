@@ -59,23 +59,7 @@
           </v-container>
         </div>
       </v-card>
-    </div>
-
-    <!-- </div> -->
-    <!-- code to be ripped from NewRoom and put in GameRoom -->
-    <div v-if="currentRoomName">
-      <div v-if="!inGame">
-        <h3>You are currently spectating.</h3>
-        <v-btn @click="joinGame">Join Game</v-btn>
-      </div>
-      <div v-if="inGame">
-        <h3>You are in game!</h3>
-        <v-btn @click="exitGame()">Leave Game</v-btn>
-      </div>
-      <h2 v-if="currentRoomName">Specators In Room: {{peopleSpectating}}</h2>
-      <h2 v-if="currentRoomName">Active Players In Room: {{peoplePlaying}}</h2>
-    </div>
-    <!-- end gameroom block -->
+    </div>  
   </div>
 </template>
 
@@ -91,15 +75,7 @@ export default {
       makeARoom: false, // Make Room "state"
       joinRoomName: "", //name of room to find/join
       makeRoomName: "", //name of room to create
-      dataConnector: new DataConnector(),
-      // This user ID is created whenever the client loads the home page.
-      sessionID: Math.round(Math.random() * 1000000), //user id
-
-      // gameRoom data
-      currentPlayerName: "", //current user/player name
-      wantToJoin: false,
-      inGame: false,
-      //userList: [], //list of all users in the current game.
+      dataConnector: new DataConnector(),      
     };
   },
   mounted: function () {
@@ -108,37 +84,7 @@ export default {
   computed: {
     ...mapGetters(["currentSession","userList"]),
     
-    peopleSpectating: function () {
-      let userStr = "";
-
-      this.userList
-        .filter((x) => !x.isPlaying)
-        .forEach(function (user) {
-          //let appendName = Object.values(user);
-          let appendName = user.name;
-          if (appendName != "") {
-            userStr += `${appendName}, `;
-          }
-        });
-
-      return userStr;
-    },
-
-    peoplePlaying: function () {
-      let userStr = "";
-
-      this.userList
-        .filter((x) => x.isPlaying)
-        .forEach(function (user) {
-          //let appendName = Object.values(user);
-          let appendName = user.name;
-          if (appendName != "") {
-            userStr += `${appendName}, `;
-          }
-        });
-
-      return userStr;
-    },
+   
   },
   methods: {
     //Create a room
@@ -171,30 +117,7 @@ export default {
       this.updateCurrentRoom("");
 
       this.resetNavProperties();
-    },
-
-    // // gameRoom methods
-
-    // //Join the game in the current room
-    joinGame() {
-      let userId = this.currentSession?.currentUser?.uniqueId;
-
-      this.dataConnector.joinGame(userId, this.currentRoomName);
-
-      this.inGame = true;
-      this.wantToJoin = false;
-    },
-
-    //TODO: There is a bug here - I'm not sure this kicks the right user if there are multiple users - might make more sense to just do a filter where != to this user id.
-    // //exit the current game but stay in the room     
-    exitGame() {
-      let userId = this.currentSession?.currentUser?.uniqueId;
-
-      this.dataConnector.exitGame(userId, this.currentRoomName);
-      //this.currentPlayerName = "";
-      this.inGame = false;
-      this.wantToJoin = false;
-    },
+    },    
 
     //Get list of users in the current room
     listenToRoomUsers: function () {
@@ -202,8 +125,7 @@ export default {
       var that = this;
 
       this.dataConnector.listenToUsers(function (remoteUserList) {
-        //that.userList = remoteUserList;
-
+     
         that.$store.commit("setUserList",remoteUserList);
 
       }, that.currentRoomName);
@@ -228,10 +150,7 @@ export default {
       this.joinARoom = false;
       this.makeARoom = false;
       this.joinRoomName = "";
-      this.makeRoomName = "";
-
-      this.inGame = false;
-      this.wantToJoin = false;
+      this.makeRoomName = "";      
     },
 
     updateCurrentRoom: function (newRoomName) {
