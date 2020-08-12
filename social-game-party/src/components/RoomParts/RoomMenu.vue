@@ -65,7 +65,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import DataConnector from "@/logic/DataConnector.js";
+import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
 
 export default {
   data() {
@@ -75,7 +75,7 @@ export default {
       makeARoom: false, // Make Room "state"
       joinRoomName: "", //name of room to find/join
       makeRoomName: "", //name of room to create
-      dataConnector: new DataConnector(),      
+      dataConnector: new RoomDataConnector(),      
     };
   },
   mounted: function () {

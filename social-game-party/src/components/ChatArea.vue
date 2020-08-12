@@ -37,7 +37,7 @@
 
 <script>
 import * as sgf from "@/logic/socialGameFramework.js";
-import DataConnector from "@/logic/DataConnector.js";
+import ChatDataConnector from "@/dataConnectors/ChatDataConnector.js";
 import { mapGetters } from "vuex";
 
 export default {
@@ -51,7 +51,7 @@ export default {
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
 
     //Data connection vars------------
-    dataConnector: new DataConnector(),
+    dataConnector: new ChatDataConnector(),
   }),
   props: ["isGlobal"],
   mounted: function () {

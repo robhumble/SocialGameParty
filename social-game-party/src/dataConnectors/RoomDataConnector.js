@@ -1,137 +1,15 @@
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import DataConnector from "@/dataConnectors/DataConnector";
 
-export default class DataConnector {
+/**
+ * DataConnector for interacting with "Rooms".
+ */
+export default class RoomDataConnector extends DataConnector {
 
-  //Global--------------------------------------------------
-
-  #firebaseSettings = {
-    apiKey: "AIzaSyB9tDIaiwwE35jKUMOPvqmNsR4T1ZkHOcA",
-    authDomain: "socialgameparty.firebaseapp.com",
-    projectId: "socialgameparty"
-  };
-
-  firestoreDb = {};
-
-  constructor() {
-    this.initializeFireStoreDb();
-  }
-
-  /**
-  * Connect to the FireStore DB and initialize the FireStore Db object.
-  */
-  initializeFireStoreDb = function () {
-
-    // Initialize Cloud Firestore through Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(this.#firebaseSettings);
+    constructor() {
+        super();
     }
 
-    //create db object
-    this.firestoreDb = firebase.firestore();
-  };
-
-  //Chat Section--------------------------------
-
-  //Default Global Chat Room
-  chatRoomInfo = {
-    chatRoomCollection: "chatRooms",
-    chatRoomDoc: "globalChatRoom"
-  };
-
-  unsubscribeToChatFunc = null;
-
-  /**
-   * Set the firestoreDb to monitor the chat room document for updates.
-   * 
-   * @param onSnapshotFunction function to run if the document we listen to is updated, this function expects the new chatText as a param.
-   */
-  listenToChatRoom = function (roomName, onSnapshotFunction) {
-
-    //Use the chat room info to get global chat collection and document if a roomname isn't provided
-    let col = this.chatRoomInfo.chatRoomCollection, docu = this.chatRoomInfo.chatRoomDoc;
-    let hasRoom = roomName && roomName != "";
-
-    if (hasRoom) {
-      col = "rooms";
-      docu = roomName;
-    }
-
-    //Unsubscribe if needed to avoid stacking multiple listeners.
-    if (this.unsubscribeToChatFunc)
-      this.unsubscribeToChat();
-
-    //subscribe/listen to room test doc
-    this.unsubscribeToChatFunc = this.firestoreDb
-      .collection(col)
-      .doc(docu)
-      .onSnapshot(function (doc) {
-        let remoteChatText = doc.data().chatText;
-        onSnapshotFunction(remoteChatText);
-      });
-  };
-
-  /**
-   * If we are current listening to a chat, unsubscribe from it.
-   */
-  unsubscribeToChat = function () {
-    if (this.unsubscribeToChatFunc) {
-      this.unsubscribeToChatFunc();
-      console.log("Unsubscribed to chat!");
-      this.unsubscribeToChatFunc = null;
-    }
-    else
-      console.log("Nothing to unsubscribe from!");
-  }
-
-  /**
-  * Set the chat room text in FireStore DB.
-  * 
-  * @param newChatText set chatText in the FireStore Db to this.
-  */
-  updateChatRoomText = function (roomName, newChatText) {
-
-    //Use the chat room info to get global chat collection and document if a roomname isn't provided
-    let col = this.chatRoomInfo.chatRoomCollection, docu = this.chatRoomInfo.chatRoomDoc;
-    let hasRoom = roomName && roomName != "";
-
-    if (hasRoom) {
-      col = "rooms";
-      docu = roomName;
-    }
-
-    if (hasRoom) {
-      let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
-      this.firestoreDb.runTransaction(function (transaction) {
-        return transaction.get(roomDocRef).then(function (roomDoc) {
-
-          let docData = roomDoc.data();
-          docData.chatText = newChatText;
-
-          transaction.update(roomDocRef, docData);
-
-        })
-      })
-    }
-    else {
-      this.firestoreDb
-        .collection(col)
-        .doc(docu)
-        .set({
-          chatText: newChatText
-        })
-        .then(success => {
-          console.log("Write Successful! :" + success);
-        })
-        .catch(err => {
-          console.error("There was a db write error:", err);
-        });
-    }
-  };
-
-
-  // Firebase functions for room movement. -----------------------------
+   // Firebase functions for room movement. -----------------------------
 
   // presently, make room does not check if the room already exists. 
   /**
@@ -300,5 +178,4 @@ export default class DataConnector {
     if (userObj.id == targetId)
       userObj.isPlaying = isPlayingStatus;
   }
-
 }

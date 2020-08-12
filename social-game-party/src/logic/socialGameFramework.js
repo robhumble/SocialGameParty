@@ -15,8 +15,10 @@ export var mainFramework = {
     * Scroll to the bottom of a textArea.
     */
     scrollToBottom: function (elementId) {
+        
         var mainChat = document.getElementById(elementId);
-        mainChat.scrollTop = mainChat.scrollHeight;
+        if(mainChat)
+            mainChat.scrollTop = mainChat.scrollHeight;
     }
 
 }

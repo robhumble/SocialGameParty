@@ -21,12 +21,12 @@
 
 <script>
 import { mapGetters } from "vuex";
-import DataConnector from "@/logic/DataConnector.js";
+import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
 
 export default {
   data() {
     return {
-        dataConnector: new DataConnector(),
+        dataConnector: new RoomDataConnector(),
       inGame: false,
     };
   },
