@@ -1,7 +1,8 @@
 <template>
   <v-container class="chat-container">
-    <span class="in-room-text">You are in the ChatRoom.</span>
+    <span class="in-room-text">You are in {{ currentRoomName || "GLOBAL" }} Chat</span>
     <v-text-field
+      v-if="isGlobal"
       label="Display Name"
       placeholder="Your Name here..."
       v-model="providedDisplayName"
@@ -52,13 +53,14 @@ export default {
     //Data connection vars------------
     dataConnector: new DataConnector(),
   }),
+  props: ["isGlobal"],
   mounted: function () {
-    this.setupChatRoom(this.sessionRoomName);
+    this.setupChatRoom(this.currentRoomName);
 
     this.read;
   },
   computed: {
-    ...mapGetters(["currentSession"]),
+    ...mapGetters(["currentSession", "currentRoomName", "currentUserName"]),
 
     /**
      * Determine if the user is an Admin based on the provided display name.
@@ -69,39 +71,21 @@ export default {
       return false;
     },
 
-    sessionRoomName: function () {
-      return this.currentSession?.currentRoom?.name;
-    },
-    sessionDisplayName: function () {
-      return this.currentSession?.currentUser?.name;
-    },
-    isGlobal: function () {
-      return this.roomName && this.roomName != "";
-    },
-
     displayUserName: function () {
       let un = "";
 
-      if (this.providedDisplayName && this.sessionDisplayName)
-        un = `(${this.sessionDisplayName}) ${this.providedDisplayName} `;
-      else if(this.sessionDisplayName)  
-        un = this.sessionDisplayName;
-      else 
-        un = this.providedDisplayName;
+      if (this.isGlobal) un = this.providedDisplayName;
+      else un = this.currentUserName;
 
       return un;
     },
   },
   watch: {
     //... n = new, o = old
-    sessionRoomName: function (n, o) {
+    currentRoomName: function (n, o) {
       if (n != o) {
+        this.dataConnector.unsubscribeToChat(o);
         this.setupChatRoom(n);
-      }
-    },
-    sessionDisplayName: function (n, o) {
-      if (n != o) {
-        this.displayUserName = n;
       }
     },
   },
@@ -134,7 +118,7 @@ export default {
       if (this.chatText == this.adminClearMsg) newChatText = updateText;
       else newChatText = this.chatText + updateText;
 
-      this.dataConnector.updateChatRoomText(this.sessionRoomName, newChatText);
+      this.dataConnector.updateChatRoomText(this.currentRoomName, newChatText);
 
       this.submitText = "";
     },
@@ -143,7 +127,10 @@ export default {
      * Clear the mainChat textArea.  (Should only be available to the Admin)
      */
     clearChat: function () {
-      this.dataConnector.updateChatRoomText(this.sessionRoomName,this.adminClearMsg);
+      this.dataConnector.updateChatRoomText(
+        this.currentRoomName,
+        this.adminClearMsg
+      );
     },
   },
 };

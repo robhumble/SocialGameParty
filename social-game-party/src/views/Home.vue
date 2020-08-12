@@ -26,7 +26,7 @@
           <v-col cols="12">
             <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
             <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
-            <ChatArea v-if="inChatRoom"></ChatArea>
+            <ChatArea v-if="inChatRoom" :isGlobal="!currentRoomName"></ChatArea>
           </v-col>
         </v-row>
       </v-container>
@@ -43,7 +43,7 @@
       <v-row class="text-center">
         <v-col>
           <RoomMenu></RoomMenu>
-           <GameRoom></GameRoom>
+          <GameRoom></GameRoom>
         </v-col>
       </v-row>
     </v-container>
@@ -64,14 +64,19 @@ export default {
     RoomMenu,
     ChatArea,
     UserSetup,
-    GameRoom
+    GameRoom,
   },
   data: () => ({
     inChatRoom: false,
     showChat: false,
   }),
-  computed:{
-    ...mapGetters(["projectName", "currentSession"]),
+  computed: {
+    ...mapGetters(["projectName", "currentSession", "currentRoomName"]),
+  },
+  watch: {
+    currentRoomName: function () {
+      this.inChatRoom = false;
+    },
   },
   methods: {
     toggleShowChat() {

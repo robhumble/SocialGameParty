@@ -40,6 +40,8 @@ export default class DataConnector {
     chatRoomDoc: "globalChatRoom"
   };
 
+  unsubscribeToChatFunc = null;
+
   /**
    * Set the firestoreDb to monitor the chat room document for updates.
    * 
@@ -47,13 +49,21 @@ export default class DataConnector {
    */
   listenToChatRoom = function (roomName, onSnapshotFunction) {
 
-    let hasRoom = (roomName && roomName != "");
+    //Use the chat room info to get global chat collection and document if a roomname isn't provided
+    let col = this.chatRoomInfo.chatRoomCollection, docu = this.chatRoomInfo.chatRoomDoc;
+    let hasRoom = roomName && roomName != "";
 
-    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
-    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
+    if (hasRoom) {
+      col = "rooms";
+      docu = roomName;
+    }
+
+    //Unsubscribe if needed to avoid stacking multiple listeners.
+    if (this.unsubscribeToChatFunc)
+      this.unsubscribeToChat();
 
     //subscribe/listen to room test doc
-    this.firestoreDb
+    this.unsubscribeToChatFunc = this.firestoreDb
       .collection(col)
       .doc(docu)
       .onSnapshot(function (doc) {
@@ -62,21 +72,17 @@ export default class DataConnector {
       });
   };
 
-  unsubscribeToChat = function (roomName) {
-
-    let hasRoom = (roomName && roomName != "");
-
-    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
-    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
-
-    this.firestoreDb
-      .collection(col)
-      .doc(docu)
-      .onSnapshot(
-        () => { 
-          //..Do Nothing
-        }       
-      );
+  /**
+   * If we are current listening to a chat, unsubscribe from it.
+   */
+  unsubscribeToChat = function () {
+    if (this.unsubscribeToChatFunc) {
+      this.unsubscribeToChatFunc();
+      console.log("Unsubscribed to chat!");
+      this.unsubscribeToChatFunc = null;
+    }
+    else
+      console.log("Nothing to unsubscribe from!");
   }
 
   /**
@@ -84,39 +90,43 @@ export default class DataConnector {
   * 
   * @param newChatText set chatText in the FireStore Db to this.
   */
-  updateChatRoomText = function (roomName, newChatText) { 
-    let hasRoom = (roomName && roomName != "");
+  updateChatRoomText = function (roomName, newChatText) {
 
-    let col = (hasRoom) ? "rooms" : this.chatRoomInfo.chatRoomCollection;
-    let docu = (hasRoom) ? roomName : this.chatRoomInfo.chatRoomDoc;
+    //Use the chat room info to get global chat collection and document if a roomname isn't provided
+    let col = this.chatRoomInfo.chatRoomCollection, docu = this.chatRoomInfo.chatRoomDoc;
+    let hasRoom = roomName && roomName != "";
 
-    if(hasRoom)
-    {
+    if (hasRoom) {
+      col = "rooms";
+      docu = roomName;
+    }
+
+    if (hasRoom) {
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
-  
+
           let docData = roomDoc.data();
           docData.chatText = newChatText;
-          
+
           transaction.update(roomDocRef, docData);
-  
+
         })
       })
     }
-    else{
-    this.firestoreDb
-      .collection(col)
-      .doc(docu)
-      .set({
-        chatText: newChatText
-      })
-      .then(success => {
-        console.log("Write Successful! :" + success);
-      })
-      .catch(err => {
-        console.error("There was a db write error:", err);
-      });
+    else {
+      this.firestoreDb
+        .collection(col)
+        .doc(docu)
+        .set({
+          chatText: newChatText
+        })
+        .then(success => {
+          console.log("Write Successful! :" + success);
+        })
+        .catch(err => {
+          console.error("There was a db write error:", err);
+        });
     }
   };
 

@@ -21,7 +21,14 @@ export const CurrentSessionModule = {
             }
 
             return state.currentSession;
-        }
+        },
+
+        currentRoomName: state => {
+            return state.currentSession?.currentRoom?.name;
+        },
+        currentUserName: state => {
+            return state.currentSession?.currentUser?.name;
+        },
 
     },
     //Synchronous (Simple setters)
