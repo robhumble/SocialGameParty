@@ -71,3 +71,7 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+@import "assets/custom.scss";
+</style>

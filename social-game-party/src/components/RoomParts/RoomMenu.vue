@@ -166,9 +166,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+ @import "@/assets/custom.scss";
+
 .room-menu-card {
-  color: #dd2c00 !important;
-  border-color: #dd2c00 !important;
+  color: $social-game-party-orange !important;
+  border-color: $social-game-party-orange !important;
   padding: 5px;
 }
 </style>

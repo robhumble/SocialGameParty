@@ -188,6 +188,7 @@ export default class RoomDataConnector extends DataConnector {
       userObj.isPlaying = isPlayingStatus;
   }
 
+  //TODO: Consider creating a class that represents the DBUSER instead of just creating the same type of object with this function.
   /**
    * Get a db representation of a SessionUser
    * @param {SessionUser} sessionUserObj - likely the current user.
