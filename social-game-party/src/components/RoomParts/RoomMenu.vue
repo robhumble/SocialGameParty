@@ -89,8 +89,7 @@ export default {
   methods: {
     //Create a room
     makeRoom(makeRoomName) {
-      let curUser = this.getDbModelFromCurrentUser();
-
+      let curUser = this.currentSession.currentUser;
       this.dataConnector.makeRoom(makeRoomName, curUser);
 
       this.updateCurrentRoom(makeRoomName);
@@ -100,7 +99,7 @@ export default {
 
     // //Join an existing room
     joinRoom(joinRoomName) {
-      let curUser = this.getDbModelFromCurrentUser();
+      let curUser = this.currentSession.currentUser;
 
       this.dataConnector.joinRoom(joinRoomName, curUser, this.updateCurrentRoom);
 
@@ -133,8 +132,7 @@ export default {
 
     attemptToRejoinRoom: function () {
       let roomFromPreviousSession = this.currentSession.currentRoom.name;
-      let curUser = this.getDbModelFromCurrentUser();
-
+      let curUser = this.currentSession.currentUser;
       if (roomFromPreviousSession) {
         this.dataConnector.rejoinRoom(
           roomFromPreviousSession,
@@ -158,18 +156,7 @@ export default {
       this.currentRoomName = newRoomName;
 
       if (newRoomName) this.listenToRoomUsers();
-    },
-
-    //Get a representation for the user that we want to use in the database.
-    getDbModelFromCurrentUser: function () {
-      let userDbModel = {
-        id: this.currentSession.currentUser.uniqueId,
-        name: this.currentSession.currentUser.name,
-        isPlaying: false,
-      };
-
-      return userDbModel;
-    },
+    },   
 
     clearCurrentRoom: function () {
       this.updateCurrentRoom("");

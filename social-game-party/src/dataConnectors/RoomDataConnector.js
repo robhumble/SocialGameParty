@@ -1,23 +1,27 @@
 import DataConnector from "@/dataConnectors/DataConnector";
+import {SessionUser} from "@/logic/SessionInfo.js";
+
 
 /**
  * DataConnector for interacting with "Rooms".
  */
 export default class RoomDataConnector extends DataConnector {
 
-    constructor() {
-        super();
-    }
+  constructor() {
+    super();
+  }
 
-   // Firebase functions for room movement. -----------------------------
+  // Firebase functions for room movement. -----------------------------
 
   // presently, make room does not check if the room already exists. 
   /**
    * Create a new Room and automatically join it as a specatator.
    * @param {string} newRoomName 
-   * @param {userObj} userObj 
+   * @param {SessionUser} userObj 
    */
-  makeRoom = function (newRoomName, userObj) {
+  makeRoom = function (newRoomName, sessionUserObj) {
+
+    let userObj = this.getDbModelFromSessionUser(sessionUserObj);
 
     let userArr = [userObj];
 
@@ -33,11 +37,13 @@ export default class RoomDataConnector extends DataConnector {
   /**
    * Join the target room if found.
    * @param {string} joinRoomName 
-   * @param {userObj} userObj 
+   * @param {SessionUser} userObj 
    * @param {function} updateRoomFunction - runs after transaction to update the UI.
    * @param {boolean} alertUser - true alerts the user if the room wasn't found, false suppresses the alert.
    */
-  joinRoom = function (joinRoomName, userObj, updateRoomFunction, alertUser = true) {
+  joinRoom = function (joinRoomName, sessionUserObj, updateRoomFunction, alertUser = true) {
+    let userObj = this.getDbModelFromSessionUser(sessionUserObj);
+
     var that = this;
     let joinRef = this.firestoreDb.doc(`rooms/${joinRoomName}`);
 
@@ -161,21 +167,45 @@ export default class RoomDataConnector extends DataConnector {
   /**
    * Attempt to join the room, but don't alert the user if it can't be found.
    * @param {string} joinRoomName 
-   * @param {userObj} userObj 
+   * @param {SessionUser} sessionUserObj 
    * @param {function} updateRoomFunction - runs after transaction to update the UI.
    */
-  rejoinRoom = function (joinRoomName, userObj, updateRoomFunction) {
-    this.joinRoom(joinRoomName, userObj, updateRoomFunction, false);
+  rejoinRoom = function (joinRoomName, sessionUserObj, updateRoomFunction) {   
+    this.joinRoom(joinRoomName, sessionUserObj, updateRoomFunction, false);
   }
+
+  //Private Helpers-------------------------------------->
 
   /**
    * Set's whether or not a user is playing the game.
-   * @param {userObj} userObj 
+   * @param {dbUserObj} userObj - Assume this is a user object from the db.
    * @param {number} targetId 
    * @param {boolean} isPlayingStatus 
    */
-  updateUserPlayingStatus = function (userObj, targetId, isPlayingStatus) {
+  updateUserPlayingStatus = function (userObj, targetId, isPlayingStatus) {  
+
     if (userObj.id == targetId)
       userObj.isPlaying = isPlayingStatus;
+  }
+
+  /**
+   * Get a db representation of a SessionUser
+   * @param {SessionUser} sessionUserObj - likely the current user.
+   */
+  getDbModelFromSessionUser = function (sessionUserObj) {
+
+    if (sessionUserObj instanceof SessionUser) {
+
+      let userDbModel = {
+        id: sessionUserObj.uniqueId,
+        name: sessionUserObj.name,
+        isPlaying: false,
+      };
+
+      return userDbModel;
+    }
+    else
+      throw new Error('A SessionUser object was not provided!');
+
   }
 }
