@@ -8,6 +8,77 @@ export default class MathMasterGameTools {
     constructor() { }
 
 
+
+    gameSteps = [
+
+        {
+            stepNum: 1,
+            target: 'all',
+            desc: "wait for all players to be ready"
+        },
+        {
+            stepNum: 2,
+            target: 'host',
+            desc: "Build out problems",
+            stepFunction: this.buildProblemsStep,
+            followUpFunction: this.buildProblemsFollowUp
+        },
+        {
+            stepNum: 3,
+            target: 'all',
+            desc: "players answer problems",
+            stepFunction: this.mainGameStep,
+            followUpFunction: null
+        },
+        {
+            stepNum: 4,
+            target: 'host',
+            desc: "Determine winner"
+        },
+        {
+            stepNum: 5,
+            target: 'all',
+            desc: "Display winner"
+        },
+        
+
+    ];
+
+
+    //Step 2 - Build Math Problem
+
+    mathProblems = [];
+
+    buildProblemsStep = function () {
+
+        let problemsToBuild = 10;
+
+        for (let x = 0; x < problemsToBuild; x++) {
+            let prob = this.buildMathProblem();
+            this.mathProblems.push(prob);
+        }
+    }
+
+    //TODO: this function should call a data connector to write the math problems to the db.
+    buildProblemsFollowUp = function () {
+        throw Error('Not Yet Implemented!');
+    }
+
+    //TODO: this function should go through each problem, launch a question and answer component, and record the answer
+    //Step 3 - Main Game Step
+    mainGameStep =  function(mathProblems){
+        throw Error('Not Yet Implemented!'+mathProblems);
+    }
+
+
+
+
+
+
+
+
+    //General functions -----------------------------------------------------------------
+
     buildMathProblem = function () {
 
         let problemLo = 0,

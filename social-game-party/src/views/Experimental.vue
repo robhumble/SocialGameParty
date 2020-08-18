@@ -44,7 +44,7 @@
       </div>
     </div>-->
 
-    <div style="text-align:center;">
+    <!-- <div style="text-align:center;">
       Math Master ---------------------------------
       <label style="display:block">Math Problem</label>
       <br />
@@ -55,7 +55,11 @@
       <br />
       <input v-model="mathAnswer" placeholder="math answer goes here...." />
       <v-btn @click="answerMathProblem">submit answer</v-btn>
-    </div>
+    </div> -->
+
+
+    <QuestionAndAnswer questionText="This is a Question" onSubmitFunction="()=>{alert('hello world');}"></QuestionAndAnswer>
+
   </div>
 </template>
 
@@ -66,12 +70,15 @@ import * as sgf from "@/logic/socialGameFramework.js";
 import SessionInfo from "@/logic/SessionInfo.js";
 import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 import MathMasterGameTools from "@/logic/MathMasterGameTools.js";
+import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
 
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
   name: "Experimental",
-  components: {},
+  components: {
+    QuestionAndAnswer
+  },
   data: () => ({
     newName: null,
 
