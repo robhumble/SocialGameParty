@@ -8,7 +8,6 @@ export default class MathMasterGameTools {
     constructor() { }
 
 
-
     gameSteps = [
 
         {

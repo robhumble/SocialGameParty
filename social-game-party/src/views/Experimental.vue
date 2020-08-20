@@ -59,7 +59,7 @@
 
 
     <QuestionAndAnswer questionText="This is a Question" onSubmitFunction="()=>{alert('hello world');}"></QuestionAndAnswer>
-
+    <ResultScreen resultTitle="Result TITLLLELLELLE" resultText="IM THE WINNAR!!!"></ResultScreen>
   </div>
 </template>
 
@@ -71,13 +71,15 @@ import SessionInfo from "@/logic/SessionInfo.js";
 import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 import MathMasterGameTools from "@/logic/MathMasterGameTools.js";
 import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
+import ResultScreen from "@/components/GameParts/ResultScreen.vue"
 
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
   name: "Experimental",
   components: {
-    QuestionAndAnswer
+    QuestionAndAnswer,
+    ResultScreen
   },
   data: () => ({
     newName: null,

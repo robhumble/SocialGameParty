@@ -123,9 +123,9 @@ export default {
       // allows us to use a reference to the class data outside of the dataConnector method
       var that = this;
 
-      this.dataConnector.listenToUsers(function (remoteUserList) {
+      this.dataConnector.listenToRoom(function (remoteRoomData) {
      
-        that.$store.commit("setUserList",remoteUserList);
+        that.$store.commit("setUserList", remoteRoomData.users);
 
       }, that.currentRoomName);
     },
