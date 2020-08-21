@@ -1,5 +1,5 @@
 import DataConnector from "@/dataConnectors/DataConnector";
-import { SessionUser } from "@/logic/SessionInfo.js";
+//import { SessionUser } from "@/logic/SessionInfo.js";
 
 
 /**
@@ -23,36 +23,36 @@ export default class GamePlayDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   updateHost = function (newHostId, roomName) {
-    let that = this;
+    //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
     this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
+      return transaction.get(roomDocRef).then(function () {
         transaction.update(roomDocRef, { hostId: newHostId });
       })
     })
   }
 
   updateSpectatorGameData = function (roomName, newSpecatorGameData) {
-    let that = this;
+    //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
     this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
+      return transaction.get(roomDocRef).then(function () {
         transaction.update(roomDocRef, { spectatorGameData: newSpecatorGameData });
       })
     })
   }
 
   updatePlayerGameData = function (roomName, newPlayerGameData) {
-    let that = this;
+    //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
     this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
+      return transaction.get(roomDocRef).then(function () {
         transaction.update(roomDocRef, { playerGameData: newPlayerGameData });
       })
     })

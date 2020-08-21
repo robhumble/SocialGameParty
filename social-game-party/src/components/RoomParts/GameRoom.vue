@@ -16,12 +16,21 @@
       <h2 v-if="currentRoomName">Active Players In Room: {{peoplePlaying}}</h2>
     </div>
     <!-- end gameroom block -->
+
+
+    <GameplayArea v-if="inGame"> </GameplayArea>
+
+
+
+
   </div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
+import GameplayArea from "@/components/GameParts/GameplayArea.vue";
+
 
 export default {
   data() {
@@ -29,6 +38,9 @@ export default {
         dataConnector: new RoomDataConnector(),
       inGame: false,
     };
+  },
+  components:{
+    GameplayArea
   },
   mounted: function () {},
   computed: {
@@ -69,6 +81,7 @@ export default {
     currentRoomName: function(){
         return this.currentSession?.currentRoom?.name;
     }
+    
   },
   methods: {
     // // gameRoom methods

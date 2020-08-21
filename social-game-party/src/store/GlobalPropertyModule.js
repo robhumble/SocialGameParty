@@ -43,6 +43,10 @@ export const GlobalPropertyModule = {
         },
 
 
+        //Helpers
+        isGameStarted: state => {
+            return (state.hostId && state.spectatorGameData)
+        }
 
     },
     //Synchronous (Simple setters)

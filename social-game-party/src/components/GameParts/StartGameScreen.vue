@@ -7,7 +7,7 @@
         <h1>{{titleText}}</h1>
         <p>{{bodyText}}</p>
 
-        <v-btn @click="startTheGame"> START!!!!!!!! <v-btn>      
+        <v-btn @click="startTheGame"> START!!!!!!!! </v-btn>      
  
       </v-card>
     </div>  
@@ -38,9 +38,10 @@ export default {
 
   },
   methods: {   
-    startTheGame = function(){
+    startTheGame: function(){
       alert("You started the game!");
 
+      this.$emit("startGame");
       console.log("Game starting....");
     }
   },
