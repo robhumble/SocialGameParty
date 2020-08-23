@@ -1,8 +1,6 @@
 <!-- This component lets the user choose what room they will join or make. -->
 <template>
   <div class="game-room">
-    <!-- </div> -->
-    <!-- code to be ripped from NewRoom and put in GameRoom -->
     <div v-if="currentRoomName">
       <div v-if="!inGame">
         <h3>You are currently spectating.</h3>
@@ -15,14 +13,9 @@
       <h2 v-if="currentRoomName">Specators In Room: {{peopleSpectating}}</h2>
       <h2 v-if="currentRoomName">Active Players In Room: {{peoplePlaying}}</h2>
     </div>
-    <!-- end gameroom block -->
 
-
-    <GameplayArea v-if="inGame"> </GameplayArea>
-
-
-
-
+    <!-- Actual Game Area -->
+    <GameplayArea v-if="currentRoomName && inGame"></GameplayArea>
   </div>
 </template>
 
@@ -31,16 +24,15 @@ import { mapGetters } from "vuex";
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
 import GameplayArea from "@/components/GameParts/GameplayArea.vue";
 
-
 export default {
   data() {
     return {
-        dataConnector: new RoomDataConnector(),
+      dataConnector: new RoomDataConnector(),
       inGame: false,
     };
   },
-  components:{
-    GameplayArea
+  components: {
+    GameplayArea,
   },
   mounted: function () {},
   computed: {
@@ -78,10 +70,9 @@ export default {
       return userStr;
     },
 
-    currentRoomName: function(){
-        return this.currentSession?.currentRoom?.name;
-    }
-    
+    currentRoomName: function () {
+      return this.currentSession?.currentRoom?.name;
+    },
   },
   methods: {
     // // gameRoom methods
@@ -100,7 +91,7 @@ export default {
       let userId = this.currentSession?.currentUser?.uniqueId;
 
       this.dataConnector.exitGame(userId, this.currentRoomName);
-    
+
       this.inGame = false;
     },
   },
@@ -108,12 +99,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.game-room {  
+.game-room {
   color: black;
   border-style: solid;
-  border-color:  #dd2c00 !important;;
+  border-color: #dd2c00 !important;
   padding: 5px;
   margin: 5px;
-  min-height: 50vh;  
+  min-height: 50vh;
 }
 </style>

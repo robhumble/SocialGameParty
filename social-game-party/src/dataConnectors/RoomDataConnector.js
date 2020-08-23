@@ -171,7 +171,8 @@ export default class RoomDataConnector extends DataConnector {
         let remoteRoomData = {
           users: doc.data().users,
           hostId: doc.data().hostId,
-          spectatorGameData: doc.data().spectatorGameData
+          spectatorGameData: doc.data().spectatorGameData,
+          playerGameData: doc.data().playerGameData,
         }
         onSnapshotFunction(remoteRoomData);
       });

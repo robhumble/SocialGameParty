@@ -35,17 +35,26 @@ export const GlobalPropertyModule = {
             return state.playerGameData;
         },
 
-
         //Local only data 
-
         myTempGameData: state => {
             return state.myTempGameData;
         },
 
-
         //Helpers
         isGameStarted: state => {
-            return (state.hostId && state.spectatorGameData)
+            return (state.hostId)
+        },
+
+        getRemoteDataGroup: state => {
+
+            let group ={
+                userList: state.userList,
+                hostId: state.hostId,
+                spectatorGameData: state.spectatorGameData,
+                playerGameData: state.playerGameData
+            }
+
+            return group;
         }
 
     },

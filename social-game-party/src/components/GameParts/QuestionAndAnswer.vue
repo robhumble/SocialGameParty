@@ -26,7 +26,7 @@ import { mapGetters } from "vuex";
 export default {
   name: "QuestionAndAnswer",
   components: {},
-  props: ['questionText','onSubmitFunction'],
+  props: ['questionText'],
   data: () => ({
   
     answerText: ""
@@ -41,11 +41,10 @@ export default {
   methods: {
 
     submitAnswer: function(){
-
-      alert("This is the answer:"+this.answerText);
+      //alert("This is the answer:"+this.answerText);      
       
-      //TODO: this should emit some type of event
-      //this.$emit("")
+      this.$emit("answerEvent", this.answerText)
+      this.answerText="";      
     },
 
   },
