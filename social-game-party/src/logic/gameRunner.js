@@ -64,8 +64,7 @@ export default class GameRunner {
     initializeRemotePlayerGameData = function () {
 
         let initialGameData = {
-            currentStep: 1,
-            //isCurrentStepComplete: false
+            currentStep: 1,           
         }
 
         this.dataConnector.setPlayerGameData(this.roomName, initialGameData);

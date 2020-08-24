@@ -7,6 +7,10 @@ import DataConnector from "@/dataConnectors/DataConnector";
  */
 export default class GameplayDataConnector extends DataConnector {
 
+
+  //TODO: figure out if this actually helps....
+  #firestoreArtificialWaitWindowMS = 5000;
+
   constructor() {
     super();
   }
@@ -16,6 +20,10 @@ export default class GameplayDataConnector extends DataConnector {
 
   //TODO - Test these, these were all just hacked together.........
 
+  slowItDown = function(){
+    setTimeout(()=>{console.log("slowed...."),this.#firestoreArtificialWaitWindowMS});
+  }
+
 
   /**
    * Set the host.  
@@ -23,6 +31,7 @@ export default class GameplayDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   updateHost = function (newHostId, roomName) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -35,6 +44,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updateSpectatorGameData = function (roomName, newSpecatorGameData) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -46,8 +56,11 @@ export default class GameplayDataConnector extends DataConnector {
     })
   }
 
+  //Player game Data functions-----------------------------------------------------------------------------------------------
+
   //Set the whole playerGameData object - ignore prior state
   setPlayerGameData = function (roomName, newPlayerGameData) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -61,6 +74,7 @@ export default class GameplayDataConnector extends DataConnector {
 
   //Set a property in playerGameData, the rest of the object should remain as it was in firestore. 
   updatePlayerGameData = function (roomName, propName, propVal) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -79,6 +93,7 @@ export default class GameplayDataConnector extends DataConnector {
 
 
   cleanPlayerGameData = function (roomName, propNamesArr) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -98,6 +113,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updatePlayerGameDataViaFunction = function (roomName, updateFunc) {
+    this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -105,13 +121,100 @@ export default class GameplayDataConnector extends DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let newPlayerGameData = roomDoc.data().playerGameData;        
-        let updatedPlayerGameData = updateFunc(newPlayerGameData);       
+        let curPlayerGameData = roomDoc.data().playerGameData;        
+        let updatedPlayerGameData = updateFunc(curPlayerGameData);       
         
         transaction.update(roomDocRef, { playerGameData: updatedPlayerGameData });
       })
     })
   }
+
+
+  //currentInstructions Data functions-----------------------------------------------------------------------------------------------
+
+  setCurrentInstructions = function (roomName, newInstructions) {
+    this.slowItDown();
+    //let that = this;
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (/*roomDoc*/) {
+        //let curInstructions = roomDoc.data().currentInstructions;           
+        transaction.update(roomDocRef, { currentInstructions: newInstructions });
+      })
+    })
+  }
+
+  updateCurrentInstructionsViaFunction = function (roomName, updateFunc) {
+    this.slowItDown();
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let curCurrentInstructions = roomDoc.data().currentInstructions;        
+        let updatedCurrentInstructions = updateFunc(curCurrentInstructions);       
+        
+        transaction.update(roomDocRef, { currentInstructions: updatedCurrentInstructions });
+      })
+    })
+  }
+
+
+  //currentCheckInstructions game Data functions-----------------------------------------------------------------------------------------------
+
+  setCurrentCheckInstructions = function (roomName, newCheckInstructions) {
+    this.slowItDown();
+    //let that = this;
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (/*roomDoc*/) {
+        //let curCheckInstructions = roomDoc.data().currentCheckInstructions;           
+        transaction.update(roomDocRef, { currentCheckInstructions: newCheckInstructions });
+      })
+    })
+  }
+
+  updateCurrentCheckInstructionsViaFunction = function (roomName, updateFunc) {
+    this.slowItDown();
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let curCurrentCheckInstructions = roomDoc.data().currentCheckInstructions;        
+        let updatedCurrentCheckInstructions = updateFunc(curCurrentCheckInstructions);       
+        
+        transaction.update(roomDocRef, { currentCheckInstructions: updatedCurrentCheckInstructions });
+      })
+    })
+  }
+
+  //Whole Room Update (when you need to reach across multiple properties)--------------------------------------------------------
+
+
+  updateWholeRoomViaFunction = function (roomName, updateFunc) {
+    this.slowItDown();
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let curRoomData = roomDoc.data();        
+        let updatedRoomData = updateFunc(curRoomData);       
+        
+        transaction.update(roomDocRef, updatedRoomData);
+      })
+    })
+  }
+
 
 
 

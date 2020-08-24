@@ -15,14 +15,14 @@
     </div>
 
     <!-- Actual Game Area -->
-    <GameplayArea v-if="currentRoomName && inGame"></GameplayArea>
+    <MainGameplayArea v-if="currentRoomName && inGame"></MainGameplayArea>
   </div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
-import GameplayArea from "@/components/GameParts/GameplayArea.vue";
+import MainGameplayArea from "@/components/GameParts/MainGameplayArea.vue";
 
 export default {
   data() {
@@ -32,7 +32,7 @@ export default {
     };
   },
   components: {
-    GameplayArea,
+    MainGameplayArea,
   },
   mounted: function () {},
   computed: {

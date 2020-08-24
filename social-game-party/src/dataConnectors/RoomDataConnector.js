@@ -173,6 +173,9 @@ export default class RoomDataConnector extends DataConnector {
           hostId: doc.data().hostId,
           spectatorGameData: doc.data().spectatorGameData,
           playerGameData: doc.data().playerGameData,
+
+          currentInstructions: doc.data().currentInstructions, 
+          currentCheckInstructions: doc.data().currentCheckInstructions,  
         }
         onSnapshotFunction(remoteRoomData);
       });
@@ -240,8 +243,14 @@ export default class RoomDataConnector extends DataConnector {
       users: userArr, //Users in the room
       chatText: "",   //Chat room text
       hostId: null,   //The games host user - basically a player that will act as the server
+
+      //Game specific dynamically generated data
       spectatorGameData: {},  //Dynamically generated data that spectators (and anyone in the room) cares about
-      playerGameData: {}  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
+      playerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
+
+      //NEW - Game Instructions
+      currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
+      currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
     }
 
     return dbModel;

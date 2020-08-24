@@ -2,7 +2,6 @@
   <div class="gameplay-area">
     Hay hay hay this is the gameplay area!
     <div class="game-components">
-
       <QuestionAndAnswer
         v-if="currentGameComponent == 'QuestionAndAnswer'"
         :questionText="questionAndAnswerQuestionText"
@@ -21,7 +20,6 @@
         v-if="currentGameComponent == 'LoadingScreen'"
         :loadingMessageText="displayInstructions.msg"
       ></LoadingScreen>
-      
     </div>
   </div>
 </template>
@@ -41,7 +39,7 @@ import GameRunner from "@/logic/GameRunner.js";
 import MathMasterGame from "@/logic/MathMasterGame.js";
 
 export default {
-  name: "GameplayArea",
+  name: "MainGameplayArea",
   components: {
     QuestionAndAnswer,
     ResultScreen,
@@ -60,7 +58,7 @@ export default {
     //Loop instructions
     loopThroughData: null,
     questionAndAnswerQuestionText: "",
-  
+    //checkInstructions: null
   }),
   mounted: function () {
     this.getCurrentGameComponent();
@@ -75,6 +73,9 @@ export default {
       "hostId",
       "spectatorGameData",
       "playerGameData",
+      "currentInstructions",
+      "currentCheckInstructions",
+
       "myTempGameData",
       "getRemoteDataGroup",
     ]),
@@ -94,40 +95,58 @@ export default {
         this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
       }
 
-      //Instructions
-      if (
-        n.currentInstructions && !o.currentInstructions      
-      ) {
-        if (n.currentInstructions.type == "Display") {
-          this.clearDisplay();
-          this.setUpDisplay(n.currentInstructions);
-        }
-
-        if (n.currentInstructions.type == "LoopThrough") {
-          this.clearDisplay();
-          this.setUpLoopThrough(n.currentInstructions);
-        }
-      }
-
-      //Check Instructions
-      if (n.currentCheckInstructions) {
-        let watchTarget = n.currentCheckInstructions.watchTarget;
+      //Watch from a check instruction
+      if (this.currentCheckInstructions) {
+        let watchTarget = this.currentCheckInstructions.watchTarget;
 
         if (n[watchTarget] != o[watchTarget]) {
           this.gameRunner.callGameFunction(
-            n.currentCheckInstructions.checkFunction,
+            this.currentCheckInstructions.checkFunction,
             this.getRemoteDataGroup
           );
         }
       }
     },
+
+    currentInstructions: function (n, o) {
+      //Instructions
+
+      console.log(n + o);
+
+      if (n) {
+        if (n.type == "Display") {
+          this.clearDisplay();
+          this.setUpDisplay(n);
+        }
+
+        if (n.type == "LoopThrough") {
+          this.clearDisplay();
+          this.setUpLoopThrough(n);
+        }
+      }
+    },
+
+    // currentCheckInstructions: function (n, o) {
+    //   //Check Instructions
+    //  /* if (n) {
+    //     let watchTarget = n.watchTarget;
+
+    //     if (n[watchTarget] != o[watchTarget]) {
+    //       this.gameRunner.callGameFunction(
+    //         n.checkFunction,
+    //         this.getRemoteDataGroup
+    //       );
+    //     }
+    //   }*/
+    //    if (n != o) {
+    //      this.checkInstructions = n;
+    //   }
+    // },
   },
   methods: {
-
     getCurrentGameComponent: function () {
       if (!this.isGameStarted) this.currentGameComponent = "StartGameScreen";
     },
-
 
     //Set the host id.
     startGame: function () {
@@ -136,7 +155,6 @@ export default {
 
       this.dataConnector.updateHost(hostId, roomName);
     },
-
 
     setupGame: function () {
       this.gameRunner = new GameRunner();
