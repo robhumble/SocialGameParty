@@ -31,26 +31,35 @@ export default class GameRunner {
         this.currentGameStep = stepNumber;
         let stepData = this.getGameStep(stepNumber);
 
+        //Start a write batch
+        var stepBatch = this.dataConnector.getWriteBatch();
+
+        //May want to clean out instructions from the previous step first...
+        if (stepData.cleanInstructionsFirst)
+            stepBatch = this.cleanInstructions(stepBatch);
+
         //PreStep
         if (stepData.preStepTarget == 'host' && this.isHost())
-            stepData.preStepFunction(remoteDataGroup);
+            stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
 
         if (stepData.preStepTarget == 'all')
-            stepData.preStepFunction(remoteDataGroup);
+            stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
 
         //Main Step
         if (stepData.target == 'host' && this.isHost())
-            stepData.stepFunction(remoteDataGroup);
+            stepBatch = stepData.stepFunction(remoteDataGroup, stepBatch);
 
         if (stepData.target == 'all')
-            stepData.stepFunction(remoteDataGroup);
+            stepBatch = stepData.stepFunction(remoteDataGroup);
 
         //Check Steps (could do a check immedieately OR call a function to setup check instructions)
         if (stepData.checkTarget == 'host' && this.isHost())
-            stepData.checkFunction(remoteDataGroup);
+            stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
 
         if (stepData.checkTarget == 'all')
-            stepData.checkFunction(remoteDataGroup);
+            stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
+
+        this.dataConnector.commitWriteBatch(stepBatch);
 
         console.log(remoteDataGroup);
     }
@@ -64,7 +73,7 @@ export default class GameRunner {
     initializeRemotePlayerGameData = function () {
 
         let initialGameData = {
-            currentStep: 1,           
+            currentStep: 1,
         }
 
         this.dataConnector.setPlayerGameData(this.roomName, initialGameData);
@@ -80,6 +89,19 @@ export default class GameRunner {
     }
 
 
+    /**
+     * Clean out the instruction properties in the Room Map
+     * @param {object} batch 
+     */
+    cleanInstructions = function (batch) {
+    
+        //Add to writeBatch
+        let dataToUpdate = {
+            currentCheckInstructions: null,
+            currentInstructions: null
+        };
+        return this.dataConnector.addToBatchUpdate(batch, "rooms", this.roomName, dataToUpdate);
+    }
 
 
 

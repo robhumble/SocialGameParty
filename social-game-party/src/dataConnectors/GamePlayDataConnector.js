@@ -216,6 +216,21 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
 
+  gameplayAddToBatch(batch, operation, roomName, dataToUpdate) {
+    let ref = this.firestoreDb.collection("rooms").doc(roomName);
+    
+    switch(operation){
+      case "set":  batch.set(ref, dataToUpdate); break;
+      case "update": batch.update(ref, dataToUpdate); break;
+      case "delete": batch.delete(ref); break;
+    }
+    
+    return batch;
+  }
+
+ 
+
+
 
 
   //TODO: The document is already being listened to because the data is part of the users room, unless this is extracted into a separate document we can probably get rid of this.

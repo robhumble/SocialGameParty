@@ -35,4 +35,40 @@ export default class DataConnector {
     this.firestoreDb = firebase.firestore();
   };
 
+
+  getWriteBatch = function () {
+    return this.firestoreDb.batch();
+  };
+
+  //Pretty much never use this since it's really destructive - stick to update to avoid overwrites
+  addToBatchSet(batch, col, doc, dataToUpdate) {
+    let ref = this.firestoreDb.collection(col).doc(doc);
+    batch.set(ref, dataToUpdate);
+    return batch;
+  }
+
+  //THIS IS THE ONE TO USE (...most likely)
+  addToBatchUpdate(batch, col, doc, dataToUpdate) {
+    let ref = this.firestoreDb.collection(col).doc(doc);
+    batch.update(ref, dataToUpdate);
+    return batch;
+  }
+
+  //Pretty much never use this since it's really destructive - stick to update to avoid overwrites
+  addToBatchDelete(batch, col, doc) {
+    let ref = this.firestoreDb.collection(col).doc(doc);
+    batch.delete(ref);
+    return batch;
+  }
+
+  commitWriteBatch = function (batch) {
+    if (batch) {
+      batch.commit().then(
+        () => console.log("Successful batch write!")
+      );
+    }
+    else
+      console.log("No batch to commit...");
+  }
+
 }

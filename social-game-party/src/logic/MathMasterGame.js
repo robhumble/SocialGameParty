@@ -27,6 +27,7 @@ export default class MathMasterGame {
         {
             stepNum: 1,
             desc: "Build out problems",
+            cleanInstructionsFirst: false, 
 
             preStepTarget: 'host',
             preStepFunction: (d) => { return this.setupLoadingScreen(d) },
@@ -45,45 +46,43 @@ export default class MathMasterGame {
         {
             stepNum: 1,
             desc: "Build out problems",
+            cleanInstructionsFirst: false,
 
             preStepTarget: 'host',
-            preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+            preStepFunction: (data, batch) => { return this.setupLoadingScreen(data, batch) },
 
             target: 'host',
-            stepFunction: (d) => { return this.buildProblemsStep(d) },
+            stepFunction: (data, batch) => { return this.buildProblemsStep(data, batch) },
         },
         {
             stepNum: 2,
             desc: "Players answer problems.",
+            cleanInstructionsFirst: true,
 
             preStepTarget: 'host',
-            preStepFunction: (d) => { return this.setupQuestionAndAnswerLoopThrough(d) },
+            preStepFunction: (data, batch) => { return this.setupQuestionAndAnswerLoopThrough(data, batch) },
 
             checkTarget: 'host',
-            checkFunction: (d) => { return this.prepareCheckInstructions(d) }
+            checkFunction: (data, batch) => { return this.prepareCheckInstructions(data, batch) }
         },
         {
             stepNum: 3,
-            desc: "Determine winner.",
+            desc: "Determine winner and display the results",
+            cleanInstructionsFirst: true,
 
             target: 'host',
-            stepFunction: (d) => { return this.pickAWinner(d) },
+            stepFunction: (data, batch) => { return this.pickAWinnerAndDisplayResults(data, batch) },
 
-        },
-        {
-            stepNum: 4,
-            desc: "Display winner.",
-
-            target: 'host',
-            stepFunction: (d) => { return this.displayResults(d) },
         },
 
 
     ];
 
 
+    //Main step functions - (These generally are batched writes)-------------------------------------------------------
+
     //Display a loading screen.
-    setupLoadingScreen = function (remoteDataGroup) {
+    setupLoadingScreen = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in setupLoadingScreen')
 
@@ -93,14 +92,15 @@ export default class MathMasterGame {
             msg: "Preparing Game..."
         }
 
-        //this.dataConnector.updatePlayerGameData(this.roomName, "currentInstructions", instructions);
-        
-        this.dataConnector.setCurrentInstructions(this.roomName, instructions);
+        //Add to the writeBatch
+        let dataToUpdate = {
+            currentInstructions: instructions
+        };
+        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
-    //Build the math problems that we will use during the game.
-    buildProblemsStep = function (remoteDataGroup) {
+    buildProblemsStep = function (remoteDataGroup, batch) {
 
         let problemsToBuild = this.#configOptions.totalMathProblems;
 
@@ -114,12 +114,19 @@ export default class MathMasterGame {
         if (remoteDataGroup)
             console.log('buildProblemsStep')
 
-        this.dataConnector.updatePlayerGameData(this.roomName, "mathProblems", mathProblems);
-        this.moveToStep(2);
+        //Add to the writeBatch
+        let dataToUpdate = {
+            playerGameData: {
+                mathProblems: mathProblems,
+                currentStep: 2
+            }
+        };
+        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
     }
 
     //Set up loop instructions for answering the questions.
-    setupQuestionAndAnswerLoopThrough = function (remoteDataGroup) {
+    setupQuestionAndAnswerLoopThrough = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in setupQuestionAndAnswerLoopThrough')
 
@@ -135,13 +142,16 @@ export default class MathMasterGame {
             resultFunction: "updatePlayerResults"
         }
 
-        //this.dataConnector.updatePlayerGameData(this.roomName, "currentInstructions", instructions);
-        this.dataConnector.setCurrentInstructions(this.roomName, instructions);
+        //Add to the writeBatch
+        let dataToUpdate = {
+            currentInstructions: instructions
+        };
+        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
     //Prepare remote data for the check function
-    prepareCheckInstructions = function (remoteDataGroup) {
+    prepareCheckInstructions = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in prepareCheckInstructions')
 
@@ -150,12 +160,15 @@ export default class MathMasterGame {
             checkFunction: "checkToSeeIfAllPlayersAreDone"
         }
 
-        //this.dataConnector.updatePlayerGameData(this.roomName, "currentCheckInstructions", currentCheckInstructions);
-        this.dataConnector.setCurrentCheckInstructions(this.roomName, currentCheckInstructions);
+        //Add to the writeBatch
+        let dataToUpdate = {
+            currentCheckInstructions: currentCheckInstructions
+        };
+        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
-    pickAWinner = function (remoteDataGroup) {
+    pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;
 
@@ -163,69 +176,39 @@ export default class MathMasterGame {
             return (x.answerResults > acc.answerResults) ? x : acc;
         });
 
-        this.dataConnector.updatePlayerGameData(this.roomName, "winner", winner);
-        this.moveToStep(4);
-    }
 
-    displayResults = function (remoteDataGroup) {
+        //Display Results instructions    
+        let getUserInfo = (targetUserId) => remoteDataGroup.userList.filter(x => x.id == targetUserId)[0];
 
-        if (!remoteDataGroup) console.log('no remoteDataGroup in displayResults')
+        let userInfo = getUserInfo(winner.userId);
 
-/*
-        this.dataConnector.updatePlayerGameDataViaFunction(this.roomName, (playerGameData) => {
+        let totals = "SCORES: \n";
+        remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults}`);
 
-            let winner = playerGameData.winner;
+        let instructions = {
+            type: "Display",
+            comp: "ResultScreen",
+            title: `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`,
+            msg: totals
+        }
 
-            let getUserInfo = (targetUserId) => remoteDataGroup.userList.filter(x => x.id == targetUserId)[0];
-
-            let userInfo = getUserInfo(winner.userId);
-
-            let totals = "SCORES: \n";
-            playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults}`);
-
-            let instructions = {
-                type: "Display",
-                comp: "ResultScreen",
-                title: `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`,
-                msg: totals
-            }
-
-            playerGameData.currentInstructions = instructions;
-
-            return playerGameData;
-        });
-        */
-
-        this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-
-            let winner = roomData.playerGameData.winner;
-
-            let getUserInfo = (targetUserId) => roomData.users.filter(x => x.id == targetUserId)[0];
-
-            let userInfo = getUserInfo(winner.userId);
-
-            let totals = "SCORES: \n";
-            roomData.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults}`);
-
-            let instructions = {
-                type: "Display",
-                comp: "ResultScreen",
-                title: `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`,
-                msg: totals
-            }
-
-            roomData.currentInstructions = instructions;
-
-            return roomData;
-        });
-
+        //Add to the writeBatch
+        let dataToUpdate = {
+            playerGameData: {
+                winner: winner,
+            },
+            currentInstructions: instructions
+        };
+        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
 
 
 
-    //Functions called from from Vue component--------------------------------------------------------------------------
+
+
+    //Functions called from from Vue component (These generally run in thier own transaction - NOT BATCH )--------------------------------------------------------------------------
 
     //Call this after a user has completed all questions
     updatePlayerResults = function (remoteDataGroup, userId, answerResults) {
@@ -245,7 +228,6 @@ export default class MathMasterGame {
         gd.results.push(resultObj);
 
         this.dataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
-        //return gd;
     }
 
     //Check function - Go to the next step if all players are done submitting answers
@@ -256,51 +238,31 @@ export default class MathMasterGame {
             let res = remoteDataGroup.playerGameData.results;
 
             if (res && res.length == remoteDataGroup.userList.length)
-                this.moveToStep(3);
+            {
+                //Move to step 3 (and clear all existing instructions.)
+                this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
+                    roomData.playerGameData.currentStep = 3;
+                    roomData.currentCheckInstructions = null;
+                    roomData.currentInstructions = null;
+                    return roomData;
+                });
+            }
         }
 
     }
 
     //Go to the desired step
-    moveToStep = function (stepNumber) {
-/*
-        this.dataConnector.updatePlayerGameDataViaFunction(this.roomName, (playerGameData) => {
-
-            //Clean out display vars
-            let instructionProps = ["currentCheckInstructions", "currentInstructions"];
-            instructionProps.forEach(name => {
-                playerGameData[name] = null;
-            });
-
-            //Update Step
-            playerGameData.currentStep = stepNumber
-
-            return playerGameData;
-        });
-
-  */      
-        this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-
-            roomData.currentInstructions = null;
-            roomData.currentCheckInstructions = null;
-            roomData.playerGameData.currentStep = stepNumber;
-            return roomData;
-        });
-    }
-
-    //Null out player instruction
-    /*
-    cleanInstructions = function () {
-        let instructionProps = ["currentCheckInstructions", "currentInstructions"]
-        this.dataConnector.cleanPlayerGameData(this.roomName, instructionProps);
-    }
-    */
+    // moveToStepNonBatch = function (stepNumber) {
+    //     this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
+    //         roomData.playerGameData.currentStep = stepNumber;
+    //         return roomData;
+    //     });
+    // }
 
 
 
-    //General "Private" functions -----------------------------------------------------------------
+    //General "Private" Helper functions -----------------------------------------------------------------
 
-    
     buildMathProblem = function () {
 
         let problemLo = this.#configOptions.problemLo,
