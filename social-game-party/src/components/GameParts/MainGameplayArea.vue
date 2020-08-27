@@ -1,6 +1,10 @@
 <template>
   <div class="gameplay-area">
     Hay hay hay this is the gameplay area!
+    <div v-if="isGameStarted && isHost" class="host-reset">
+      <v-btn @click="resetGame">Reset Game</v-btn>
+    </div>
+
     <div class="game-components">
       <QuestionAndAnswer
         v-if="currentGameComponent == 'QuestionAndAnswer'"
@@ -79,13 +83,22 @@ export default {
       "myTempGameData",
       "getRemoteDataGroup",
     ]),
+
+    isHost: function () {
+      return this.hostId == this.currentSession.currentUser.uniqueId;
+    },
   },
   watch: {
     //If the hostId gets updated, setup the game runner, or update it to reflect the new host.
     hostId: function (n, o) {
       if (n != o) {
-        if (!this.gameRunner) this.setupGame();
-        else this.gameRunner.hostId = n;
+        if (n) {
+          if (!this.gameRunner) this.setupGame();
+          else this.gameRunner.hostId = n;
+        } else {
+          // if the host is set to null reset the game...
+          this.resetGame();
+        }
       }
     },
 
@@ -95,7 +108,7 @@ export default {
         this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
       }
 
-      //Watch from a check instruction
+      //Watch from a check instruction -- Check instructions watch target should only be in player game data.
       if (this.currentCheckInstructions) {
         let watchTarget = this.currentCheckInstructions.watchTarget;
 
@@ -125,23 +138,6 @@ export default {
         }
       }
     },
-
-    // currentCheckInstructions: function (n, o) {
-    //   //Check Instructions
-    //  /* if (n) {
-    //     let watchTarget = n.watchTarget;
-
-    //     if (n[watchTarget] != o[watchTarget]) {
-    //       this.gameRunner.callGameFunction(
-    //         n.checkFunction,
-    //         this.getRemoteDataGroup
-    //       );
-    //     }
-    //   }*/
-    //    if (n != o) {
-    //      this.checkInstructions = n;
-    //   }
-    // },
   },
   methods: {
     getCurrentGameComponent: function () {
@@ -237,6 +233,18 @@ export default {
           this.goThroughLoop();
         }
       }
+    },
+
+    resetGame: function () {
+      this.gameRunner.resetGame();
+      this.gameRunner = null;
+
+      this.currentGameComponent = "StartGameScreen";
+      this.displayInstructions = null;
+      this.loopThroughData = null;
+      this.questionAndAnswerQuestionText = "";
+
+      console.log("Game reset by host...");
     },
   },
 };

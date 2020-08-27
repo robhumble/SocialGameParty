@@ -3,13 +3,13 @@ import DataConnector from "@/dataConnectors/DataConnector";
 
 
 /**
- * DataConnector for interacting with "Rooms".
+ * DataConnector for interacting with "GamePlay"  (*BUT right now it only deals with "Rooms".... so it's really just kind of an extension of the data connector.)
  */
 export default class GameplayDataConnector extends DataConnector {
 
 
   //TODO: figure out if this actually helps....
-  #firestoreArtificialWaitWindowMS = 5000;
+  #firestoreArtificialWaitWindowMS = 0;
 
   constructor() {
     super();
@@ -31,7 +31,7 @@ export default class GameplayDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   updateHost = function (newHostId, roomName) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -44,7 +44,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updateSpectatorGameData = function (roomName, newSpecatorGameData) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -60,7 +60,7 @@ export default class GameplayDataConnector extends DataConnector {
 
   //Set the whole playerGameData object - ignore prior state
   setPlayerGameData = function (roomName, newPlayerGameData) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -74,7 +74,7 @@ export default class GameplayDataConnector extends DataConnector {
 
   //Set a property in playerGameData, the rest of the object should remain as it was in firestore. 
   updatePlayerGameData = function (roomName, propName, propVal) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -93,7 +93,7 @@ export default class GameplayDataConnector extends DataConnector {
 
 
   cleanPlayerGameData = function (roomName, propNamesArr) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -113,7 +113,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updatePlayerGameDataViaFunction = function (roomName, updateFunc) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -133,7 +133,7 @@ export default class GameplayDataConnector extends DataConnector {
   //currentInstructions Data functions-----------------------------------------------------------------------------------------------
 
   setCurrentInstructions = function (roomName, newInstructions) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -146,7 +146,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updateCurrentInstructionsViaFunction = function (roomName, updateFunc) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -166,7 +166,7 @@ export default class GameplayDataConnector extends DataConnector {
   //currentCheckInstructions game Data functions-----------------------------------------------------------------------------------------------
 
   setCurrentCheckInstructions = function (roomName, newCheckInstructions) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -179,7 +179,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   updateCurrentCheckInstructionsViaFunction = function (roomName, updateFunc) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -199,7 +199,7 @@ export default class GameplayDataConnector extends DataConnector {
 
 
   updateWholeRoomViaFunction = function (roomName, updateFunc) {
-    this.slowItDown();
+    // this.slowItDown();
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -216,6 +216,7 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
 
+  //Quick version of the base dataConnector batch funcitons that specifically targets the room collection
   gameplayAddToBatch(batch, operation, roomName, dataToUpdate) {
     let ref = this.firestoreDb.collection("rooms").doc(roomName);
     

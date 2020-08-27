@@ -79,6 +79,32 @@ export default class GameRunner {
         this.dataConnector.setPlayerGameData(this.roomName, initialGameData);
     }
 
+    //Reset Game Data
+    resetGame = function () {
+
+        //Game Data
+        this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
+            roomData.playerGameData = {};
+            roomData.spectatorGameData = {};
+            roomData.currentCheckInstructions = null;
+            roomData.currentInstructions = null;
+            roomData.hostId = null
+           
+            return roomData;
+        });
+
+        //Game Runner vars
+        this.currentGame = null;
+        this.dataConnector = null;
+
+        this.hostId = null;
+        this.currentUserId = null;
+
+        this.currentGameStep = 1;
+        this.roomName = "";
+
+    }
+
     getGameStep = function (sn) {
         let stepData = this.currentGame.gameSteps.filter(x => x.stepNum == sn)[0];
         return stepData;
@@ -94,7 +120,7 @@ export default class GameRunner {
      * @param {object} batch 
      */
     cleanInstructions = function (batch) {
-    
+
         //Add to writeBatch
         let dataToUpdate = {
             currentCheckInstructions: null,
