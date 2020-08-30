@@ -19,6 +19,27 @@ export var mainFramework = {
         var mainChat = document.getElementById(elementId);
         if(mainChat)
             mainChat.scrollTop = mainChat.scrollHeight;
+    },
+
+
+    /**
+     * (Shallow Compare) Quick check to see if an object is "roughly" the same. 
+     * @param {object} objectA 
+     * @param {object} objectB 
+     */
+    isObjectSimilar: function(objectA, objectB){
+
+        if(!objectA || !objectB ){
+            console.log("Cannot compare null/undefined for similarities.");
+            return false;
+        }        
+
+        for( var key in objectA){
+            if(objectA[key] != objectB[key])
+                return false;
+        }
+
+        return true;
     }
 
 }

@@ -21,47 +21,51 @@ export default class GameRunner {
         this.currentUserId = currentUserId;
 
 
-        if (this.isHost)
+        if (this.isHost())
             this.initializeRemotePlayerGameData();
     }
 
     //Run the specified step in the current game
     runStep = function (stepNumber, remoteDataGroup) {
 
-        this.currentGameStep = stepNumber;
-        let stepData = this.getGameStep(stepNumber);
+        //For the time being - the only one that should actually be "Running a step" should be the host
+        if (this.isHost()) {
 
-        //Start a write batch
-        var stepBatch = this.dataConnector.getWriteBatch();
+            this.currentGameStep = stepNumber;
+            let stepData = this.getGameStep(stepNumber);
 
-        //May want to clean out instructions from the previous step first...
-        if (stepData.cleanInstructionsFirst)
-            stepBatch = this.cleanInstructions(stepBatch);
+            //Start a write batch
+            var stepBatch = this.dataConnector.getWriteBatch();
 
-        //PreStep
-        if (stepData.preStepTarget == 'host' && this.isHost())
-            stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
+            //May want to clean out instructions from the previous step first...
+            if (stepData.cleanInstructionsFirst)
+                stepBatch = this.cleanInstructions(stepBatch);
 
-        if (stepData.preStepTarget == 'all')
-            stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
+            //PreStep
+            if (stepData.preStepTarget == 'host' && this.isHost())
+                stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
 
-        //Main Step
-        if (stepData.target == 'host' && this.isHost())
-            stepBatch = stepData.stepFunction(remoteDataGroup, stepBatch);
+            if (stepData.preStepTarget == 'all')
+                stepBatch = stepData.preStepFunction(remoteDataGroup, stepBatch);
 
-        if (stepData.target == 'all')
-            stepBatch = stepData.stepFunction(remoteDataGroup);
+            //Main Step
+            if (stepData.target == 'host' && this.isHost())
+                stepBatch = stepData.stepFunction(remoteDataGroup, stepBatch);
 
-        //Check Steps (could do a check immedieately OR call a function to setup check instructions)
-        if (stepData.checkTarget == 'host' && this.isHost())
-            stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
+            if (stepData.target == 'all')
+                stepBatch = stepData.stepFunction(remoteDataGroup);
 
-        if (stepData.checkTarget == 'all')
-            stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
+            //Check Steps (could do a check immedieately OR call a function to setup check instructions)
+            if (stepData.checkTarget == 'host' && this.isHost())
+                stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
 
-        this.dataConnector.commitWriteBatch(stepBatch);
+            if (stepData.checkTarget == 'all')
+                stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
 
-        console.log(remoteDataGroup);
+            this.dataConnector.commitWriteBatch(stepBatch);
+
+            console.log(remoteDataGroup);
+        }
     }
 
     //Call the specified function in the current game object.
@@ -83,15 +87,7 @@ export default class GameRunner {
     resetGame = function () {
 
         //Game Data
-        this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-            roomData.playerGameData = {};
-            roomData.spectatorGameData = {};
-            roomData.currentCheckInstructions = null;
-            roomData.currentInstructions = null;
-            roomData.hostId = null
-           
-            return roomData;
-        });
+        this.dataConnector.resetGameData(this.roomName);
 
         //Game Runner vars
         this.currentGame = null;

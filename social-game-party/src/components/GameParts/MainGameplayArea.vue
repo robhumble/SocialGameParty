@@ -38,6 +38,8 @@ import ResultScreen from "@/components/GameParts/ResultScreen.vue";
 import StartGameScreen from "@/components/GameParts/StartGameScreen.vue";
 import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
 
+import * as sgf from "@/logic/socialGameFramework.js";
+
 //TODO: integrate these with this component
 import GameRunner from "@/logic/GameRunner.js";
 import MathMasterGame from "@/logic/MathMasterGame.js";
@@ -105,7 +107,10 @@ export default {
     playerGameData: function (n, o) {
       //Step
       if (n.currentStep && n.currentStep != o.currentStep) {
-        this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
+        if(this.gameRunner)
+          this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
+        else 
+          console.log(`Cannot run step ${n.currentStep}, gameRunner is null.`);
       }
 
       //Watch from a check instruction -- Check instructions watch target should only be in player game data.
@@ -126,7 +131,8 @@ export default {
 
       console.log(n + o);
 
-      if (n) {
+      //Only update if the instructions are different (based on a shallow compare)
+      if (n && !sgf.mainFramework.isObjectSimilar(n,o)) {
         if (n.type == "Display") {
           this.clearDisplay();
           this.setUpDisplay(n);
@@ -235,14 +241,17 @@ export default {
       }
     },
 
+    //Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
     resetGame: function () {
-      this.gameRunner.resetGame();
+      if (this.gameRunner) {
+        this.gameRunner.resetGame();
+      } else {
+        this.dataConnector.resetGameData(this.currentRoomName);
+      }
       this.gameRunner = null;
 
+      this.clearDisplay();
       this.currentGameComponent = "StartGameScreen";
-      this.displayInstructions = null;
-      this.loopThroughData = null;
-      this.questionAndAnswerQuestionText = "";
 
       console.log("Game reset by host...");
     },

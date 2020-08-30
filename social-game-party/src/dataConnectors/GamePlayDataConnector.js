@@ -20,8 +20,8 @@ export default class GameplayDataConnector extends DataConnector {
 
   //TODO - Test these, these were all just hacked together.........
 
-  slowItDown = function(){
-    setTimeout(()=>{console.log("slowed...."),this.#firestoreArtificialWaitWindowMS});
+  slowItDown = function () {
+    setTimeout(() => { console.log("slowed...."), this.#firestoreArtificialWaitWindowMS });
   }
 
 
@@ -121,9 +121,9 @@ export default class GameplayDataConnector extends DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let curPlayerGameData = roomDoc.data().playerGameData;        
-        let updatedPlayerGameData = updateFunc(curPlayerGameData);       
-        
+        let curPlayerGameData = roomDoc.data().playerGameData;
+        let updatedPlayerGameData = updateFunc(curPlayerGameData);
+
         transaction.update(roomDocRef, { playerGameData: updatedPlayerGameData });
       })
     })
@@ -154,9 +154,9 @@ export default class GameplayDataConnector extends DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let curCurrentInstructions = roomDoc.data().currentInstructions;        
-        let updatedCurrentInstructions = updateFunc(curCurrentInstructions);       
-        
+        let curCurrentInstructions = roomDoc.data().currentInstructions;
+        let updatedCurrentInstructions = updateFunc(curCurrentInstructions);
+
         transaction.update(roomDocRef, { currentInstructions: updatedCurrentInstructions });
       })
     })
@@ -187,9 +187,9 @@ export default class GameplayDataConnector extends DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let curCurrentCheckInstructions = roomDoc.data().currentCheckInstructions;        
-        let updatedCurrentCheckInstructions = updateFunc(curCurrentCheckInstructions);       
-        
+        let curCurrentCheckInstructions = roomDoc.data().currentCheckInstructions;
+        let updatedCurrentCheckInstructions = updateFunc(curCurrentCheckInstructions);
+
         transaction.update(roomDocRef, { currentCheckInstructions: updatedCurrentCheckInstructions });
       })
     })
@@ -207,9 +207,9 @@ export default class GameplayDataConnector extends DataConnector {
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let curRoomData = roomDoc.data();        
-        let updatedRoomData = updateFunc(curRoomData);       
-        
+        let curRoomData = roomDoc.data();
+        let updatedRoomData = updateFunc(curRoomData);
+
         transaction.update(roomDocRef, updatedRoomData);
       })
     })
@@ -219,17 +219,28 @@ export default class GameplayDataConnector extends DataConnector {
   //Quick version of the base dataConnector batch funcitons that specifically targets the room collection
   gameplayAddToBatch(batch, operation, roomName, dataToUpdate) {
     let ref = this.firestoreDb.collection("rooms").doc(roomName);
-    
-    switch(operation){
-      case "set":  batch.set(ref, dataToUpdate); break;
+
+    switch (operation) {
+      case "set": batch.set(ref, dataToUpdate); break;
       case "update": batch.update(ref, dataToUpdate); break;
       case "delete": batch.delete(ref); break;
     }
-    
+
     return batch;
   }
 
- 
+
+  resetGameData = function (roomName) {
+    this.updateWholeRoomViaFunction(roomName, (roomData) => {
+      roomData.playerGameData = {};
+      roomData.spectatorGameData = {};
+      roomData.currentCheckInstructions = null;
+      roomData.currentInstructions = null;
+      roomData.hostId = null
+
+      return roomData;
+    });
+  }
 
 
 
