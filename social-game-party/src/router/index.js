@@ -24,6 +24,8 @@ Vue.use(VueRouter)
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
+  { path: '/debugParty', name: 'Home', component: Home, props: { isDebug: true } },
+
   { path: '/about', name: 'About', component: About },
 
 

@@ -17,6 +17,7 @@ export default new Vuex.Store({
     state: {
 
         projectName: 'Social Game Party',
+        isDebugMode: false,
 
     },
     getters: {
@@ -26,6 +27,10 @@ export default new Vuex.Store({
             return state.projectName;
         },
 
+        isDebugMode: state => {
+            return state.isDebugMode;
+        }
+
     },
     //Synchronous (Simple setters)
     mutations: {
@@ -33,6 +38,10 @@ export default new Vuex.Store({
         setProjectName: (state, payload) => {
             state.projectName = payload;
         },
+
+        setIsDebugMode: (state, payload) => {
+            state.isDebugMode = payload;
+        }
 
     },
     //Async (More complex functions)

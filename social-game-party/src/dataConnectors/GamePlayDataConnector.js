@@ -18,8 +18,8 @@ export default class GameplayDataConnector extends DataConnector {
   // Firebase functions for Game Play. -----------------------------
 
 
-  //TODO - Test these, these were all just hacked together.........
-
+  //TODO: This doesn't seem to be needed now after some bug fixes, consider making a bit more robust and moving to SGF for general use cases.
+  //Quick sleep function to wait in between transactions 
   slowItDown = function () {
     setTimeout(() => { console.log("slowed...."), this.#firestoreArtificialWaitWindowMS });
   }
@@ -196,7 +196,6 @@ export default class GameplayDataConnector extends DataConnector {
   }
 
   //Whole Room Update (when you need to reach across multiple properties)--------------------------------------------------------
-
 
   updateWholeRoomViaFunction = function (roomName, updateFunc) {
     // this.slowItDown();

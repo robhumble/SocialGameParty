@@ -82,6 +82,8 @@ export default class RoomDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   exitRoom = function (userId, roomName) {
+   // var that = this;
+
     if (roomName) { //remove the user from the room they are in when they move, if they are in a room
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -91,7 +93,11 @@ export default class RoomDataConnector extends DataConnector {
 
           let updatedUsers = allUsers.filter(x => x.id != userId);
 
-          transaction.update(roomDocRef, { users: updatedUsers });
+          //Last one out closes down the room
+          if(updatedUsers.length < 1)
+            transaction.delete(roomDocRef);
+          else
+            transaction.update(roomDocRef, { users: updatedUsers });
         })
       })
 
@@ -199,6 +205,24 @@ export default class RoomDataConnector extends DataConnector {
    */
   rejoinRoom = function (joinRoomName, sessionUserObj, updateRoomFunction) {
     this.joinRoom(joinRoomName, sessionUserObj, updateRoomFunction, false);
+  }
+
+
+
+  //TODO: TEST BEFORE USING - This is untested...
+  /**
+   * Delete the specified room from the rooms collection.
+   * @param {string} roomName 
+   */
+  deleteRoom = function(roomName){
+
+    this.firestoreDb.collection("rooms").doc(roomName).delete()
+    .then(
+      console.log(`Room "${roomName}" has been deleted. `)
+    ).catch( err => {
+      console.log("There was an issue deleting the room: " + err);
+    });
+
   }
 
   //Private Helpers-------------------------------------->

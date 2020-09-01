@@ -60,6 +60,7 @@ import UserSetup from "@/components/UserSetup.vue";
 
 export default {
   name: "Home",
+  props: ["isDebug"],
   components: {
     RoomMenu,
     ChatArea,
@@ -72,6 +73,9 @@ export default {
   }),
   computed: {
     ...mapGetters(["projectName", "currentSession", "currentRoomName"]),
+  },
+  mounted: function () {
+    if (this.isDebug) this.$store.commit("setIsDebugMode", true);
   },
   watch: {
     currentRoomName: function () {

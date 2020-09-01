@@ -21,7 +21,7 @@
     </v-app-bar>
 
     <v-content>
-      <div>
+      <div v-if="isDebugMode">
         <span>
           !!!DEBUG!!! ---> 
           Current User name:
@@ -44,7 +44,7 @@ export default {
   name: "App",
   components: {},
   computed: {
-    ...mapGetters(["projectName", "currentSession"]),
+    ...mapGetters(["projectName", "currentSession", "isDebugMode"]),
 
     currentUserName: function () {
       if (this.currentSession)
