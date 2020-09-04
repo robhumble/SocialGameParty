@@ -9,7 +9,7 @@
       <QuestionAndAnswer
         v-if="currentGameComponent == 'QuestionAndAnswer'"
         :questionText="questionAndAnswerQuestionText"
-        @answerEvent="questionAndAnswerLoopHandler"
+        @answerEvent="questionAndAnswerHandler"
       ></QuestionAndAnswer>
 
       <ResultScreen
@@ -67,7 +67,9 @@ export default {
     //checkInstructions: null
   }),
   mounted: function () {
-    this.getCurrentGameComponent();
+    //If the game hasn't been started yet (i.e. no host), show the start screen.
+   if (!this.isGameStarted) 
+    this.currentGameComponent = "StartGameScreen";
   },
   computed: {
     ...mapGetters([
@@ -105,7 +107,9 @@ export default {
     },
 
     playerGameData: function (n, o) {
-      //Step
+
+      //TODO: may want to do a host check here - since only the host is running steps at the moment
+      //Watch the current step - if it changes, run the new step 
       if (n.currentStep && n.currentStep != o.currentStep) {
         if(this.gameRunner)
           this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
@@ -113,7 +117,8 @@ export default {
           console.log(`Cannot run step ${n.currentStep}, gameRunner is null.`);
       }
 
-      //Watch from a check instruction -- Check instructions watch target should only be in player game data.
+      //Watch from a check instruction -- Check instructions watch target should only be in playerGameData.
+      //If there are check instructions and the watch target is updated, run the check function.
       if (this.currentCheckInstructions) {
         let watchTarget = this.currentCheckInstructions.watchTarget;
 
@@ -145,12 +150,12 @@ export default {
       }
     },
   },
-  methods: {
-    getCurrentGameComponent: function () {
-      if (!this.isGameStarted) this.currentGameComponent = "StartGameScreen";
-    },
+  methods: { 
 
-    //Set the host id.
+    
+    /**
+     * Start the game by setting the host id.
+     */
     startGame: function () {
       let hostId = this.currentSession.currentUser.uniqueId;
       let roomName = this.currentRoomName;
@@ -158,6 +163,9 @@ export default {
       this.dataConnector.updateHost(hostId, roomName);
     },
 
+    /**
+     * Setup the current game by initializing the gameRunner and game.
+     */
     setupGame: function () {
       this.gameRunner = new GameRunner();
       let game = new MathMasterGame(this.currentRoomName);
@@ -169,6 +177,9 @@ export default {
       );
     },
 
+    /**
+     * Clear local component display properties.
+     */
     clearDisplay: function () {
       this.currentGameComponent = null;
       this.displayInstructions = null;
@@ -176,26 +187,31 @@ export default {
       this.questionAndAnswerQuestionText = "";
     },
 
-    //Setup basic display components
+    /**
+     * Setup basic display components (i.e. loading screen, results).
+     */
     setUpDisplay: function (instructions) {
       this.currentGameComponent = instructions.comp;
       this.displayInstructions = instructions;
     },
 
-    //Setup a loop
+    //TODO: probably need to alter this to allow for more than just question/answer pattern OR specify that this is just for that pattern
+    /**
+     * Setup complex "LoopThrough" instructions that specify a series of things to display and follow up actions.
+     */
     setUpLoopThrough: function (instructions) {
       let loopSrc = this.playerGameData[instructions.loopSrc];
 
       let loopData = {
-        loopSrc: loopSrc,
-        index: 0,
+        loopSrc: loopSrc,                             //data source that we will loop through (i.e. an array of objects) - this has to be found in playerGameData
+        index: 0,                                     //current position in the loopSrc
 
-        srcQuestionVar: instructions.questionVar,
-        srcAnswerVar: instructions.answerVar,
+        srcQuestionVar: instructions.questionVar,     //The name of the variable in the loopSrc that contains a question
+        srcAnswerVar: instructions.answerVar,         //The name of the variable in the loopSrc that contains a answer
 
-        component: instructions.comp,
-        correctAnswerCount: 0,
-        resultFunction: instructions.resultFunction,
+        component: instructions.comp,                 //The name of the game part component to feed this into
+        correctAnswerCount: 0,                        //The number of correctly answered questions
+        resultFunction: instructions.resultFunction,  //The function to pass the correctAnswerCount to.
       };
 
       this.loopThroughData = loopData;
@@ -203,22 +219,28 @@ export default {
       this.goThroughLoop();
     },
 
-    //Iterate through the loop / goto next step in loop
+    /**
+     * Iterate through the loop / goto next step in loop.
+     */
     goThroughLoop: function () {
       let i = this.loopThroughData.index;
       let cur = this.loopThroughData.loopSrc[i];
 
+      //QuestionAndAnswer section
       if (this.loopThroughData.component == "QuestionAndAnswer") {
         this.currentGameComponent = this.loopThroughData.component;
         this.questionAndAnswerQuestionText =
-          cur[this.loopThroughData.srcQuestionVar];
-
-        //this.questionAndAnswerHandler = questionAndAnswerHandlerFunc
+          cur[this.loopThroughData.srcQuestionVar];     
       }
+
     },
 
-    //Callback/handler after the user answers a question in a loop
-    questionAndAnswerLoopHandler: function (answer) {
+    /**
+     * Callback/handler after the user answers a question.
+     */
+    questionAndAnswerHandler: function (answer) {
+
+      //Use this logic if we are actively in a loop (we assume the answer is for a looped question then)
       if (this.loopThroughData) {
         let i = this.loopThroughData.index;
         let currentLoopData = this.loopThroughData.loopSrc[i];
@@ -226,7 +248,7 @@ export default {
 
         if (answer == correctAnswer) this.loopThroughData.correctAnswerCount++;
 
-        //If last call the result function
+        //If last, call the result function
         if (i == this.loopThroughData.loopSrc.length - 1) {
           this.gameRunner.callGameFunction(
             this.loopThroughData.resultFunction,
@@ -239,13 +261,18 @@ export default {
           this.goThroughLoop();
         }
       }
+
     },
 
-    //Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
-    resetGame: function () {
+    /**
+     * Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
+     */
+    resetGame: function () {     
+      
       if (this.gameRunner) {
         this.gameRunner.resetGame();
       } else {
+        //If the game is reset somehow without a gameRunner, at least make sure the db is cleaned out.
         this.dataConnector.resetGameData(this.currentRoomName);
       }
       this.gameRunner = null;

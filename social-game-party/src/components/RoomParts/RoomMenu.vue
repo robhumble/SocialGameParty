@@ -9,9 +9,7 @@
           <h1 v-if="!currentRoomName">You are not in a game room!</h1>
           <h1 v-if="currentRoomName">You are in room: {{currentRoomName}}</h1>
         </div>
-
-        <!-- <div class="RoomMenu" style="max-width:60%">
-        <h2>Room Menu</h2>-->
+      
         <!-- prevent loading both options at once by making the other button's value false -->
         <div v-if="!currentRoomName && !joinARoom && !makeARoom" class="join-or-make">
           <h3>Would you like to:</h3>
@@ -97,7 +95,7 @@ export default {
       this.resetNavProperties();
     },
 
-    // //Join an existing room
+    //Join an existing room
     joinRoom(joinRoomName) {
       let curUser = this.currentSession.currentUser;
 
@@ -106,7 +104,7 @@ export default {
       this.resetNavProperties();
     },
 
-    // //Leave the users current room
+    //Leave the users current room
     exitRoom() {
       this.dataConnector.exitRoom(
         this.currentSession.currentUser.uniqueId,

@@ -43,8 +43,7 @@ export default {
 
       this.userList
         .filter((x) => !x.isPlaying)
-        .forEach(function (user) {
-          //let appendName = Object.values(user);
+        .forEach(function (user) {          
           let appendName = user.name;
           if (appendName != "") {
             userStr += `${appendName}, `;
@@ -60,7 +59,6 @@ export default {
       this.userList
         .filter((x) => x.isPlaying)
         .forEach(function (user) {
-          //let appendName = Object.values(user);
           let appendName = user.name;
           if (appendName != "") {
             userStr += `${appendName}, `;
@@ -75,9 +73,9 @@ export default {
     },
   },
   methods: {
-    // // gameRoom methods
+    // gameRoom methods
 
-    // //Join the game in the current room
+    //Join the game in the current room
     joinGame() {
       let userId = this.currentSession?.currentUser?.uniqueId;
 
@@ -86,7 +84,7 @@ export default {
       this.inGame = true;
     },
 
-    // //exit the current game but stay in the room
+    //exit the current game but stay in the room
     exitGame() {
       let userId = this.currentSession?.currentUser?.uniqueId;
 

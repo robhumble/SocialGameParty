@@ -44,8 +44,7 @@ export default {
   name: "ChatRoom",
 
   data: () => ({
-    providedDisplayName: "",
-    //displayUserName: "",
+    providedDisplayName: "",    
     chatText: "",
     submitText: "",
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
