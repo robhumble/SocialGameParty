@@ -8,9 +8,9 @@ export default class MathMasterGame {
     roomName = null;
 
     #configOptions = {
-        totalMathProblems: 3,
+        totalMathProblems: 10,
         problemLo: 0,
-        problemHi: 20
+        problemHi: 35
     }
 
     constructor(roomName) {
@@ -20,6 +20,10 @@ export default class MathMasterGame {
     }
 
     //TODO: At some point it would nice to have this as data that lives in the db.
+    
+    /**
+     * Game Steps define each "step" in a given game.  Each step describes a phase of the game and gives instructions to the host or other players describing what they should be doing. 
+     */
     gameSteps = [
 
         //Example Step
@@ -80,8 +84,20 @@ export default class MathMasterGame {
 
 
     //Main step functions - (These generally are batched writes)-------------------------------------------------------
+    /*
+     * Each of these functions below are supposed to be run exclusively by the host.  Each expects the following params
+     * 
+     * remoteDataGroup - data we listen to and keep in the GlobalPropertyModule vuex store.
+     * batch - a write batch, generally there is one per step that is passed in and out of each main step function until the step is completed... at which point we commit the write batch.
+     */
 
-    //Display a loading screen.
+
+
+    /**
+     * Setup the loading screen at the beginning of the game.
+     * @param {object} remoteDataGroup 
+     * @param {object} batch 
+     */
     setupLoadingScreen = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in setupLoadingScreen')
@@ -99,7 +115,11 @@ export default class MathMasterGame {
         return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
-
+    /**
+     * Build a number of math problems for each player to solve. (Should be used by the Host)
+     * @param {object} remoteDataGroup 
+     * @param {object} batch 
+     */
     buildProblemsStep = function (remoteDataGroup, batch) {
 
         let problemsToBuild = this.#configOptions.totalMathProblems;
@@ -123,9 +143,13 @@ export default class MathMasterGame {
         };
         return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
-    }
+    }    
 
-    //Set up loop instructions for answering the questions.
+    /**
+     * Set up loop instructions for answering the questions.  (Should be used by the Host)
+     * @param {object} remoteDataGroup 
+     * @param {object} batch 
+     */
     setupQuestionAndAnswerLoopThrough = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in setupQuestionAndAnswerLoopThrough')
@@ -147,10 +171,13 @@ export default class MathMasterGame {
             currentInstructions: instructions
         };
         return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
-    }
+    }  
 
-
-    //Prepare remote data for the check function
+     /**
+     * Prepare remote data for the check function.  (Should be used by the Host)
+     * @param {object} remoteDataGroup 
+     * @param {object} batch 
+     */
     prepareCheckInstructions = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in prepareCheckInstructions')
@@ -168,6 +195,11 @@ export default class MathMasterGame {
     }
 
 
+    /**
+     * Look through the results to determine the winning player, create display instructions to show the winner.  (Should be used by the Host)
+     * @param {object} remoteDataGroup 
+     * @param {object} batch 
+     */
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;
@@ -205,12 +237,22 @@ export default class MathMasterGame {
 
 
 
-
-
-
     //Functions called from from Vue component (These generally run in thier own transaction - NOT BATCH )--------------------------------------------------------------------------
+    /*
+     * Each of the functions below is designed to be called by callGameFunction() in the game runner.  These functions expect the following params.
+     *
+     * remoteDataGroup - data we listen to and keep in the GlobalPropertyModule vuex store.
+     * userId - the userId of the user calling the function
+     * (OPTIONAL)functionParams - an additional object that contains function params, can be named anything, can be an object with multiple params nested inside.
+     */
 
-    //Call this after a user has completed all questions
+
+    /**
+     * Call this after a user has completed all questions, this will submit an result object for the user to the database.
+     * @param {object} remoteDataGroup 
+     * @param {number} userId 
+     * @param {object} answerResults - ....contains the number of correctly answered questions by the specified user.
+     */
     updatePlayerResults = function (remoteDataGroup, userId, answerResults) {
 
         remoteDataGroup
@@ -230,7 +272,11 @@ export default class MathMasterGame {
         this.dataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
     }
 
-    //Check function - Go to the next step if all players are done submitting answers
+    /**
+     * Check function - Go to the next step if all players are done submitting answers. (Should be used by the Host)
+     * @param {object} remoteDataGroup 
+     * @param {number} userId 
+     */
     checkToSeeIfAllPlayersAreDone = function (remoteDataGroup, userId) {
 
         if (userId == remoteDataGroup.hostId) {
@@ -263,6 +309,9 @@ export default class MathMasterGame {
 
     //General "Private" Helper functions -----------------------------------------------------------------
 
+    /**
+     * Build a math problem to be answered by the players.
+     */
     buildMathProblem = function () {
 
         let problemLo = this.#configOptions.problemLo,
@@ -313,6 +362,11 @@ export default class MathMasterGame {
 
     }
 
+    /**
+     * Get a random integer between lo and hi (inclusive.)
+     * @param {number} lo 
+     * @param {number} hi 
+     */
     getRandomInt = function (lo, hi) {
         let min = Math.floor(lo);
         let max = Math.floor(hi);
@@ -321,6 +375,10 @@ export default class MathMasterGame {
         return Math.floor(rand);
     }
 
+    //TODO: we are actually excluding "/" for now - need to change how we build these to avoid fractional answers (i.e. when building a "/", multiply instead and then move things around)
+    /**
+     * Get a random operator.  (includes: +,-,*,/)
+     */
     getRandomOperator = function () {
 
         let op = this.getRandomInt(1, 3);

@@ -13,12 +13,18 @@ export default class SessionInfo {
 
     //Local storage -------------------------------------------->
 
+    /**
+     * Save important information to local storage.
+     */
     saveToLocalStorage = function () {
 
         let dataToPersist = this.getStringRepresentation();
         localStorage.setItem(this.#localStorageKey, dataToPersist);
     }
 
+    /**
+     * Load session info found in the local storage into the current session info class.
+     */
     loadFromLocalStorage = function () {
 
         let dataFromLocalStorage = localStorage.getItem(this.#localStorageKey);
@@ -27,12 +33,18 @@ export default class SessionInfo {
             this.populateFromStringRepresentation(dataFromLocalStorage);
     }
 
+    /**
+     * Erase the session info from local storage.
+     */
     eraseSessionInfoFromLocalStorage = function () {
         localStorage.removeItem(this.#localStorageKey);
     }
 
     //Convert back and forth between string representation---------------------->
 
+    /**
+     * Get a simplified JSON string representation of critical session information.  (This string is intended to be saved to local storage).
+     */
     getStringRepresentation = function () {
         let toFlatten = {};
 
@@ -49,6 +61,10 @@ export default class SessionInfo {
         return flattened;
     }
 
+    /**
+     * Update this session object to match the session info data found in the dataString.  (Intended to be used when we load a session from local storage).
+     * @param {string} dataString - a stringified JSON representation of a sessionInfo instance
+     */
     populateFromStringRepresentation = function (dataString) {
 
         let dataObj = JSON.parse(dataString);

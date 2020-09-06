@@ -25,7 +25,11 @@ export default class GameRunner {
             this.initializeRemotePlayerGameData();
     }
 
-    //Run the specified step in the current game
+    /**
+     * Run the specified step in the current game.
+     * @param {number} stepNumber 
+     * @param {object} remoteDataGroup - data we listen to and keep in the GlobalPropertyModule vuex store.
+     */
     runStep = function (stepNumber, remoteDataGroup) {
 
         //For the time being - the only one that should actually be "Running a step" should be the host
@@ -68,12 +72,21 @@ export default class GameRunner {
         }
     }
 
-    //Call the specified function in the current game object.
+    /**
+     * Call the specified function in the current game object.
+     * @param {string} functionName - name of function located in the current game object.
+     * @param {object} remoteDataGroup 
+     * @param {object} functionParms - object containing additional params needed for the function
+     */
     callGameFunction = function (functionName, remoteDataGroup, functionParms) {
         this.currentGame[functionName](remoteDataGroup, this.currentUserId, functionParms);
     }
 
-    //Private helpers
+    //Private helpers -------------------------------------------
+
+    /**
+     * Initialize the game by setting the current step to "1" in the database.
+     */
     initializeRemotePlayerGameData = function () {
 
         let initialGameData = {
@@ -83,7 +96,9 @@ export default class GameRunner {
         this.dataConnector.setPlayerGameData(this.roomName, initialGameData);
     }
 
-    //Reset Game Data
+    /**
+     * Reset Game Data (i.e. clear game data in the database, null out the game object, return all other properties to start positions)
+     */
     resetGame = function () {
 
         //Game Data
@@ -101,6 +116,10 @@ export default class GameRunner {
 
     }
 
+    /**
+     * Get the step data from the current game based on the step number.
+     * @param {number} sn - the step number we are looking for. 
+     */
     getGameStep = function (sn) {
         let stepData = this.currentGame.gameSteps.filter(x => x.stepNum == sn)[0];
         return stepData;
@@ -133,16 +152,5 @@ export default class GameRunner {
         console.log("attempting to set host - " + userId);
         throw Error('Not Yet Implemented!');
     }
-
-
-
-
-
-
-
-
-
-
-
 
 }
