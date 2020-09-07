@@ -1,12 +1,13 @@
 <template>
   <div>
     <!-- ===== Page Content ===== -->
-    <div class="chat-controls float-right" @click="toggleShowChat">
+    <div  v-show="currentRoomName" class="chat-controls float-right" @click="toggleShowChat">
       <v-icon color="deep-orange accent-4" large>mdi-chat</v-icon>
     </div>
 
     <!-- Right Side Nav panel -->
     <v-navigation-drawer
+      v-show="currentRoomName"
       v-model="showChat"
       color="deep-orange accent-4"
       :right="true"
@@ -26,7 +27,7 @@
           <v-col cols="12">
             <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
             <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
-            <ChatArea v-if="inChatRoom" :isGlobal="!currentRoomName"></ChatArea>
+            <ChatArea v-if="inChatRoom" ></ChatArea>
           </v-col>
         </v-row>
       </v-container>

@@ -86,6 +86,7 @@ export default class RoomDataConnector extends DataConnector {
 
     if (roomName) { //remove the user from the room they are in when they move, if they are in a room
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+      let chatRoomDocRef = this.firestoreDb.doc(`chatRooms/${roomName}`);
 
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
@@ -94,8 +95,11 @@ export default class RoomDataConnector extends DataConnector {
           let updatedUsers = allUsers.filter(x => x.id != userId);
 
           //Last one out closes down the room
-          if(updatedUsers.length < 1)
+          if(updatedUsers.length < 1){
             transaction.delete(roomDocRef);
+            //close down the chat room too...            
+            transaction.delete(chatRoomDocRef);            
+          }
           else
             transaction.update(roomDocRef, { users: updatedUsers });
         })
@@ -264,8 +268,7 @@ export default class RoomDataConnector extends DataConnector {
   //TODO: Probably need to turn this into a class as well
   builRoomDbModel = function (userArr) {
     let dbModel = {
-      users: userArr, //Users in the room
-      chatText: "",   //Chat room text
+      users: userArr, //Users in the room      
       hostId: null,   //The games host user - basically a player that will act as the server
 
       //Game specific dynamically generated data

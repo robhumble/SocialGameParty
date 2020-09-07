@@ -10,7 +10,7 @@ export default class MathMasterGame {
     #configOptions = {
         totalMathProblems: 10,
         problemLo: 0,
-        problemHi: 35
+        problemHi: 25
     }
 
     constructor(roomName) {

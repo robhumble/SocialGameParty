@@ -1,12 +1,6 @@
 <template>
   <v-container class="chat-container">
-    <span class="in-room-text">You are in {{ currentRoomName || "GLOBAL" }} Chat</span>
-    <v-text-field
-      v-if="isGlobal"
-      label="Display Name"
-      placeholder="Your Name here..."
-      v-model="providedDisplayName"
-    ></v-text-field>
+    <span class="in-room-text">You are in {{ currentRoomName }} Chat</span>  
 
     <v-textarea
       outlined
@@ -52,7 +46,6 @@ export default {
     //Data connection vars------------
     dataConnector: new ChatDataConnector(),
   }),
-  props: ["isGlobal"],
   mounted: function () {
     this.setupChatRoom(this.currentRoomName);
 
@@ -70,21 +63,17 @@ export default {
       return false;
     },
 
-    displayUserName: function () {
-      let un = "";
-
-      if (this.isGlobal) un = this.providedDisplayName;
-      else un = this.currentUserName;
-
-      return un;
+    displayUserName: function () {   
+      return this.currentUserName;
     },
   },
   watch: {
     //... n = new, o = old
-    currentRoomName: function (n, o) {
+    currentRoomName: function (n, o) {      
       if (n != o) {
-        this.dataConnector.unsubscribeToChat(o);
-        this.setupChatRoom(n);
+        this.dataConnector.unsubscribeToChat(o); //If the room changes unsubscribe to any existing room.
+        if(n)
+          this.setupChatRoom(n);  //If we have a new room name then setup/listen to the new room.
       }
     },
   },
@@ -94,7 +83,7 @@ export default {
      * Connect to the DB and listen to the chat room.
      */
     setupChatRoom: function (roomName) {
-      var that = this;
+      var that = this;  
 
       this.dataConnector.listenToChatRoom(roomName, function (remoteChatText) {
         that.chatText = remoteChatText;
@@ -112,16 +101,13 @@ export default {
      */
     submit: function () {
       let updateText = `${this.displayUserName}: ${this.submitText} \n`;
-      let newChatText = "";
-
-      if (this.chatText == this.adminClearMsg) newChatText = updateText;
-      else newChatText = this.chatText + updateText;
-
-      this.dataConnector.updateChatRoomText(this.currentRoomName, newChatText);
-
+     
+      this.dataConnector.updateChatRoomText(this.currentRoomName, updateText );     
+    
       this.submitText = "";
     },
 
+    //OBSOLETE - I don't know if there's a need for this now that I've removed Global chat.
     /**
      * Clear the mainChat textArea.  (Should only be available to the Admin)
      */
