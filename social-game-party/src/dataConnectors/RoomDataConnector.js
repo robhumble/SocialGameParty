@@ -82,7 +82,7 @@ export default class RoomDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   exitRoom = function (userId, roomName) {
-   // var that = this;
+    // var that = this;
 
     if (roomName) { //remove the user from the room they are in when they move, if they are in a room
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
@@ -95,10 +95,10 @@ export default class RoomDataConnector extends DataConnector {
           let updatedUsers = allUsers.filter(x => x.id != userId);
 
           //Last one out closes down the room
-          if(updatedUsers.length < 1){
+          if (updatedUsers.length < 1) {
             transaction.delete(roomDocRef);
             //close down the chat room too...            
-            transaction.delete(chatRoomDocRef);            
+            transaction.delete(chatRoomDocRef);
           }
           else
             transaction.update(roomDocRef, { users: updatedUsers });
@@ -178,16 +178,21 @@ export default class RoomDataConnector extends DataConnector {
       .collection("rooms")
       .doc(roomName)
       .onSnapshot(function (doc) {
-        let remoteRoomData = {
-          users: doc.data().users,
-          hostId: doc.data().hostId,
-          spectatorGameData: doc.data().spectatorGameData,
-          playerGameData: doc.data().playerGameData,
 
-          currentInstructions: doc.data().currentInstructions, 
-          currentCheckInstructions: doc.data().currentCheckInstructions,  
+        let docData = doc.data();
+
+        if (docData) {
+          let remoteRoomData = {
+            users: docData.users,
+            hostId: docData.hostId,
+            spectatorGameData: docData.spectatorGameData,
+            playerGameData: docData.playerGameData,
+
+            currentInstructions: docData.currentInstructions,
+            currentCheckInstructions: docData.currentCheckInstructions,
+          }
+          onSnapshotFunction(remoteRoomData);
         }
-        onSnapshotFunction(remoteRoomData);
       });
   };
 
@@ -218,14 +223,14 @@ export default class RoomDataConnector extends DataConnector {
    * Delete the specified room from the rooms collection.
    * @param {string} roomName 
    */
-  deleteRoom = function(roomName){
+  deleteRoom = function (roomName) {
 
     this.firestoreDb.collection("rooms").doc(roomName).delete()
-    .then(
-      console.log(`Room "${roomName}" has been deleted. `)
-    ).catch( err => {
-      console.log("There was an issue deleting the room: " + err);
-    });
+      .then(
+        console.log(`Room "${roomName}" has been deleted. `)
+      ).catch(err => {
+        console.log("There was an issue deleting the room: " + err);
+      });
 
   }
 

@@ -5,7 +5,7 @@ import "firebase/firestore";
 /**
  * BASE DataConnector class - other DataConnector classes inherit from this.
  */
-export default class DataConnector {  
+export default class DataConnector {
 
   #firebaseSettings = {
     apiKey: "AIzaSyB9tDIaiwwE35jKUMOPvqmNsR4T1ZkHOcA",
@@ -34,6 +34,29 @@ export default class DataConnector {
     //create db object
     this.firestoreDb = firebase.firestore();
   };
+
+  //TODO - NOT yet used, test thoroughly before using
+  /**
+   * Update the specified document using the instruction defined in the passed in function.
+   * @param {*} collectionName 
+   * @param {*} documentName 
+   * @param {*} updateFunc -  function takes the current document data as an arg
+   */
+  updateDocumentViaFunction = function (collectionName, documentName, updateFunc) {
+    //let that = this;
+
+    let documentRef = this.firestoreDb.doc(`${collectionName}/${documentName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(documentRef).then(function (targetDocument) {
+
+        let currentDocData = targetDocument.data();
+        let updateDocData = updateFunc(currentDocData);
+
+        transaction.update(documentRef, updateDocData);
+      })
+    })
+  }
 
   //Batch functions--------------------------------------------------
 
@@ -98,5 +121,9 @@ export default class DataConnector {
     else
       console.log("No batch to commit...");
   }
+
+  
+
+
 
 }

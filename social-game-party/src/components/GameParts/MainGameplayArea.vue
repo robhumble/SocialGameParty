@@ -1,6 +1,5 @@
 <template>
   <div class="gameplay-area">
-    Hay hay hay this is the gameplay area!
     <div v-if="isGameStarted && isHost" class="host-reset">
       <v-btn @click="resetGame">Reset Game</v-btn>
     </div>
@@ -68,8 +67,7 @@ export default {
   }),
   mounted: function () {
     //If the game hasn't been started yet (i.e. no host), show the start screen.
-   if (!this.isGameStarted) 
-    this.currentGameComponent = "StartGameScreen";
+    if (!this.isGameStarted) this.currentGameComponent = "StartGameScreen";
   },
   computed: {
     ...mapGetters([
@@ -107,13 +105,12 @@ export default {
     },
 
     playerGameData: function (n, o) {
-
       //TODO: may want to do a host check here - since only the host is running steps at the moment
-      //Watch the current step - if it changes, run the new step 
+      //Watch the current step - if it changes, run the new step
       if (n.currentStep && n.currentStep != o.currentStep) {
-        if(this.gameRunner)
+        if (this.gameRunner)
           this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
-        else 
+        else
           console.log(`Cannot run step ${n.currentStep}, gameRunner is null.`);
       }
 
@@ -137,7 +134,7 @@ export default {
       console.log(n + o);
 
       //Only update if the instructions are different (based on a shallow compare)
-      if (n && !sgf.mainFramework.isObjectSimilar(n,o)) {
+      if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
         if (n.type == "Display") {
           this.clearDisplay();
           this.setUpDisplay(n);
@@ -150,9 +147,7 @@ export default {
       }
     },
   },
-  methods: { 
-
-    
+  methods: {
     /**
      * Start the game by setting the host id.
      */
@@ -187,10 +182,20 @@ export default {
       this.questionAndAnswerQuestionText = "";
     },
 
+    //TODO: require an instructions object here, instead of just hoping we get one.
     /**
      * Setup basic display components (i.e. loading screen, results).
      */
     setUpDisplay: function (instructions) {
+      //Expects an instructions object like this:
+      /*
+        let instructions = {
+            type: "Display",          //type of instruction
+            comp: "LoadingScreen",    //name of component to use
+            msg: "Preparing Game..."  //message to use in the component
+        }
+      */
+
       this.currentGameComponent = instructions.comp;
       this.displayInstructions = instructions;
     },
@@ -203,15 +208,15 @@ export default {
       let loopSrc = this.playerGameData[instructions.loopSrc];
 
       let loopData = {
-        loopSrc: loopSrc,                             //data source that we will loop through (i.e. an array of objects) - this has to be found in playerGameData
-        index: 0,                                     //current position in the loopSrc
+        loopSrc: loopSrc, //data source that we will loop through (i.e. an array of objects) - this has to be found in playerGameData
+        index: 0, //current position in the loopSrc
 
-        srcQuestionVar: instructions.questionVar,     //The name of the variable in the loopSrc that contains a question
-        srcAnswerVar: instructions.answerVar,         //The name of the variable in the loopSrc that contains a answer
+        srcQuestionVar: instructions.questionVar, //The name of the variable in the loopSrc that contains a question
+        srcAnswerVar: instructions.answerVar, //The name of the variable in the loopSrc that contains a answer
 
-        component: instructions.comp,                 //The name of the game part component to feed this into
-        correctAnswerCount: 0,                        //The number of correctly answered questions
-        resultFunction: instructions.resultFunction,  //The function to pass the correctAnswerCount to.
+        component: instructions.comp, //The name of the game part component to feed this into
+        correctAnswerCount: 0, //The number of correctly answered questions
+        resultFunction: instructions.resultFunction, //The function to pass the correctAnswerCount to.
       };
 
       this.loopThroughData = loopData;
@@ -230,16 +235,14 @@ export default {
       if (this.loopThroughData.component == "QuestionAndAnswer") {
         this.currentGameComponent = this.loopThroughData.component;
         this.questionAndAnswerQuestionText =
-          cur[this.loopThroughData.srcQuestionVar];     
+          cur[this.loopThroughData.srcQuestionVar];
       }
-
     },
 
     /**
      * Callback/handler after the user answers a question.
      */
     questionAndAnswerHandler: function (answer) {
-
       //Use this logic if we are actively in a loop (we assume the answer is for a looped question then)
       if (this.loopThroughData) {
         let i = this.loopThroughData.index;
@@ -256,19 +259,25 @@ export default {
             this.loopThroughData.correctAnswerCount
           );
           this.clearDisplay();
+
+          //Set "waiting" message
+          this.setUpDisplay({
+            type: "Display", //type of instruction
+            comp: "LoadingScreen", //name of component to use
+            msg: "Waiting for all players to finish...", //message to use in the component
+          });
+          
         } else {
           this.loopThroughData.index++;
           this.goThroughLoop();
         }
       }
-
     },
 
     /**
      * Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
      */
-    resetGame: function () {     
-      
+    resetGame: function () {
       if (this.gameRunner) {
         this.gameRunner.resetGame();
       } else {
