@@ -266,7 +266,6 @@ export default {
             comp: "LoadingScreen", //name of component to use
             msg: "Waiting for all players to finish...", //message to use in the component
           });
-          
         } else {
           this.loopThroughData.index++;
           this.goThroughLoop();

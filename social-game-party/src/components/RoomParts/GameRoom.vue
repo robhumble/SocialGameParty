@@ -36,14 +36,14 @@ export default {
   },
   mounted: function () {},
   computed: {
-    ...mapGetters(["currentSession", "userList"]),
+    ...mapGetters(["currentSession", "userList", "currentRoomName"]),
 
     peopleSpectating: function () {
       let userStr = "";
 
       this.userList
         .filter((x) => !x.isPlaying)
-        .forEach(function (user) {          
+        .forEach(function (user) {
           let appendName = user.name;
           if (appendName != "") {
             userStr += `${appendName}, `;
@@ -66,10 +66,6 @@ export default {
         });
 
       return userStr;
-    },
-
-    currentRoomName: function () {
-      return this.currentSession?.currentRoom?.name;
     },
   },
   methods: {

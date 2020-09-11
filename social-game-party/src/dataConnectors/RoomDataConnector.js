@@ -18,13 +18,18 @@ export default class RoomDataConnector extends DataConnector {
    * @param {string} newRoomName 
    * @param {SessionUser} userObj 
    */
-  makeRoom = function (newRoomName, sessionUserObj) {
+  makeRoom = async function (newRoomName, sessionUserObj) {
 
     let userObj = this.buildDbModelFromSessionUser(sessionUserObj);
 
     let userArr = [userObj];
 
     let roomDbModel = this.builRoomDbModel(userArr)
+
+    var existingDoc = await this.firestoreDb.collection("rooms").doc(newRoomName).get();
+
+    if (existingDoc.data())
+      throw Error("Document already exists!");
 
     // This line creates both the room and the document inside that will hold the array of users.
     this.firestoreDb.doc(`rooms/${newRoomName}`).set(roomDbModel);

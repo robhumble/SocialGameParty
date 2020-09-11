@@ -10,7 +10,6 @@ export const CurrentSessionModule = {
     getters: {
 
         //Getters     
-
         currentSession: state => {
 
             if (!state.currentSession) {
@@ -23,11 +22,15 @@ export const CurrentSessionModule = {
             return state.currentSession;
         },
 
-        currentRoomName: state => {
-            return state.currentSession?.currentRoom?.name;
+        //Quick helpers for getting information out of the getter above.
+        currentRoomName: (state, getters) => {
+            return getters.currentSession.currentRoom.name;
         },
-        currentUserName: state => {
-            return state.currentSession?.currentUser?.name;
+        currentUserName: (state, getters) => {
+            return getters.currentSession.currentUser.name;
+        },
+        currentUserId: (state, getters) => {
+            return getters.currentSession.currentUser.uniqueId;
         },
 
     },

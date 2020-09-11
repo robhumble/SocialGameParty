@@ -2,7 +2,7 @@
   <div>
     <!-- Room navigation. Still in progress. -->
     <v-container>
-      <v-row v-if="!currentSession.currentUser.name" class="text-center">
+      <v-row v-if="!currentUserName" class="text-center">
         <v-col>
           <UserSetup></UserSetup>
         </v-col>
@@ -15,7 +15,6 @@
         </v-col>
       </v-row>
     </v-container>
-   
   </div>
 </template>
 
@@ -30,14 +29,18 @@ export default {
   name: "Home",
   props: ["isDebug"],
   components: {
-    RoomMenu,   
+    RoomMenu,
     UserSetup,
     GameRoom,
   },
-  data: () => ({   
-  }),
+  data: () => ({}),
   computed: {
-    ...mapGetters(["projectName", "currentSession", "currentRoomName","currentUserName"]),
+    ...mapGetters([
+      "projectName",
+      "currentSession",
+      "currentRoomName",
+      "currentUserName",
+    ]),
   },
   mounted: function () {
     if (this.isDebug) this.$store.commit("setIsDebugMode", true);
@@ -47,9 +50,7 @@ export default {
       this.inChatRoom = false;
     },
   },
-  methods: {
-  
-  },
+  methods: {},
 };
 </script>
 

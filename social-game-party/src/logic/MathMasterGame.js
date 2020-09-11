@@ -20,7 +20,7 @@ export default class MathMasterGame {
     }
 
     //TODO: At some point it would nice to have this as data that lives in the db.
-    
+
     /**
      * Game Steps define each "step" in a given game.  Each step describes a phase of the game and gives instructions to the host or other players describing what they should be doing. 
      */
@@ -143,7 +143,7 @@ export default class MathMasterGame {
         };
         return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
-    }    
+    }
 
     /**
      * Set up loop instructions for answering the questions.  (Should be used by the Host)
@@ -171,13 +171,13 @@ export default class MathMasterGame {
             currentInstructions: instructions
         };
         return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
-    }  
+    }
 
-     /**
-     * Prepare remote data for the check function.  (Should be used by the Host)
-     * @param {object} remoteDataGroup 
-     * @param {object} batch 
-     */
+    /**
+    * Prepare remote data for the check function.  (Should be used by the Host)
+    * @param {object} remoteDataGroup 
+    * @param {object} batch 
+    */
     prepareCheckInstructions = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) console.log('no remoteDataGroup in prepareCheckInstructions')
@@ -283,8 +283,7 @@ export default class MathMasterGame {
 
             let res = remoteDataGroup.playerGameData.results;
 
-            if (res && res.length == remoteDataGroup.userList.length)
-            {
+            if (res && res.length == remoteDataGroup.userList.length) {
                 //Move to step 3 (and clear all existing instructions.)
                 this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
                     roomData.playerGameData.currentStep = 3;

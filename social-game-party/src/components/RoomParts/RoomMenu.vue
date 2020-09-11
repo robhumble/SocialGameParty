@@ -9,7 +9,7 @@
           <h1 v-if="!currentRoomName">You are not in a game room!</h1>
           <h1 v-if="currentRoomName">You are in room: {{currentRoomName}}</h1>
         </div>
-      
+
         <!-- prevent loading both options at once by making the other button's value false -->
         <div v-if="!currentRoomName && !joinARoom && !makeARoom" class="join-or-make">
           <h3>Would you like to:</h3>
@@ -28,10 +28,10 @@
               <v-col>
                 <v-text-field outlined v-model="joinRoomName"></v-text-field>
               </v-col>
-              <v-col >
+              <v-col>
                 <v-btn @click="joinRoom(joinRoomName)">Join</v-btn>
               </v-col>
-              <v-col >
+              <v-col>
                 <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
               <v-col />
@@ -46,10 +46,10 @@
               <v-col>
                 <v-text-field outlined v-model="makeRoomName"></v-text-field>
               </v-col>
-              <v-col >
+              <v-col>
                 <v-btn @click="makeRoom(makeRoomName)">Make</v-btn>
               </v-col>
-              <v-col >
+              <v-col>
                 <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
               <v-col />
@@ -57,7 +57,7 @@
           </v-container>
         </div>
       </v-card>
-    </div>  
+    </div>
   </div>
 </template>
 
@@ -73,33 +73,47 @@ export default {
       makeARoom: false, // Make Room "state"
       joinRoomName: "", //name of room to find/join
       makeRoomName: "", //name of room to create
-      dataConnector: new RoomDataConnector(),      
+      dataConnector: new RoomDataConnector(),
     };
   },
   mounted: function () {
     this.attemptToRejoinRoom();
   },
   computed: {
-    ...mapGetters(["currentSession","userList"]),
-    
-   
+    ...mapGetters(["currentSession", "userList"]),
   },
   methods: {
     //Create a room
-    makeRoom(makeRoomName) {
-      let curUser = this.currentSession.currentUser;
-      this.dataConnector.makeRoom(makeRoomName, curUser);
+    async makeRoom(makeRoomName) {
+      if (makeRoomName) {
+        let curUser = this.currentSession.currentUser;
 
-      this.updateCurrentRoom(makeRoomName);
+        try {
+          await this.dataConnector.makeRoom(makeRoomName, curUser);
+        } catch (err) {
+          if (err.message == "Document already exists!")
+            alert(
+              "This room name is already in use, please select a different name for your room."
+            );
+          return;
+        }
 
-      this.resetNavProperties();
+        this.updateCurrentRoom(makeRoomName);
+        this.resetNavProperties();
+      } else {
+        alert("You must provide a name for your room!");
+      }
     },
 
     //Join an existing room
     joinRoom(joinRoomName) {
       let curUser = this.currentSession.currentUser;
 
-      this.dataConnector.joinRoom(joinRoomName, curUser, this.updateCurrentRoom);
+      this.dataConnector.joinRoom(
+        joinRoomName,
+        curUser,
+        this.updateCurrentRoom
+      );
 
       this.resetNavProperties();
     },
@@ -114,7 +128,7 @@ export default {
       this.updateCurrentRoom("");
 
       this.resetNavProperties();
-    },    
+    },
 
     //Get list of users in the current room
     listenToRoomUsers: function () {
@@ -122,17 +136,24 @@ export default {
       var that = this;
 
       this.dataConnector.listenToRoom(function (remoteRoomData) {
-     
-        that.$store.commit("setUserList", remoteRoomData.users);            
-        
+        that.$store.commit("setUserList", remoteRoomData.users);
+
         //Game data contained in room
-        that.$store.commit("setHostId", remoteRoomData.hostId);            
-        that.$store.commit("setSpectatorGameData", remoteRoomData.spectatorGameData);            
-        that.$store.commit("setPlayerGameData", remoteRoomData.playerGameData); 
-        
-        that.$store.commit("setCurrentInstructions", remoteRoomData.currentInstructions);
-        that.$store.commit("setCurrentCheckInstructions", remoteRoomData.currentCheckInstructions);       
-        
+        that.$store.commit("setHostId", remoteRoomData.hostId);
+        that.$store.commit(
+          "setSpectatorGameData",
+          remoteRoomData.spectatorGameData
+        );
+        that.$store.commit("setPlayerGameData", remoteRoomData.playerGameData);
+
+        that.$store.commit(
+          "setCurrentInstructions",
+          remoteRoomData.currentInstructions
+        );
+        that.$store.commit(
+          "setCurrentCheckInstructions",
+          remoteRoomData.currentCheckInstructions
+        );
       }, that.currentRoomName);
     },
 
@@ -154,7 +175,7 @@ export default {
       this.joinARoom = false;
       this.makeARoom = false;
       this.joinRoomName = "";
-      this.makeRoomName = "";      
+      this.makeRoomName = "";
     },
 
     updateCurrentRoom: function (newRoomName) {
@@ -162,7 +183,7 @@ export default {
       this.currentRoomName = newRoomName;
 
       if (newRoomName) this.listenToRoomUsers();
-    },   
+    },
 
     clearCurrentRoom: function () {
       this.updateCurrentRoom("");
@@ -172,7 +193,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
- @import "@/assets/custom.scss";
+@import "@/assets/custom.scss";
 
 .room-menu-card {
   color: $social-game-party-orange !important;
