@@ -8,9 +8,9 @@
           alt="Vuetify Logo"
           class="shrink mr-2"
           contain
-          :src="require('./assets/Puzzle_OrangeFace.png')"
+          :src="require('./assets/SocialGameParty.png')"
           transition="scale-transition"
-          width="40"
+          width="110"
         />
         <h1 class="d-none d-lg-flex">Social Game Party Thing!</h1>
         <h1 class="d-lg-none">SGPT!</h1>
