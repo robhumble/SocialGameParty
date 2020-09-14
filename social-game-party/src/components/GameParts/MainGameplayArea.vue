@@ -249,7 +249,7 @@ export default {
         let currentLoopData = this.loopThroughData.loopSrc[i];
         let correctAnswer = currentLoopData[this.loopThroughData.srcAnswerVar];
 
-        if (answer === correctAnswer) this.loopThroughData.correctAnswerCount++;
+        if (answer == correctAnswer) this.loopThroughData.correctAnswerCount++;
 
         //If last, call the result function
         if (i == this.loopThroughData.loopSrc.length - 1) {

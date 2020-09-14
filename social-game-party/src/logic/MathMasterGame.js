@@ -201,28 +201,55 @@ export default class MathMasterGame {
      * @param {object} remoteDataGroup 
      * @param {object} batch 
      */
+    //Method has been modified to work for one or more winners. Original code is commented and followed by multiplayer replacements.
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;
-        // check for ties
-
+        
+/*
         let winner = gd.results.reduce((acc, x) => {
             return (x.answerResults > acc.answerResults) ? x : acc;
         }); // in the event of a tie, this reduce returns whoever was first on the list.
-
-
+*/
+        let sorted = gd.results.sort((acc, x) => {
+            return (x.answerResults > acc.answerResults) ? x : acc;
+        }); 
+        let winner = [];
+        for (const player of sorted)
+        {
+            if (sorted[0].answerResults == player.answerResults)
+                {winner.push(player);}
+        }// This should add every player that has the winning score to an array.
+        
         //Display Results instructions    
         let getUserInfo = (targetUserId) => remoteDataGroup.userList.filter(x => x.id == targetUserId)[0];
 
-        let userInfo = getUserInfo(winner.userId);
-
+        //let userInfo = getUserInfo(winner.userId);
+        let userInfo = [];
+        for (const player of winner)
+        {
+            userInfo.push(getUserInfo(player.userId));
+        }
+        // I think this could be condensed into an arrow function, but then it won't look like the code next to it.
+        
         let totals = "SCORES: \n";
         remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults}`);
+        //let winnerString = `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`;
+        let winnerString = `Top Score: ${sorted[0].answerResults} Winners: `;
+        let index = 0;
+        for (const info of userInfo)
+        {
+            winnerString = winnerString + info.name;
+            if (index < userInfo.length-1)
+                {winnerString += ", ";}
+            index++;
+        }
+        
 
         let instructions = {
             type: "Display",
             comp: "ResultScreen",
-            title: `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`,
+            title: winnerString,
             msg: totals
         }
 
