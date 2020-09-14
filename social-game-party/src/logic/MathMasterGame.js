@@ -9,7 +9,8 @@ export default class MathMasterGame {
 
     #configOptions = {
         totalMathProblems: 10,
-        problemLo: 0,
+        // If the game is allowed to roll 0, the game will have bugs
+        problemLo: 1,
         problemHi: 25
     }
 
@@ -203,10 +204,11 @@ export default class MathMasterGame {
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;
+        // check for ties
 
         let winner = gd.results.reduce((acc, x) => {
             return (x.answerResults > acc.answerResults) ? x : acc;
-        });
+        }); // in the event of a tie, this reduce returns whoever was first on the list.
 
 
         //Display Results instructions    
