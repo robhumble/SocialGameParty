@@ -201,7 +201,6 @@ export default class MathMasterGame {
      * @param {object} remoteDataGroup 
      * @param {object} batch 
      */
-    //Method has been modified to work for one or more winners. Original code is commented and followed by multiplayer replacements.
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;

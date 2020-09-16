@@ -247,9 +247,9 @@ export default {
       if (this.loopThroughData) {
         let i = this.loopThroughData.index;
         let currentLoopData = this.loopThroughData.loopSrc[i];
-        let correctAnswer = currentLoopData[this.loopThroughData.srcAnswerVar];
-
-        if (answer == correctAnswer) this.loopThroughData.correctAnswerCount++;
+        let correctAnswer = String(currentLoopData[this.loopThroughData.srcAnswerVar]);
+        // correctAnswer was a number, answer is a string. Casting correctAnswer permits ===, which fixes null equaling zero.
+        if (answer === correctAnswer) this.loopThroughData.correctAnswerCount++;
 
         //If last, call the result function
         if (i == this.loopThroughData.loopSrc.length - 1) {
