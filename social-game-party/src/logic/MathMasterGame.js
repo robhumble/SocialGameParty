@@ -205,46 +205,38 @@ export default class MathMasterGame {
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
         let gd = remoteDataGroup.playerGameData;
-        
-/*
-        let winner = gd.results.reduce((acc, x) => {
-            return (x.answerResults > acc.answerResults) ? x : acc;
-        }); // in the event of a tie, this reduce returns whoever was first on the list.
-*/
+
         let sorted = gd.results.sort((acc, x) => {
             return (x.answerResults > acc.answerResults) ? x : acc;
-        }); 
-        let winner = [];
-        for (const player of sorted)
-        {
-            if (sorted[0].answerResults == player.answerResults)
-                {winner.push(player);}
-        }// This should add every player that has the winning score to an array.
-        
+        });
+
+        // Add every player that has the winning score to an array.
+        let winners = [];
+        for (const player of sorted) {
+            if (sorted[0].answerResults == player.answerResults) { winners.push(player); }
+        }
+
         //Display Results instructions    
         let getUserInfo = (targetUserId) => remoteDataGroup.userList.filter(x => x.id == targetUserId)[0];
 
-        //let userInfo = getUserInfo(winner.userId);
+        //Build an array containing each winners user data.
         let userInfo = [];
-        for (const player of winner)
-        {
+        for (const player of winners) {
             userInfo.push(getUserInfo(player.userId));
         }
-        // I think this could be condensed into an arrow function, but then it won't look like the code next to it.
-        
+
+        //Get everyones score in a string.
         let totals = "SCORES: \n";
-        remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults}`);
-        //let winnerString = `${userInfo.name} was the winner with a total of ${winner.answerResults} correct answers!`;
-        let winnerString = `Top Score: ${sorted[0].answerResults} Winners: `;
+        remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults} \n`);
+
+        //Get the winner string.
+        let winnerString = `Top Score: ${sorted[0].answerResults} \n Winners: `;
         let index = 0;
-        for (const info of userInfo)
-        {
+        for (const info of userInfo) {
             winnerString = winnerString + info.name;
-            if (index < userInfo.length-1)
-                {winnerString += ", ";}
+            if (index < userInfo.length - 1) { winnerString += ", "; }
             index++;
         }
-        
 
         let instructions = {
             type: "Display",
@@ -256,7 +248,7 @@ export default class MathMasterGame {
         //Add to the writeBatch
         let dataToUpdate = {
             playerGameData: {
-                winner: winner,
+                winner: winners,
             },
             currentInstructions: instructions
         };

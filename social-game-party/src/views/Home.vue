@@ -1,13 +1,8 @@
 <template>
   <div>
     <!-- Room navigation. Still in progress. -->
+    <UserSetup></UserSetup>
     <v-container>
-      <v-row v-if="!currentUserName" class="text-center">
-        <v-col>
-          <UserSetup></UserSetup>
-        </v-col>
-      </v-row>
-
       <v-row v-if="currentUserName" class="text-center">
         <v-col>
           <RoomMenu></RoomMenu>
