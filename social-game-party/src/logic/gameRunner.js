@@ -1,4 +1,5 @@
 import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 export default class GameRunner {
 
@@ -68,7 +69,7 @@ export default class GameRunner {
 
             this.dataConnector.commitWriteBatch(stepBatch);
 
-            console.log(remoteDataGroup);
+            sgf.mainFramework.megaLog(remoteDataGroup);
         }
     }
 
@@ -149,7 +150,7 @@ export default class GameRunner {
 
     //TODO: set the current Host
     setHost(userId) {
-        console.log("attempting to set host - " + userId);
+        sgf.mainFramework.megaLog("attempting to set host - " + userId);
         throw Error('Not Yet Implemented!');
     }
 

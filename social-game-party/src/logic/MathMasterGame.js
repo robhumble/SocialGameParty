@@ -1,4 +1,5 @@
 import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 export default class MathMasterGame {
 
@@ -101,7 +102,7 @@ export default class MathMasterGame {
      */
     setupLoadingScreen = function (remoteDataGroup, batch) {
 
-        if (!remoteDataGroup) console.log('no remoteDataGroup in setupLoadingScreen')
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in setupLoadingScreen')
 
         let instructions = {
             type: "Display",
@@ -133,7 +134,7 @@ export default class MathMasterGame {
         }
 
         if (remoteDataGroup)
-            console.log('buildProblemsStep')
+            sgf.mainFramework.megaLog('buildProblemsStep')
 
         //Add to the writeBatch
         let dataToUpdate = {
@@ -153,7 +154,7 @@ export default class MathMasterGame {
      */
     setupQuestionAndAnswerLoopThrough = function (remoteDataGroup, batch) {
 
-        if (!remoteDataGroup) console.log('no remoteDataGroup in setupQuestionAndAnswerLoopThrough')
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in setupQuestionAndAnswerLoopThrough')
 
         let instructions = {
             type: "LoopThrough",
@@ -181,7 +182,7 @@ export default class MathMasterGame {
     */
     prepareCheckInstructions = function (remoteDataGroup, batch) {
 
-        if (!remoteDataGroup) console.log('no remoteDataGroup in prepareCheckInstructions')
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions')
 
         let currentCheckInstructions = {
             watchTarget: "results",

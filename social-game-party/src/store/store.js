@@ -47,7 +47,6 @@ export default new Vuex.Store({
     //Async (More complex functions)
     actions: {
 
-
     },
 
 })

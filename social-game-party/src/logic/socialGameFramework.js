@@ -1,3 +1,5 @@
+import store from '@/store/store.js'
+
 export var mainFramework = {
 
     //Example property
@@ -23,7 +25,7 @@ export var mainFramework = {
     isObjectSimilar: function (objectA, objectB) {
 
         if (!objectA || !objectB) {
-            console.log("Cannot compare null/undefined for similarities.");
+            this.megaLog("Cannot compare null/undefined for similarities.");
             return false;
         }
 
@@ -40,7 +42,23 @@ export var mainFramework = {
      * Quick sleep function to wait in between transactions 
      */
     slowDown: function (sleepInMs) {
-        setTimeout(() => { console.log(`slowing down for ${sleepInMs}....`), sleepInMs });
+        setTimeout(() => { this.megLog(`slowing down for ${sleepInMs}....`), sleepInMs });
+    },
+
+
+    //TODO: build this out substantially - i.e. dump to file, send to logging service, etc.   
+    /**
+     * Message Logger - only logs to console if forced or if the application is in debug mode.
+     * @param {*} msg 
+     * @param {*} forcePrint - true will force the console log regardless of if the application is in debug mode.
+     */
+    megaLog: function (msg, forcePrint) {
+
+        //check to see if the vuex store says we are in debug
+        let isDebug = store.getters.isDebugMode;
+
+        if (isDebug || forcePrint)
+            console.log(msg);
     }
 
 }

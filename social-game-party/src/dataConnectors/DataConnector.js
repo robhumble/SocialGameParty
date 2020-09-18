@@ -1,6 +1,7 @@
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 /**
  * BASE DataConnector class - other DataConnector classes inherit from this.
@@ -115,14 +116,14 @@ export default class DataConnector {
   commitWriteBatch = function (batch) {
     if (batch) {
       batch.commit().then(
-        () => console.log("Successful batch write!")
+        () => sgf.mainFramework.megaLog("Successful batch write!")
       );
     }
     else
-      console.log("No batch to commit...");
+      sgf.mainFramework.megaLog("No batch to commit...");
   }
 
-  
+
 
 
 

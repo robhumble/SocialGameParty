@@ -39,6 +39,8 @@ export default {
   },
   mounted: function () {
     if (this.isDebug) this.$store.commit("setIsDebugMode", true);
+
+    this.quickLog("Made it Home!");
   },
   watch: {
     currentRoomName: function () {

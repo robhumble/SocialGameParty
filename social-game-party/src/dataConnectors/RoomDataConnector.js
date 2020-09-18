@@ -1,5 +1,6 @@
 import DataConnector from "@/dataConnectors/DataConnector";
 import { SessionUser } from "@/logic/SessionInfo.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 /**
  * DataConnector for interacting with "Rooms".
@@ -149,7 +150,7 @@ export default class RoomDataConnector extends DataConnector {
    */
   exitGame = function (userId, roomName) {
     let that = this;
-    console.log(userId + roomName);
+    sgf.mainFramework.megaLog(userId + roomName);
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -204,11 +205,11 @@ export default class RoomDataConnector extends DataConnector {
   unsubscribeToRoom = function () {
     if (this.unsubscribeToRoomFunc) {
       this.unsubscribeToRoomFunc();
-      console.log("Unsubscribed to room!");
+      sgf.mainFramework.megaLog("Unsubscribed to room!");
       this.unsubscribeToRoomFunc = null;
     }
     else
-      console.log("Nothing to unsubscribe from!");
+      sgf.mainFramework.megaLog("Nothing to unsubscribe from!");
   }
 
   /**
@@ -232,9 +233,9 @@ export default class RoomDataConnector extends DataConnector {
 
     this.firestoreDb.collection("rooms").doc(roomName).delete()
       .then(
-        console.log(`Room "${roomName}" has been deleted. `)
+        sgf.mainFramework.megaLog(`Room "${roomName}" has been deleted. `)
       ).catch(err => {
-        console.log("There was an issue deleting the room: " + err);
+        sgf.mainFramework.megaLog("There was an issue deleting the room: " + err);
       });
 
   }

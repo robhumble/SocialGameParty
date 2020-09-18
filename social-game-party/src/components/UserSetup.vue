@@ -9,18 +9,20 @@
       <v-container>
         <v-row>
           <v-col>
-            <v-form class="user-setup-main">
-              <h1>Provide a name to display to other users.</h1>
-              <v-text-field
-                outlined
-                v-model="userDisplayName"
-                label="Display Name"
-                placeholder="Type Display Name Here..."
-              ></v-text-field>
+            <div class="user-setup-main">
+              <v-form>
+                <h1>Provide a name to display to other users.</h1>
+                <v-text-field
+                  outlined
+                  v-model="userDisplayName"
+                  label="Display Name"
+                  placeholder="Type Display Name Here..."
+                ></v-text-field>
 
-              <v-btn @click="updateCurrentUserName">Update Display Name</v-btn>
-              <v-btn v-if="currentUserName" @click="isEditMode=false">Cancel</v-btn>
-            </v-form>
+                <v-btn @click="updateCurrentUserName">Update Name</v-btn>
+                <v-btn v-if="currentUserName" @click="isEditMode=false">Cancel</v-btn>
+              </v-form>
+            </div>
           </v-col>
           <v-col v-if="currentUserName"></v-col>
           <v-col v-if="currentUserName"></v-col>
@@ -84,12 +86,18 @@ export default {
 .user-setup-main {
   text-align: center;
   border-style: solid;
-  border-color: $social-game-party-orange !important;
+  color: $social-game-party-blue !important;
+  border-color: $social-game-party-blue !important;
+  padding: 5px;
 }
 
 .user-info-chip {
   color: $social-game-party-white !important;
   border-color: $social-game-party-blue !important;
   background-color: $social-game-party-blue !important;
+}
+
+.v-btn {
+  margin: 2px;
 }
 </style>

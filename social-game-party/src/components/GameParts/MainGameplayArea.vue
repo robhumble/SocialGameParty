@@ -111,7 +111,9 @@ export default {
         if (this.gameRunner)
           this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
         else
-          console.log(`Cannot run step ${n.currentStep}, gameRunner is null.`);
+          this.quickLog(
+            `Cannot run step ${n.currentStep}, gameRunner is null.`
+          );
       }
 
       //Watch from a check instruction -- Check instructions watch target should only be in playerGameData.
@@ -131,7 +133,7 @@ export default {
     currentInstructions: function (n, o) {
       //Instructions
 
-      console.log(n + o);
+      this.quickLog(n + o);
 
       //Only update if the instructions are different (based on a shallow compare)
       if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
@@ -247,7 +249,9 @@ export default {
       if (this.loopThroughData) {
         let i = this.loopThroughData.index;
         let currentLoopData = this.loopThroughData.loopSrc[i];
-        let correctAnswer = String(currentLoopData[this.loopThroughData.srcAnswerVar]);
+        let correctAnswer = String(
+          currentLoopData[this.loopThroughData.srcAnswerVar]
+        );
         // correctAnswer was a number, answer is a string. Casting correctAnswer permits ===, which fixes null equaling zero.
         if (answer === correctAnswer) this.loopThroughData.correctAnswerCount++;
 
@@ -288,7 +292,7 @@ export default {
       this.clearDisplay();
       this.currentGameComponent = "StartGameScreen";
 
-      console.log("Game reset by host...");
+      this.quickLog("Game reset by host...");
     },
   },
 };

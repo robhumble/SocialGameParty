@@ -1,6 +1,6 @@
 <template>
   <v-container class="chat-container">
-    <span class="in-room-text">You are in {{ currentRoomName }} Chat</span>  
+    <span class="in-room-text">You are in {{ currentRoomName }} Chat</span>
 
     <v-textarea
       outlined
@@ -38,7 +38,7 @@ export default {
   name: "ChatRoom",
 
   data: () => ({
-    providedDisplayName: "",    
+    providedDisplayName: "",
     chatText: "",
     submitText: "",
     adminClearMsg: "!!! Admin has cleared the chat history !!!",
@@ -63,17 +63,16 @@ export default {
       return false;
     },
 
-    displayUserName: function () {   
+    displayUserName: function () {
       return this.currentUserName;
     },
   },
   watch: {
     //... n = new, o = old
-    currentRoomName: function (n, o) {      
+    currentRoomName: function (n, o) {
       if (n != o) {
         this.dataConnector.unsubscribeToChat(o); //If the room changes unsubscribe to any existing room.
-        if(n)
-          this.setupChatRoom(n);  //If we have a new room name then setup/listen to the new room.
+        if (n) this.setupChatRoom(n); //If we have a new room name then setup/listen to the new room.
       }
     },
   },
@@ -83,11 +82,11 @@ export default {
      * Connect to the DB and listen to the chat room.
      */
     setupChatRoom: function (roomName) {
-      var that = this;  
+      var that = this;
 
       this.dataConnector.listenToChatRoom(roomName, function (remoteChatText) {
         that.chatText = remoteChatText;
-        console.log("There was an update: " + remoteChatText);
+        that.quickLog("There was an update: " + remoteChatText);
 
         //scroll to bottom
         that.$nextTick(function () {
@@ -101,9 +100,9 @@ export default {
      */
     submit: function () {
       let updateText = `${this.displayUserName}: ${this.submitText} \n`;
-     
-      this.dataConnector.updateChatRoomText(this.currentRoomName, updateText );     
-    
+
+      this.dataConnector.updateChatRoomText(this.currentRoomName, updateText);
+
       this.submitText = "";
     },
 

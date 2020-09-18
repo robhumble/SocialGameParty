@@ -1,16 +1,15 @@
 <template>
-   <div style="text-align:center;">
+  <div style="text-align:center;">
     <div class="d-flex justify-center">
-      <v-card max-width="80%" rounded outlined class="start-game-card ">
+      <v-card max-width="80%" rounded outlined class="start-game-card">
         <v-card-title class="text-center">Start Game?</v-card-title>
 
         <h1>{{titleText}}</h1>
         <p>{{bodyText}}</p>
 
-        <v-btn @click="startTheGame"> START!!!!!!!! </v-btn>      
- 
+        <v-btn @click="startTheGame">START!!!!!!!!</v-btn>
       </v-card>
-    </div>  
+    </div>
   </div>
 </template>
 
@@ -25,36 +24,31 @@ import { mapGetters } from "vuex";
 export default {
   name: "Results",
   components: {},
-  props: ['titleText','bodyText'],
+  props: ["titleText", "bodyText"],
   data: () => ({
-  
-    answerText: ""
+    answerText: "",
   }),
   mounted: function () {},
   computed: {
-    ...mapGetters(["projectName", "currentSession"]),    
+    ...mapGetters(["projectName", "currentSession"]),
   },
-  watch: {
-
-  },
-  methods: {   
-    startTheGame: function(){
+  watch: {},
+  methods: {
+    startTheGame: function () {
       alert("You started the game!");
 
       this.$emit("startGame");
-      console.log("Game starting....");
-    }
+      this.quickLog("Game starting....");
+    },
   },
 };
 </script>
 <style lang="scss" scoped>
-
- @import "@/assets/custom.scss";
+@import "@/assets/custom.scss";
 
 .start-game-card {
   color: $social-game-party-orange !important;
   border-color: $social-game-party-orange !important;
   padding: 5px;
 }
-
 </style>
