@@ -1,12 +1,12 @@
 <template>
   <div>
-    <!-- ===== Page Content ===== -->
+    <!-- Room navigation. Still in progress. -->
+    <UserSetup></UserSetup>
     <v-container>
-      <v-row class="text-center">
-        <v-col cols="12">
-          <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
-          <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
-          <ChatRoom v-if="inChatRoom"></ChatRoom>
+      <v-row v-if="currentUserName" class="text-center">
+        <v-col>
+          <RoomMenu></RoomMenu>
+          <GameRoom v-if="currentRoomName"></GameRoom>
         </v-col>
       </v-row>
     </v-container>
@@ -15,15 +15,41 @@
 
 <script>
 // @ is an alias to /src
-import ChatRoom from "@/components/ChatRoom.vue";
+import { mapGetters } from "vuex";
+import RoomMenu from "@/components/RoomParts/RoomMenu.vue";
+import GameRoom from "@/components/RoomParts/GameRoom.vue";
+import UserSetup from "@/components/UserSetup.vue";
 
 export default {
   name: "Home",
+  props: ["isDebug"],
   components: {
-    ChatRoom
+    RoomMenu,
+    UserSetup,
+    GameRoom,
   },
-  data: () => ({
-    inChatRoom: false
-  })
+  data: () => ({}),
+  computed: {
+    ...mapGetters([
+      "projectName",
+      "currentSession",
+      "currentRoomName",
+      "currentUserName",
+    ]),
+  },
+  mounted: function () {
+    if (this.isDebug) this.$store.commit("setIsDebugMode", true);
+
+    this.quickLog("Made it Home!");
+  },
+  watch: {
+    currentRoomName: function () {
+      this.inChatRoom = false;
+    },
+  },
+  methods: {},
 };
 </script>
+
+<style lang="scss" scoped>
+</style>

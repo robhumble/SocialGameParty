@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
 import About from '../views/About.vue'
+import Experimental from '../views/Experimental.vue'
 
 Vue.use(VueRouter)
 
@@ -23,7 +24,14 @@ Vue.use(VueRouter)
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
+  { path: '/debugParty', name: 'Home', component: Home, props: { isDebug: true } },
+
   { path: '/about', name: 'About', component: About },
+
+
+  //Don't add public links to these
+  { path: '/experimental', name: 'ExperimentalPage', component: Experimental },
+
 ]
 
 const router = new VueRouter({
