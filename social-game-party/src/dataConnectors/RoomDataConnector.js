@@ -13,7 +13,6 @@ export default class RoomDataConnector extends DataConnector {
 
   // Firebase functions for room movement. -----------------------------
 
-  // presently, make room does not check if the room already exists. 
   /**
    * Create a new Room and automatically join it as a specatator.
    * @param {string} newRoomName 
