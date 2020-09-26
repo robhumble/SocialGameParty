@@ -18,22 +18,24 @@ export default class GameplayDataConnector extends DataConnector {
   // Firebase functions for Game Play. -----------------------------
 
   //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Update the host for the current game.  
-   * @param {number} newHostId - the unique user id of the new host - likely the current user 
-   * @param {string} roomName 
-   */
-  updateHost = function (newHostId, roomName) {
-    //let that = this;
 
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  //Sent to Room
+  // /**
+  //  * Update the host for the current game.  
+  //  * @param {number} newHostId - the unique user id of the new host - likely the current user 
+  //  * @param {string} roomName 
+  //  */
+  // updateHost = function (newHostId, roomName) {
+  //   //let that = this;
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function () {
-        transaction.update(roomDocRef, { hostId: newHostId });
-      })
-    })
-  }
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function () {
+  //       transaction.update(roomDocRef, { hostId: newHostId });
+  //     })
+  //   })
+  // }
 
   /**
    * Update spectatorGameData.

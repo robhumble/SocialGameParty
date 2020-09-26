@@ -14,6 +14,9 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
   #connectorCollectionName = "activePlayerGameData";
 
 
+  //General Functions--------------------------------------------
+
+
   makeActivePlayerGameData = async function (roomName) {
 
     let activeDataDbModel = this.buildActivePlayerGameDataDbModel();
@@ -80,13 +83,23 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
      sgf.mainFramework.megaLog("No ActivePlayerGameData to unsubscribe from!");
  }
 
+  /**
+   * Delete the specified ActivePlayerGameData from the ActivePlayerGameData collection.
+   * @param {string} roomName 
+   */
+  deleteActivePlayerGameData = function (roomName) {
+
+    this.firestoreDb.collection(this.#connectorCollectionName).doc(roomName).delete()
+      .then(
+        sgf.mainFramework.megaLog(`ActivePlayerGameData "${roomName}" has been deleted. `)
+      ).catch(err => {
+        sgf.mainFramework.megaLog("There was an issue deleting the ActivePlayerGameData: " + err);
+      });
+
+  }
 
 
-
-
-
-
-
+//Migrated from GamePlayDataConnector -------------------------------------->
 
 
 

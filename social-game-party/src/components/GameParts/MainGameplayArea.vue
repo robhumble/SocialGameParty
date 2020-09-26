@@ -30,7 +30,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+// import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
 
 import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue";
 import ResultScreen from "@/components/GameParts/ResultScreen.vue";
@@ -53,9 +53,9 @@ export default {
   },
   props: ["", ""],
   data: () => ({
-    dataConnector: new GameplayDataConnector(),
+    // gamePlayDataConnector: new GameplayDataConnector(),
     currentGameComponent: "",
-    gameRunner: null,
+    gameRunner: new GameRunner(),
 
     //Basic display instructions
     displayInstructions: null,
@@ -95,8 +95,10 @@ export default {
     hostId: function (n, o) {
       if (n != o) {
         if (n) {
-          if (!this.gameRunner) this.setupGame();
-          else this.gameRunner.hostId = n;
+          if (this.gameRunner.isGameInProgress()) 
+            this.gameRunner.hostId = n;
+          else 
+            this.setupGame();
         } else {
           // if the host is set to null reset the game...
           this.resetGame();
@@ -157,14 +159,14 @@ export default {
       let hostId = this.currentSession.currentUser.uniqueId;
       let roomName = this.currentRoomName;
 
-      this.dataConnector.updateHost(hostId, roomName);
+      this.gameRunner.setHost(hostId, roomName);
     },
 
     /**
      * Setup the current game by initializing the gameRunner and game.
      */
     setupGame: function () {
-      this.gameRunner = new GameRunner();
+      
       let game = new MathMasterGame(this.currentRoomName);
       this.gameRunner.setupCurrentGame(
         game,
@@ -285,9 +287,9 @@ export default {
         this.gameRunner.resetGame();
       } else {
         //If the game is reset somehow without a gameRunner, at least make sure the db is cleaned out.
-        this.dataConnector.resetGameData(this.currentRoomName);
+        //this.gamePlayDataConnector.resetGameData(this.currentRoomName);
       }
-      this.gameRunner = null;
+      //this.gameRunner = null;
 
       this.clearDisplay();
       this.currentGameComponent = "StartGameScreen";

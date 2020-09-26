@@ -239,6 +239,56 @@ export default class RoomDataConnector extends DataConnector {
 
   }
 
+
+//Migrated from GamePlayDataConnector -------------------------------------->
+
+
+
+
+ /**
+   * Update the host for the current game.  
+   * @param {number} newHostId - the unique user id of the new host - likely the current user 
+   * @param {string} roomName 
+   */
+  updateHost = function (newHostId, roomName) {
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function () {
+        transaction.update(roomDocRef, { hostId: newHostId });
+      })
+    })
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   //Private Helpers-------------------------------------->
 
   /**
