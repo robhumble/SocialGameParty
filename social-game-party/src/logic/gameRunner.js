@@ -1,17 +1,22 @@
-import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+//import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
 import * as sgf from "@/logic/socialGameFramework.js";
+
+import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
+import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
 
 export default class GameRunner {
 
     constructor() {
-        this.gamePlayDataConnector = new GameplayDataConnector();
+        //this.gamePlayDataConnector = new GameplayDataConnector();
 
         this.roomDataConnector = new RoomDataConnector();
+        this.activePlayerGameDataConnector =new ActivePlayerGameDataConnector();
+        this.hostGameDataConnector = new HostGameDataConnector();
     }
 
     currentGame = null;
-    gamePlayDataConnector = null;
+    //gamePlayDataConnector = null;
 
     hostId = null;
     currentUserId = null;
@@ -21,6 +26,8 @@ export default class GameRunner {
 
 
     roomDataConnector = null;
+    activePlayerGameDataConnector = null;
+    hostGameDataConnector= null;
 
 
 
@@ -67,7 +74,7 @@ export default class GameRunner {
             let stepData = this.getGameStep(stepNumber);
 
             //Start a write batch
-            var stepBatch = this.gamePlayDataConnector.getWriteBatch();
+            var stepBatch = this.roomDataConnector.getWriteBatch();
 
             //May want to clean out instructions from the previous step first...
             if (stepData.cleanInstructionsFirst)
@@ -94,7 +101,7 @@ export default class GameRunner {
             if (stepData.checkTarget == 'all')
                 stepBatch = stepData.checkFunction(remoteDataGroup, stepBatch);
 
-            this.gamePlayDataConnector.commitWriteBatch(stepBatch);
+            this.roomDataConnector.commitWriteBatch(stepBatch);
 
             sgf.mainFramework.megaLog(remoteDataGroup);
         }
@@ -115,13 +122,15 @@ export default class GameRunner {
     /**
      * Initialize the game by setting the current step to "1" in the database.
      */
-    initializeRemotePlayerGameData = function () {
+    initializeRemotePlayerGameData = function () {    
 
-        let initialGameData = {
-            currentStep: 1,
-        }
-
-        this.gamePlayDataConnector.setPlayerGameData(this.roomName, initialGameData);
+        //this.gamePlayDataConnector.setPlayerGameData(this.roomName, initialGameData);
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (apgData) => {
+            apgData.currentStep = 1;
+            apgData.currentCheckInstructions = null;
+            apgData.currentInstructions = null;
+            return apgData;
+        });
     }
 
     /**
@@ -130,8 +139,15 @@ export default class GameRunner {
     resetGame = function () {
 
         //If this is the host, wipe remote game data.
-        if (this.isHost() && this.roomName)
-            this.gamePlayDataConnector.resetGameData(this.roomName);
+        if (this.isHost() && this.roomName){
+            //this.gamePlayDataConnector.resetGameData(this.roomName);
+            
+            this.roomDataConnector.resetRoomGameData(this.roomName);
+            this.activePlayerGameDataConnector.resetActivePlayerGameData(this.roomName)
+            this.hostGameDataConnector.resetHostGameData(this.roomName);
+        
+        
+        }
 
         //Game Runner vars
         this.currentGame = null;
@@ -178,7 +194,9 @@ export default class GameRunner {
             currentCheckInstructions: null,
             currentInstructions: null
         };
-        return this.gamePlayDataConnector.addToBatchUpdate(batch, "rooms", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.addToBatchUpdate(batch, "rooms", this.roomName, dataToUpdate);
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
     }
 
 

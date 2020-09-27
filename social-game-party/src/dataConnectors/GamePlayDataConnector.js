@@ -57,48 +57,50 @@ export default class GameplayDataConnector extends DataConnector {
   //Player game Data functions-----------------------------------------------------------------------------------------------
 
 
+  //Sent to APGD
   //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Set the whole playerGameData object. (ignore prior state)
-   * @param {string} roomName 
-   * @param {object} newPlayerGameData 
-   */
-  setPlayerGameData = function (roomName, newPlayerGameData) {
-    //let that = this;
+  // /**
+  //  * Set the whole playerGameData object. (ignore prior state)
+  //  * @param {string} roomName 
+  //  * @param {object} newPlayerGameData 
+  //  */
+  // setPlayerGameData = function (roomName, newPlayerGameData) {
+  //   //let that = this;
 
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function () {
-        transaction.update(roomDocRef, { playerGameData: newPlayerGameData });
-      })
-    })
-  }
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function () {
+  //       transaction.update(roomDocRef, { playerGameData: newPlayerGameData });
+  //     })
+  //   })
+  // }
 
 
+  //SENT TO AGPD
   //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Set a property in playerGameData, the rest of the object should remain as it was in firestore. 
-   * @param {string} roomName 
-   * @param {string} propName 
-   * @param {object} propVal 
-   */
-  updatePlayerGameData = function (roomName, propName, propVal) {
-    //let that = this;
+  // /**
+  //  * Set a property in playerGameData, the rest of the object should remain as it was in firestore. 
+  //  * @param {string} roomName 
+  //  * @param {string} propName 
+  //  * @param {object} propVal 
+  //  */
+  // updatePlayerGameData = function (roomName, propName, propVal) {
+  //   //let that = this;
 
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function (roomDoc) {
 
 
-        let newPlayerGameData = roomDoc.data().playerGameData;
-        newPlayerGameData[propName] = propVal;
+  //       let newPlayerGameData = roomDoc.data().playerGameData;
+  //       newPlayerGameData[propName] = propVal;
 
-        transaction.update(roomDocRef, { playerGameData: newPlayerGameData });
-      })
-    })
-  }
+  //       transaction.update(roomDocRef, { playerGameData: newPlayerGameData });
+  //     })
+  //   })
+  // }
 
 
   /**
@@ -149,22 +151,21 @@ export default class GameplayDataConnector extends DataConnector {
 
   //currentInstructions Data functions-----------------------------------------------------------------------------------------------
 
-  //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   /**
    * Set the currentInstructions.  (ignore prior state)
    * @param {string} roomName 
    * @param {object} newInstructions 
    */
-  setCurrentInstructions = function (roomName, newInstructions) {
-    //let that = this;
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  // setCurrentInstructions = function (roomName, newInstructions) {
+  //   //let that = this;
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function () {
-        transaction.update(roomDocRef, { currentInstructions: newInstructions });
-      })
-    })
-  }
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function () {
+  //       transaction.update(roomDocRef, { currentInstructions: newInstructions });
+  //     })
+  //   })
+  // }
 
   /**
    * Pass in a function to update currentInstructions.
@@ -190,22 +191,21 @@ export default class GameplayDataConnector extends DataConnector {
 
   //currentCheckInstructions game Data functions-----------------------------------------------------------------------------------------------
 
-  //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Set the currentCheckInstructions.  (ignore prior state)
-   * @param {string} roomName 
-   * @param {object} newCheckInstructions 
-   */
-  setCurrentCheckInstructions = function (roomName, newCheckInstructions) {
-    //let that = this;
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  // /**
+  //  * Set the currentCheckInstructions.  (ignore prior state)
+  //  * @param {string} roomName 
+  //  * @param {object} newCheckInstructions 
+  //  */
+  // setCurrentCheckInstructions = function (roomName, newCheckInstructions) {
+  //   //let that = this;
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function () {
-        transaction.update(roomDocRef, { currentCheckInstructions: newCheckInstructions });
-      })
-    })
-  }
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function () {
+  //       transaction.update(roomDocRef, { currentCheckInstructions: newCheckInstructions });
+  //     })
+  //   })
+  // }
 
   /**
    * Pass in a function to update currentCheckInstructions.
@@ -230,64 +230,66 @@ export default class GameplayDataConnector extends DataConnector {
 
   //Whole Room Update (when you need to reach across multiple properties)--------------------------------------------------------
 
+  //COPIED TO ROOM, APGD, and HGD
   //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Update the room by passing in a function.
-   * @param {string} roomName 
-   * @param {function} updateFunc - function takes the current room data as an arg
-   */
-  updateWholeRoomViaFunction = function (roomName, updateFunc) {
-    //let that = this;
+  // /**
+  //  * Update the room by passing in a function.
+  //  * @param {string} roomName 
+  //  * @param {function} updateFunc - function takes the current room data as an arg
+  //  */
+  // updateWholeRoomViaFunction = function (roomName, updateFunc) {
+  //   //let that = this;
 
-    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+  //   let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
-    this.firestoreDb.runTransaction(function (transaction) {
-      return transaction.get(roomDocRef).then(function (roomDoc) {
+  //   this.firestoreDb.runTransaction(function (transaction) {
+  //     return transaction.get(roomDocRef).then(function (roomDoc) {
 
-        let curRoomData = roomDoc.data();
-        let updatedRoomData = updateFunc(curRoomData);
+  //       let curRoomData = roomDoc.data();
+  //       let updatedRoomData = updateFunc(curRoomData);
 
-        transaction.update(roomDocRef, updatedRoomData);
-      })
-    })
-  }
+  //       transaction.update(roomDocRef, updatedRoomData);
+  //     })
+  //   })
+  // }
+
+  //Copied to all of the other data connectors
+  //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // /**
+  //  * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
+  //  * @param {object} batch 
+  //  * @param {string} operation 
+  //  * @param {string} roomName 
+  //  * @param {object} dataToUpdate 
+  //  */
+  // gameplayAddToBatch(batch, operation, roomName, dataToUpdate) {
+  //   let ref = this.firestoreDb.collection("rooms").doc(roomName);
+
+  //   switch (operation) {
+  //     case "set": batch.set(ref, dataToUpdate); break;
+  //     case "update": batch.update(ref, dataToUpdate); break;
+  //     case "delete": batch.delete(ref); break;
+  //   }
+
+  //   return batch;
+  // }
 
   //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
-   * @param {object} batch 
-   * @param {string} operation 
-   * @param {string} roomName 
-   * @param {object} dataToUpdate 
-   */
-  gameplayAddToBatch(batch, operation, roomName, dataToUpdate) {
-    let ref = this.firestoreDb.collection("rooms").doc(roomName);
+  // /**
+  //  * Clear the game related data in the room document.
+  //  * @param {string} roomName 
+  //  */
+  // resetGameData = function (roomName) {
+  //   this.updateWholeRoomViaFunction(roomName, (roomData) => {
+  //     roomData.playerGameData = {};
+  //     roomData.spectatorGameData = {};
+  //     roomData.currentCheckInstructions = null;
+  //     roomData.currentInstructions = null;
+  //     roomData.hostId = null
 
-    switch (operation) {
-      case "set": batch.set(ref, dataToUpdate); break;
-      case "update": batch.update(ref, dataToUpdate); break;
-      case "delete": batch.delete(ref); break;
-    }
-
-    return batch;
-  }
-
-  //!!!!!!!!!!!!!!!!!!NEED THIS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  /**
-   * Clear the game related data in the room document.
-   * @param {string} roomName 
-   */
-  resetGameData = function (roomName) {
-    this.updateWholeRoomViaFunction(roomName, (roomData) => {
-      roomData.playerGameData = {};
-      roomData.spectatorGameData = {};
-      roomData.currentCheckInstructions = null;
-      roomData.currentInstructions = null;
-      roomData.hostId = null
-
-      return roomData;
-    });
-  }
+  //     return roomData;
+  //   });
+  // }
 
 
 

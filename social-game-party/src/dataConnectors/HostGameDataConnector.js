@@ -1,5 +1,6 @@
 import DataConnector from "@/dataConnectors/DataConnector";
 //import { SessionUser } from "@/logic/SessionInfo.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 
 /**
@@ -55,7 +56,7 @@ export default class HostGameDataConnector extends DataConnector {
        if (docData) {
          let remoteHostGameData = {      
 
-          results = docData.results,          
+          results: docData.results,          
           dynamicHostGameData: docData.dynamicHostGameData
 
          }
@@ -95,7 +96,69 @@ export default class HostGameDataConnector extends DataConnector {
 
 
 
+ /**
+   * Update the HostGameData by passing in a function.
+   * @param {string} roomName 
+   * @param {function} updateFunc - function takes the current HostGameData data as an arg
+   */
+  updateWholeHostGameDataViaFunction = function (roomName, updateFunc) {
+    //let that = this;
 
+    let docRef = this.firestoreDb.doc(`${this.#connectorCollectionName}/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(docRef).then(function (targetDoc) {
+
+        let curDocData = targetDoc.data();
+        let updatedDocData = updateFunc(curDocData);
+
+        transaction.update(docRef, updatedDocData);
+      })
+    })
+  }
+
+
+/**
+   * Quick version of the base dataConnector batch funcitons that specifically targets the HostGameData collection
+   * @param {object} batch 
+   * @param {string} operation 
+   * @param {string} roomName 
+   * @param {object} dataToUpdate 
+   */
+  hostGameDataAddToBatch(batch, operation, roomName, dataToUpdate) {
+    let ref = this.firestoreDb.collection(this.#connectorCollectionName).doc(roomName);
+
+    switch (operation) {
+      case "set": batch.set(ref, dataToUpdate); break;
+      case "update": batch.update(ref, dataToUpdate); break;
+      case "delete": batch.delete(ref); break;
+    }
+
+    return batch;
+  }
+
+
+
+     /**
+   * Clear the game related data in the ActivePlayerGameData document.
+   * @param {string} roomName 
+   */
+  resetHostGameData = function (roomName) {
+    this.updateWholeRoomViaFunction(roomName, (docData) => {
+
+      //docData.currentStep = null;
+      //docData.dynamicPlayerGameData = {};
+      //docData.spectatorGameData = {};
+      //docData.currentCheckInstructions = null;
+      //docData.currentInstructions = null;
+      //docData.hostId = null
+
+      docData.results = [];
+      docData.dynamicHostGameData= {};
+
+      return docData;
+    });
+  }
 
 
 
@@ -120,7 +183,7 @@ export default class HostGameDataConnector extends DataConnector {
   buildHostGameDataDbModel = function () {
     let dbModel = {
 
-      results = [],
+      results: [],
 
       //This is a general container for data that needs to be stored by the current game.
       dynamicHostGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)

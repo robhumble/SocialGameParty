@@ -1,5 +1,6 @@
 import DataConnector from "@/dataConnectors/DataConnector";
 //import { SessionUser } from "@/logic/SessionInfo.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 
 
 /**
@@ -103,6 +104,47 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
 
 
+//UNSURE IF THIS IS NEEDED ANYMORE
+ /**
+   * Set the whole dynamicPlayerGameData object. (ignore prior state)
+   * @param {string} roomName 
+   * @param {object} newPlayerGameData 
+   */
+  setDynamicPlayerGameData = function (roomName, newPlayerGameData) {
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`${this.#connectorCollectionName}/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function () {
+        transaction.update(roomDocRef, { dynamicPlayerGameData: newPlayerGameData });
+      })
+    })
+  }
+
+  //UNSURE IF THIS IS NEEDED ANYMORE
+  /**
+   * Set a property in playerGameData, the rest of the object should remain as it was in firestore. 
+   * @param {string} roomName 
+   * @param {string} propName 
+   * @param {object} propVal 
+   */
+  updatePlayerGameData = function (roomName, propName, propVal) {
+    //let that = this;
+
+    let docRef = this.firestoreDb.doc(`${this.#connectorCollectionName}/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(docRef).then(function (currentDoc) {
+
+
+        let newPlayerGameData = currentDoc.data().dynamicPlayerGameData;
+        newPlayerGameData[propName] = propVal;
+
+        transaction.update(docRef, { dynamicPlayerGameData: newPlayerGameData });
+      })
+    })
+  }
 
 
 
@@ -112,7 +154,67 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
 
 
+ /**
+   * Update the ActivePlayerGameData by passing in a function.
+   * @param {string} roomName 
+   * @param {function} updateFunc - function takes the current ActivePlayerGameData data as an arg
+   */
+  updateWholeActivePlayerGameDataViaFunction = function (roomName, updateFunc) {
+    //let that = this;
 
+    let docRef = this.firestoreDb.doc(`${this.#connectorCollectionName}/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(docRef).then(function (targetDoc) {
+
+        let curDocData = targetDoc.data();
+        let updatedDocData = updateFunc(curDocData);
+
+        transaction.update(docRef, updatedDocData);
+      })
+    })
+  }
+
+
+   /**
+   * Quick version of the base dataConnector batch funcitons that specifically targets the ActivePlayerGameData collection
+   * @param {object} batch 
+   * @param {string} operation 
+   * @param {string} roomName 
+   * @param {object} dataToUpdate 
+   */
+  activePlayerGameDataAddToBatch(batch, operation, roomName, dataToUpdate) {
+    let ref = this.firestoreDb.collection(this.#connectorCollectionName).doc(roomName);
+
+    switch (operation) {
+      case "set": batch.set(ref, dataToUpdate); break;
+      case "update": batch.update(ref, dataToUpdate); break;
+      case "delete": batch.delete(ref); break;
+    }
+
+    return batch;
+  }
+
+
+
+
+   /**
+   * Clear the game related data in the ActivePlayerGameData document.
+   * @param {string} roomName 
+   */
+  resetActivePlayerGameData = function (roomName) {
+    this.updateWholeRoomViaFunction(roomName, (docData) => {
+
+      docData.currentStep = null;
+      docData.dynamicPlayerGameData = {};
+      //docData.spectatorGameData = {};
+      docData.currentCheckInstructions = null;
+      docData.currentInstructions = null;
+      //docData.hostId = null
+
+      return docData;
+    });
+  }
 
 
 
@@ -145,6 +247,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
       //STUFF THAT WE WANT IN ACTIVE PLAYER GAME DATA---------------------------------------------
       
+      currentStep: null,
 
       //Game Instructions
       currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"

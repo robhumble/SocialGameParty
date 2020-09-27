@@ -1,12 +1,19 @@
 import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
 import * as sgf from "@/logic/socialGameFramework.js";
 
+import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
+import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
+
+
 export default class MathMasterGame {
 
     name = "MathMaster";
 
     gamePlayDataConnector = null;
     roomName = null;
+
+    activePlayerGameDataConnector = null;
+    hostGameDataConnector = null;
 
     #configOptions = {
         totalMathProblems: 10,
@@ -17,6 +24,9 @@ export default class MathMasterGame {
 
     constructor(roomName) {
         this.gamePlayDataConnector = new GameplayDataConnector();
+
+        this.activePlayerGameDataConnector = new ActivePlayerGameDataConnector();
+        this.hostGameDataConnector = new HostGameDataConnector();
 
         this.roomName = roomName;
     }
@@ -114,7 +124,9 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
     /**
@@ -138,12 +150,21 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            playerGameData: {
-                mathProblems: mathProblems,
-                currentStep: 2
-            }
+            // playerGameData: {
+            //     mathProblems: mathProblems,
+            //     currentStep: 2
+            // }
+
+            dynamicPlayerGameData: {
+                mathProblems: mathProblems,                
+            },
+            currentStep: 2
+
+
         };
-        return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
@@ -172,7 +193,9 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
     /**
@@ -193,7 +216,9 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentCheckInstructions: currentCheckInstructions
         };
-        return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
@@ -247,12 +272,18 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            playerGameData: {
+            // playerGameData: {
+            //     winner: winners,
+            // },
+            dynamicPlayerGameData: {
                 winner: winners,
             },
             currentInstructions: instructions
         };
-        return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        
 
     }
 
@@ -290,7 +321,12 @@ export default class MathMasterGame {
 
         gd.results.push(resultObj);
 
-        this.gamePlayDataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
+        //this.gamePlayDataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
+
+        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {
+            hostData.results = gd.results;          
+            return hostData;
+        });
     }
 
     /**
@@ -306,8 +342,16 @@ export default class MathMasterGame {
 
             if (res && res.length == remoteDataGroup.userList.length) {
                 //Move to step 3 (and clear all existing instructions.)
-                this.gamePlayDataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-                    roomData.playerGameData.currentStep = 3;
+
+                // this.gamePlayDataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
+                //     roomData.playerGameData.currentStep = 3;
+                //     roomData.currentCheckInstructions = null;
+                //     roomData.currentInstructions = null;
+                //     return roomData;
+                // });
+
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
+                    roomData.currentStep = 3;
                     roomData.currentCheckInstructions = null;
                     roomData.currentInstructions = null;
                     return roomData;

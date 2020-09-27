@@ -17,7 +17,10 @@
         :resultText="displayInstructions.msg"
       ></ResultScreen>
 
-      <StartGameScreen v-if="currentGameComponent == 'StartGameScreen'" @startGame="startGame"></StartGameScreen>
+      <StartGameScreen
+        v-if="currentGameComponent == 'StartGameScreen'"
+        @startGame="startGame"
+      ></StartGameScreen>
 
       <LoadingScreen
         v-if="currentGameComponent == 'LoadingScreen'"
@@ -31,6 +34,8 @@
 <script>
 import { mapGetters } from "vuex";
 // import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
+import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
 
 import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue";
 import ResultScreen from "@/components/GameParts/ResultScreen.vue";
@@ -64,6 +69,10 @@ export default {
     loopThroughData: null,
     questionAndAnswerQuestionText: "",
     //checkInstructions: null
+
+    activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
+    hostGameDataConnector: new HostGameDataConnector(),
+
   }),
   mounted: function () {
     //If the game hasn't been started yet (i.e. no host), show the start screen.
@@ -79,6 +88,7 @@ export default {
       "hostId",
       "spectatorGameData",
       "playerGameData",
+      "currentStep",
       "currentInstructions",
       "currentCheckInstructions",
 
@@ -106,18 +116,27 @@ export default {
       }
     },
 
-    playerGameData: function (n, o) {
-      //TODO: may want to do a host check here - since only the host is running steps at the moment
+
+    currentStep: function (n, o) {
+
+           //TODO: may want to do a host check here - since only the host is running steps at the moment
       //Watch the current step - if it changes, run the new step
-      if (n.currentStep && n.currentStep != o.currentStep) {
+      if (n && n != o) {
         if (this.gameRunner)
-          this.gameRunner.runStep(n.currentStep, this.getRemoteDataGroup);
+          this.gameRunner.runStep(n, this.getRemoteDataGroup);
         else
           this.quickLog(
-            `Cannot run step ${n.currentStep}, gameRunner is null.`
+            `Cannot run step ${n}, gameRunner is null.`
           );
       }
 
+
+    },
+
+
+
+    playerGameData: function (n, o) {
+ 
       //Watch from a check instruction -- Check instructions watch target should only be in playerGameData.
       //If there are check instructions and the watch target is updated, run the check function.
       if (this.currentCheckInstructions) {
@@ -174,6 +193,12 @@ export default {
         this.hostId,
         this.currentSession.currentUser.uniqueId
       );
+
+      this.listenToActivePlayerGameData();
+
+      if(this.isHost)
+        this.listenToHostGameData();
+
     },
 
     /**
@@ -296,6 +321,59 @@ export default {
 
       this.quickLog("Game reset by host...");
     },
+
+
+    listenToActivePlayerGameData: function(){
+
+      var that = this;
+
+      this.activePlayerGameDataConnector.listenToActivePlayerGameData(function (remoteDocData) {
+        //that.$store.commit("setUserList", remoteRoomData.users);
+
+        //Game data contained in room
+        // that.$store.commit("setHostId", remoteRoomData.hostId);
+        // that.$store.commit(
+        //   "setSpectatorGameData",
+        //   remoteRoomData.spectatorGameData
+        // );
+
+         //TODO: MOVE THESE SO IT REFERENCES THE ACTIVEPLAYERGAMEDATA COLLECTION INSTEAD OF THE ROOM
+
+        that.$store.commit("setCurrentStep", remoteDocData.currentStep);
+
+        that.$store.commit("setPlayerGameData", remoteDocData.dynamicPlayerGameData);
+
+        that.$store.commit(
+          "setCurrentInstructions",
+          remoteDocData.currentInstructions
+        );
+        that.$store.commit(
+          "setCurrentCheckInstructions",
+          remoteDocData.currentCheckInstructions
+        );
+
+      
+      }, that.currentRoomName);
+    },
+
+    listenToHostGameData: function(){
+
+       var that = this;
+
+      this.hostGameDataConnector.listenToHostGameData(function (remoteDocData) {
+       
+        that.$store.commit("setResults", remoteDocData.results);
+        that.$store.commit("setDynamicHostGameData", remoteDocData.dynamicHostGameData);    
+      
+      }, that.currentRoomName);
+
+
+    }
+
+
+
+    
+
   },
 };
 </script>

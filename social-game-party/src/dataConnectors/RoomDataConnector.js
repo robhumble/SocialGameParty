@@ -264,24 +264,63 @@ export default class RoomDataConnector extends DataConnector {
 
 
 
+ /**
+   * Update the room by passing in a function.
+   * @param {string} roomName 
+   * @param {function} updateFunc - function takes the current room data as an arg
+   */
+  updateWholeRoomViaFunction = function (roomName, updateFunc) {
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let curRoomData = roomDoc.data();
+        let updatedRoomData = updateFunc(curRoomData);
+
+        transaction.update(roomDocRef, updatedRoomData);
+      })
+    })
+  }
 
 
+   /**
+   * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
+   * @param {object} batch 
+   * @param {string} operation 
+   * @param {string} roomName 
+   * @param {object} dataToUpdate 
+   */
+   roomAddToBatch(batch, operation, roomName, dataToUpdate) {
+    let ref = this.firestoreDb.collection("rooms").doc(roomName);
+
+    switch (operation) {
+      case "set": batch.set(ref, dataToUpdate); break;
+      case "update": batch.update(ref, dataToUpdate); break;
+      case "delete": batch.delete(ref); break;
+    }
+
+    return batch;
+  }
 
 
+   /**
+   * Clear the game related data in the room document.
+   * @param {string} roomName 
+   */
+  resetRoomGameData = function (roomName) {
+    this.updateWholeRoomViaFunction(roomName, (docData) => {
+      //docData.playerGameData = {};
+      docData.spectatorGameData = {};
+      //docData.currentCheckInstructions = null;
+      //docData.currentInstructions = null;
+      docData.hostId = null
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+      return docData;
+    });
+  }
 
 
 
@@ -333,11 +372,11 @@ export default class RoomDataConnector extends DataConnector {
 
       //Game specific dynamically generated data
       spectatorGameData: {},  //Dynamically generated data that spectators (and anyone in the room) cares about
-      playerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
+      //playerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
 
       //NEW - Game Instructions
-      currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
-      currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
+      //currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
+      //currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
     }
 
     return dbModel;
