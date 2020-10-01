@@ -17,6 +17,7 @@ export var mainFramework = {
             mainChat.scrollTop = mainChat.scrollHeight;
     },
 
+    //TODO: Consider making recursive to check nested arrays....might get unweildly though.
     /**
      * (Shallow Compare) Quick check to see if an object is "roughly" the same. 
      * @param {object} objectA 
@@ -29,10 +30,29 @@ export var mainFramework = {
             return false;
         }
 
-        for (var key in objectA) {
-            if (objectA[key] != objectB[key])
-                return false;
+        //Check each property in an object a against object b
+        let keyCheck = (oA, oB) => {
+            for (var key in oA) {
+                if (oA[key] != oB[key])
+                    return false;
+            }
+            return true;
         }
+
+        try {
+            //Check each element if it's an array, just properties other wise
+            if (Array.isArray(objectA)) {
+                for (let i = 0; i < objectA.length; i++) {
+                   return keyCheck(objectA[i], objectB[i]);
+                }
+            }
+            else
+                return keyCheck(objectA, objectB);
+        } catch (err) {
+            console.log(err.message);
+            return false;
+        }
+
 
         return true;
     },

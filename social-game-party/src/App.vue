@@ -12,7 +12,9 @@
           transition="scale-transition"
           width="110"
         />
-        <h1 class="d-none d-lg-flex">Social Game Party Thing!</h1>
+        <h1 v-if="isDebugMode" class="d-none d-lg-flex">DEBUG PARTY DEBUG PARTY DEBUG PARTY</h1>
+        <h1 v-else class="d-none d-lg-flex">Social Game Party Thing!</h1>
+
         <h1 class="d-lg-none">SGPT!</h1>
       </div>
 

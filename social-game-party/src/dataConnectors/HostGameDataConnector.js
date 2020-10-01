@@ -144,7 +144,7 @@ export default class HostGameDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   resetHostGameData = function (roomName) {
-    this.updateWholeRoomViaFunction(roomName, (docData) => {
+    this.updateWholeHostGameDataViaFunction(roomName, (docData) => {
 
       //docData.currentStep = null;
       //docData.dynamicPlayerGameData = {};

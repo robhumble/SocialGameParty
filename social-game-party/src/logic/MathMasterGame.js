@@ -208,7 +208,8 @@ export default class MathMasterGame {
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions')
 
         let currentCheckInstructions = {
-            watchTarget: "results",
+            rootObj: "results", //player, host, or results
+            watchTarget: "results",  // watchTarget is only checked if we aren't looking at the results rootObj, so going forward this line is redundant
             checkFunction: "checkToSeeIfAllPlayersAreDone"
         }
 
@@ -229,9 +230,7 @@ export default class MathMasterGame {
      */
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
-        let gd = remoteDataGroup.playerGameData;
-
-        let sorted = gd.results.sort((acc, x) => {
+        let sorted = remoteDataGroup.results.sort((acc, x) => {
             return (x.answerResults > acc.answerResults) ? x : acc;
         });
 
@@ -252,7 +251,7 @@ export default class MathMasterGame {
 
         //Get everyones score in a string.
         let totals = "SCORES: \n";
-        remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults} \n`);
+        remoteDataGroup.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults} \n`);
 
         //Get the winner string.
         let winnerString = `Top Score: ${sorted[0].answerResults} \n Winners: `;
@@ -314,7 +313,7 @@ export default class MathMasterGame {
             answerResults: answerResults
         }
 
-        let gd = remoteDataGroup.playerGameData;
+        let gd = remoteDataGroup;
 
         if (!gd.results)
             gd.results = [];
@@ -338,7 +337,7 @@ export default class MathMasterGame {
 
         if (userId == remoteDataGroup.hostId) {
 
-            let res = remoteDataGroup.playerGameData.results;
+            let res = remoteDataGroup.results;
 
             if (res && res.length == remoteDataGroup.userList.length) {
                 //Move to step 3 (and clear all existing instructions.)

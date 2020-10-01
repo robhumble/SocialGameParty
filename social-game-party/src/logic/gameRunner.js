@@ -11,7 +11,7 @@ export default class GameRunner {
         //this.gamePlayDataConnector = new GameplayDataConnector();
 
         this.roomDataConnector = new RoomDataConnector();
-        this.activePlayerGameDataConnector =new ActivePlayerGameDataConnector();
+        this.activePlayerGameDataConnector = new ActivePlayerGameDataConnector();
         this.hostGameDataConnector = new HostGameDataConnector();
     }
 
@@ -27,7 +27,7 @@ export default class GameRunner {
 
     roomDataConnector = null;
     activePlayerGameDataConnector = null;
-    hostGameDataConnector= null;
+    hostGameDataConnector = null;
 
 
 
@@ -36,9 +36,12 @@ export default class GameRunner {
      * @param {number} hostId 
      * @param {string} roomName 
      */
-    setHost(hostId, roomName) {
+    async setHost(hostId, roomName) {
 
         this.roomDataConnector.updateHost(hostId, roomName);
+
+        // await this.activePlayerGameDataConnector.makeActivePlayerGameData(roomName);
+        // await this.hostGameDataConnector.makeHostGameData(roomName)
 
     }
 
@@ -57,7 +60,7 @@ export default class GameRunner {
 
 
         if (this.isHost())
-            this.initializeRemotePlayerGameData();
+            this.initializeRemoteGameData();
     }
 
     /**
@@ -122,16 +125,30 @@ export default class GameRunner {
     /**
      * Initialize the game by setting the current step to "1" in the database.
      */
-    initializeRemotePlayerGameData = function () {    
+    initializeRemoteGameData = function () {
 
         //this.gamePlayDataConnector.setPlayerGameData(this.roomName, initialGameData);
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (apgData) => {
+
             apgData.currentStep = 1;
             apgData.currentCheckInstructions = null;
             apgData.currentInstructions = null;
+            apgData.dynamicPlayerGameData = {};
+
             return apgData;
+
         });
+
+        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, () => {
+
+            //sketchy initialization for host data
+            return this.hostGameDataConnector.buildHostGameDataDbModel();
+
+        });
+
+
     }
+
 
     /**
      * Reset Game Data (i.e. clear game data in the database, null out the game object, return all other properties to start positions)
@@ -139,14 +156,14 @@ export default class GameRunner {
     resetGame = function () {
 
         //If this is the host, wipe remote game data.
-        if (this.isHost() && this.roomName){
+        if (this.isHost() && this.roomName) {
             //this.gamePlayDataConnector.resetGameData(this.roomName);
-            
+
             this.roomDataConnector.resetRoomGameData(this.roomName);
             this.activePlayerGameDataConnector.resetActivePlayerGameData(this.roomName)
             this.hostGameDataConnector.resetHostGameData(this.roomName);
-        
-        
+
+
         }
 
         //Game Runner vars

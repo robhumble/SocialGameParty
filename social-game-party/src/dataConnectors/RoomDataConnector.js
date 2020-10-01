@@ -34,6 +34,12 @@ export default class RoomDataConnector extends DataConnector {
     // This line creates both the room and the document inside that will hold the array of users.
     this.firestoreDb.doc(`rooms/${newRoomName}`).set(roomDbModel);
 
+    // //Create the game resources here too?
+    this.firestoreDb.doc(`activePlayerGameData/${newRoomName}`).set({});
+    this.firestoreDb.doc(`hostGameData/${newRoomName}`).set({});      
+    
+
+
   };
 
   // PLEASE remember these commands are caps sensitive in firebase.
@@ -92,6 +98,9 @@ export default class RoomDataConnector extends DataConnector {
     if (roomName) { //remove the user from the room they are in when they move, if they are in a room
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
       let chatRoomDocRef = this.firestoreDb.doc(`chatRooms/${roomName}`);
+      let apgdDocRef = this.firestoreDb.doc(`activePlayerGameData/${roomName}`);
+      let hostDocRef = this.firestoreDb.doc(`hostGameData/${roomName}`);      
+      
 
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
@@ -102,8 +111,10 @@ export default class RoomDataConnector extends DataConnector {
           //Last one out closes down the room
           if (updatedUsers.length < 1) {
             transaction.delete(roomDocRef);
-            //close down the chat room too...            
+            //close down the other associated collections as well.         
             transaction.delete(chatRoomDocRef);
+            transaction.delete(apgdDocRef);
+            transaction.delete(hostDocRef);
           }
           else
             transaction.update(roomDocRef, { users: updatedUsers });

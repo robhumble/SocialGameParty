@@ -85,14 +85,18 @@ export const GlobalPropertyModule = {
         getRemoteDataGroup: state => {
 
             let group ={
+                //Room
                 userList: state.userList,
                 hostId: state.hostId,
                 spectatorGameData: state.spectatorGameData,
+                
+                //AGPD
                 playerGameData: state.playerGameData,
                 currentInstructions: state.currentInstructions,
                 currentCheckInstructions: state.currentCheckInstructions,
                 currentStep: state.currentStep,
 
+                //Host
                 results: state.results,
                 dynamicHostGameData: state.dynamicHostGameData,
             }

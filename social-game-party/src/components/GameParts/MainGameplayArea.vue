@@ -77,6 +77,7 @@ export default {
   mounted: function () {
     //If the game hasn't been started yet (i.e. no host), show the start screen.
     if (!this.isGameStarted) this.currentGameComponent = "StartGameScreen";
+        
   },
   computed: {
     ...mapGetters([
@@ -92,6 +93,8 @@ export default {
       "currentInstructions",
       "currentCheckInstructions",
 
+      "results",
+      "dynamicHostGameData",
       "myTempGameData",
       "getRemoteDataGroup",
     ]),
@@ -116,6 +119,7 @@ export default {
       }
     },
 
+    //AGPD-------------------------------------
 
     currentStep: function (n, o) {
 
@@ -130,16 +134,13 @@ export default {
           );
       }
 
-
     },
-
-
 
     playerGameData: function (n, o) {
  
-      //Watch from a check instruction -- Check instructions watch target should only be in playerGameData.
+      //Watch from a check instruction -- Check instructions watch target should only be in playerGameData if the rootObj is "player".
       //If there are check instructions and the watch target is updated, run the check function.
-      if (this.currentCheckInstructions) {
+      if (this.currentCheckInstructions && this.currentCheckInstructions.rootObj == "player") {
         let watchTarget = this.currentCheckInstructions.watchTarget;
 
         if (n[watchTarget] != o[watchTarget]) {
@@ -169,6 +170,39 @@ export default {
         }
       }
     },
+
+    //Host---------------------------------------------------------------------
+    results: function (n) {
+       //Watch from a check instruction -- Check instructions 
+      //If there are check instructions run the check function.
+      if (this.currentCheckInstructions  && this.currentCheckInstructions.rootObj == "results") {       
+        if (n) {
+          this.gameRunner.callGameFunction(
+            this.currentCheckInstructions.checkFunction,
+            this.getRemoteDataGroup
+          );
+        }
+      }
+    },
+
+
+    dynamicHostGameData: function (n, o) {
+ 
+      //Watch from a check instruction -- Check instructions watch target should only be in dynamicHostGameData if the rootObj is "host".
+      //If there are check instructions and the watch target is updated, run the check function.
+      if (this.currentCheckInstructions  && this.currentCheckInstructions.rootObj == "host") {
+        let watchTarget = this.currentCheckInstructions.watchTarget;
+
+        if (n[watchTarget] != o[watchTarget]) {
+          this.gameRunner.callGameFunction(
+            this.currentCheckInstructions.checkFunction,
+            this.getRemoteDataGroup
+          );
+        }
+      }
+    },
+
+
   },
   methods: {
     /**

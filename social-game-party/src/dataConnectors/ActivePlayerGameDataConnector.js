@@ -22,6 +22,9 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
     let activeDataDbModel = this.buildActivePlayerGameDataDbModel();
 
+    //Initialize as step 1
+    //activeDataDbModel.currentStep = 1;
+
     var existingDoc = await this.firestoreDb.collection(this.#connectorCollectionName).doc(roomName).get();
 
     if (existingDoc.data())
@@ -62,6 +65,8 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
           //  currentInstructions: docData.currentInstructions,
           //  currentCheckInstructions: docData.currentCheckInstructions,
+
+          currentStep: docData.currentStep,
 
           currentInstructions: docData.currentInstructions,
           currentCheckInstructions: docData.currentCheckInstructions,
@@ -203,7 +208,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
    * @param {string} roomName 
    */
   resetActivePlayerGameData = function (roomName) {
-    this.updateWholeRoomViaFunction(roomName, (docData) => {
+    this.updateWholeActivePlayerGameDataViaFunction(roomName, (docData) => {
 
       docData.currentStep = null;
       docData.dynamicPlayerGameData = {};
