@@ -336,10 +336,15 @@ export default class MathMasterGame {
     checkToSeeIfAllPlayersAreDone = function (remoteDataGroup, userId) {
 
         if (userId == remoteDataGroup.hostId) {
-
+            
             let res = remoteDataGroup.results;
+            let playerCount = 0;
+            remoteDataGroup.userList.forEach(user => {
+                if (user.isPlaying)
+                    playerCount++;
+            })
 
-            if (res && res.length == remoteDataGroup.userList.length) {
+            if (res && res.length == playerCount) {
                 //Move to step 3 (and clear all existing instructions.)
 
                 // this.gamePlayDataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {

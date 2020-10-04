@@ -24,9 +24,7 @@
           <h3>What is your room name?</h3>
           <v-container align-center>
             <v-row>
-              <v-col>
                 <v-text-field outlined v-model="joinRoomName"></v-text-field>
-              </v-col>
             </v-row>
             <v-row>
               <v-col>
@@ -42,9 +40,7 @@
           <h3>What will you name your room?</h3>
           <v-container align-center>
             <v-row>
-              <v-col>
                 <v-text-field outlined v-model="makeRoomName"></v-text-field>
-              </v-col>
             </v-row>
             <v-row>
               <v-col>

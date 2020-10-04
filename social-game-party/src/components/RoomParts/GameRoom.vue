@@ -4,7 +4,7 @@
     <div v-if="currentRoomName">
       <div v-if="!inGame">
         <h3>You are currently spectating.</h3>
-        <v-btn @click="joinGame">Join Game</v-btn>
+        <v-btn v-if="!hostId" @click="joinGame">Join Game</v-btn>
       </div>
       <div v-if="inGame">
         <h3>You are in game!</h3>
@@ -36,7 +36,7 @@ export default {
   },
   mounted: function () {},
   computed: {
-    ...mapGetters(["currentSession", "userList", "currentRoomName"]),
+    ...mapGetters(["currentSession", "userList", "currentRoomName", "hostId"]),
 
     peopleSpectating: function () {
       let userStr = "";
