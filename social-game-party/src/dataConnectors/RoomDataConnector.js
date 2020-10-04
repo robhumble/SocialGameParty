@@ -160,7 +160,7 @@ export default class RoomDataConnector extends DataConnector {
    */
   exitGame = function (userId, roomName) {
     let that = this;
-    sgf.mainFramework.megaLog(userId + roomName);
+    sgf.mainFramework.megaLog(userId +"|"+ roomName);
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 

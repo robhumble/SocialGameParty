@@ -1,12 +1,12 @@
 <template>
-  <div>
-    <h1 v-if="!currentUserName"> Use the blue button to choose a username. </h1>
+  <div>   
     <v-btn class="user-info-chip" @click="tryToEdit">
         <v-icon color="white" large>mdi-account-settings</v-icon>
         {{currentUserName}}
-    </v-btn>
+    </v-btn>  
+    <span v-if="!currentUserName && !isDialogOpen"> &#x3C;- Use the blue button to choose a username. </span> 
     <v-dialog 
-      v-model="dialog"
+      v-model="isDialogOpen"
       persistent
       width=650
     >
@@ -19,7 +19,7 @@
           placeholder="Type Display Name Here..."
         ></v-text-field>
         <v-btn @click="updateCurrentUserName">Update Name</v-btn>
-        <v-btn @click="dialog=false">close</v-btn>
+        <v-btn v-if="currentUserName" @click="isDialogOpen=false">close</v-btn>
       </div>
     </v-dialog>
   </div>
@@ -37,7 +37,7 @@ export default {
   components: {},
   data: () => ({
     userDisplayName: null,
-    dialog: false,
+    isDialogOpen: false,
   }),
   mounted: function () {
     if (!this.currentUserName) this.tryToEdit();
@@ -58,7 +58,7 @@ export default {
           "UpdateCurrentUserDisplayName",
           this.userDisplayName
         );
-        this.dialog = false;
+        this.isDialogOpen = false;
       }
     },
 
@@ -67,7 +67,7 @@ export default {
         alert(
           "If you would like to update your display name, please leave the current room and try again!"
         );
-      else this.dialog=true;
+      else this.isDialogOpen=true;
     },
   },
 };

@@ -1,31 +1,35 @@
 <template>
-  <div class="gameplay-area">
-    <div v-if="isGameStarted && isHost" class="host-reset">
-      <v-btn @click="resetGame">Reset Game</v-btn>
-    </div>
+  <div>
+    <v-btn @click="exitGame()">Leave Game</v-btn>
 
-    <div class="game-components">
-      <QuestionAndAnswer
-        v-if="currentGameComponent == 'QuestionAndAnswer'"
-        :questionText="questionAndAnswerQuestionText"
-        @answerEvent="questionAndAnswerHandler"
-      ></QuestionAndAnswer>
+    <div class="gameplay-area">
+      <div v-if="isGameStarted && isHost" class="host-reset">
+        <v-btn @click="resetGame">Reset Game</v-btn>
+      </div>
 
-      <ResultScreen
-        v-if="currentGameComponent == 'ResultScreen'"
-        :resultTitle="displayInstructions.title"
-        :resultText="displayInstructions.msg"
-      ></ResultScreen>
+      <div class="game-components">
+        <QuestionAndAnswer
+          v-if="currentGameComponent == 'QuestionAndAnswer'"
+          :questionText="questionAndAnswerQuestionText"
+          @answerEvent="questionAndAnswerHandler"
+        ></QuestionAndAnswer>
 
-      <StartGameScreen
-        v-if="currentGameComponent == 'StartGameScreen'"
-        @startGame="startGame"
-      ></StartGameScreen>
+        <ResultScreen
+          v-if="currentGameComponent == 'ResultScreen'"
+          :resultTitle="displayInstructions.title"
+          :resultText="displayInstructions.msg"
+        ></ResultScreen>
 
-      <LoadingScreen
-        v-if="currentGameComponent == 'LoadingScreen'"
-        :loadingMessageText="displayInstructions.msg"
-      ></LoadingScreen>
+        <StartGameScreen
+          v-if="currentGameComponent == 'StartGameScreen'"
+          @startGame="startGame"
+        ></StartGameScreen>
+
+        <LoadingScreen
+          v-if="currentGameComponent == 'LoadingScreen'"
+          :loadingMessageText="displayInstructions.msg"
+        ></LoadingScreen>
+      </div>
     </div>
   </div>
 </template>
@@ -72,12 +76,10 @@ export default {
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
-
   }),
   mounted: function () {
     //If the game hasn't been started yet (i.e. no host), show the start screen.
     if (!this.isGameStarted) this.currentGameComponent = "StartGameScreen";
-        
   },
   computed: {
     ...mapGetters([
@@ -108,10 +110,8 @@ export default {
     hostId: function (n, o) {
       if (n != o) {
         if (n) {
-          if (this.gameRunner.isGameInProgress()) 
-            this.gameRunner.hostId = n;
-          else 
-            this.setupGame();
+          if (this.gameRunner.isGameInProgress()) this.gameRunner.hostId = n;
+          else this.setupGame();
         } else {
           // if the host is set to null reset the game...
           this.resetGame();
@@ -122,25 +122,22 @@ export default {
     //AGPD-------------------------------------
 
     currentStep: function (n, o) {
-
-           //TODO: may want to do a host check here - since only the host is running steps at the moment
+      //TODO: may want to do a host check here - since only the host is running steps at the moment
       //Watch the current step - if it changes, run the new step
       if (n && n != o) {
         if (this.gameRunner)
           this.gameRunner.runStep(n, this.getRemoteDataGroup);
-        else
-          this.quickLog(
-            `Cannot run step ${n}, gameRunner is null.`
-          );
+        else this.quickLog(`Cannot run step ${n}, gameRunner is null.`);
       }
-
     },
 
     playerGameData: function (n, o) {
- 
       //Watch from a check instruction -- Check instructions watch target should only be in playerGameData if the rootObj is "player".
       //If there are check instructions and the watch target is updated, run the check function.
-      if (this.currentCheckInstructions && this.currentCheckInstructions.rootObj == "player") {
+      if (
+        this.currentCheckInstructions &&
+        this.currentCheckInstructions.rootObj == "player"
+      ) {
         let watchTarget = this.currentCheckInstructions.watchTarget;
 
         if (n[watchTarget] != o[watchTarget]) {
@@ -173,9 +170,12 @@ export default {
 
     //Host---------------------------------------------------------------------
     results: function (n) {
-       //Watch from a check instruction -- Check instructions 
+      //Watch from a check instruction -- Check instructions
       //If there are check instructions run the check function.
-      if (this.currentCheckInstructions  && this.currentCheckInstructions.rootObj == "results") {       
+      if (
+        this.currentCheckInstructions &&
+        this.currentCheckInstructions.rootObj == "results"
+      ) {
         if (n) {
           this.gameRunner.callGameFunction(
             this.currentCheckInstructions.checkFunction,
@@ -185,12 +185,13 @@ export default {
       }
     },
 
-
     dynamicHostGameData: function (n, o) {
- 
       //Watch from a check instruction -- Check instructions watch target should only be in dynamicHostGameData if the rootObj is "host".
       //If there are check instructions and the watch target is updated, run the check function.
-      if (this.currentCheckInstructions  && this.currentCheckInstructions.rootObj == "host") {
+      if (
+        this.currentCheckInstructions &&
+        this.currentCheckInstructions.rootObj == "host"
+      ) {
         let watchTarget = this.currentCheckInstructions.watchTarget;
 
         if (n[watchTarget] != o[watchTarget]) {
@@ -201,8 +202,6 @@ export default {
         }
       }
     },
-
-
   },
   methods: {
     /**
@@ -219,7 +218,6 @@ export default {
      * Setup the current game by initializing the gameRunner and game.
      */
     setupGame: function () {
-      
       let game = new MathMasterGame(this.currentRoomName);
       this.gameRunner.setupCurrentGame(
         game,
@@ -230,9 +228,7 @@ export default {
 
       this.listenToActivePlayerGameData();
 
-      if(this.isHost)
-        this.listenToHostGameData();
-
+      if (this.isHost) this.listenToHostGameData();
     },
 
     /**
@@ -342,6 +338,9 @@ export default {
      * Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
      */
     resetGame: function () {
+      this.activePlayerGameDataConnector.unsubscribeToActivePlayerGameData();
+      this.hostGameDataConnector.unsubscribeToHostGameData();
+
       if (this.gameRunner) {
         this.gameRunner.resetGame();
       } else {
@@ -356,12 +355,12 @@ export default {
       this.quickLog("Game reset by host...");
     },
 
-
-    listenToActivePlayerGameData: function(){
-
+    listenToActivePlayerGameData: function () {
       var that = this;
 
-      this.activePlayerGameDataConnector.listenToActivePlayerGameData(function (remoteDocData) {
+      this.activePlayerGameDataConnector.listenToActivePlayerGameData(function (
+        remoteDocData
+      ) {
         //that.$store.commit("setUserList", remoteRoomData.users);
 
         //Game data contained in room
@@ -371,11 +370,14 @@ export default {
         //   remoteRoomData.spectatorGameData
         // );
 
-         //TODO: MOVE THESE SO IT REFERENCES THE ACTIVEPLAYERGAMEDATA COLLECTION INSTEAD OF THE ROOM
+        //TODO: MOVE THESE SO IT REFERENCES THE ACTIVEPLAYERGAMEDATA COLLECTION INSTEAD OF THE ROOM
 
         that.$store.commit("setCurrentStep", remoteDocData.currentStep);
 
-        that.$store.commit("setPlayerGameData", remoteDocData.dynamicPlayerGameData);
+        that.$store.commit(
+          "setPlayerGameData",
+          remoteDocData.dynamicPlayerGameData
+        );
 
         that.$store.commit(
           "setCurrentInstructions",
@@ -385,29 +387,28 @@ export default {
           "setCurrentCheckInstructions",
           remoteDocData.currentCheckInstructions
         );
+      },
+      that.currentRoomName);
+    },
 
-      
+    listenToHostGameData: function () {
+      var that = this;
+
+      this.hostGameDataConnector.listenToHostGameData(function (remoteDocData) {
+        that.$store.commit("setResults", remoteDocData.results);
+        that.$store.commit(
+          "setDynamicHostGameData",
+          remoteDocData.dynamicHostGameData
+        );
       }, that.currentRoomName);
     },
 
-    listenToHostGameData: function(){
-
-       var that = this;
-
-      this.hostGameDataConnector.listenToHostGameData(function (remoteDocData) {
-       
-        that.$store.commit("setResults", remoteDocData.results);
-        that.$store.commit("setDynamicHostGameData", remoteDocData.dynamicHostGameData);    
+    exitGame: function () {
+     this.activePlayerGameDataConnector.unsubscribeToActivePlayerGameData();
+      this.hostGameDataConnector.unsubscribeToHostGameData();
       
-      }, that.currentRoomName);
-
-
-    }
-
-
-
-    
-
+      this.$emit("exitGame");
+    },
   },
 };
 </script>

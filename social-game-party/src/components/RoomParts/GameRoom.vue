@@ -2,20 +2,26 @@
 <template>
   <div class="game-room">
     <div v-if="currentRoomName">
+      <h2 v-if="currentRoomName">Specators In Room: {{ peopleSpectating }}</h2>
+      <h2 v-if="currentRoomName">
+        Active Players In Room: {{ peoplePlaying }}
+      </h2>
+      <div v-if="inGame">
+        <h3>You are in game!</h3>
+        <!-- <v-btn @click="exitGame()">Leave Game</v-btn> -->
+      </div>
+
       <div v-if="!inGame">
         <h3>You are currently spectating.</h3>
         <v-btn v-if="!hostId" @click="joinGame">Join Game</v-btn>
       </div>
-      <div v-if="inGame">
-        <h3>You are in game!</h3>
-        <v-btn @click="exitGame()">Leave Game</v-btn>
-      </div>
-      <h2 v-if="currentRoomName">Specators In Room: {{peopleSpectating}}</h2>
-      <h2 v-if="currentRoomName">Active Players In Room: {{peoplePlaying}}</h2>
     </div>
 
     <!-- Actual Game Area -->
-    <MainGameplayArea v-if="currentRoomName && inGame"></MainGameplayArea>
+    <MainGameplayArea
+      v-if="currentRoomName && inGame"
+      @exitGame="exitGame"
+    ></MainGameplayArea>
   </div>
 </template>
 
@@ -83,7 +89,6 @@ export default {
     //exit the current game but stay in the room
     exitGame() {
       let userId = this.currentSession?.currentUser?.uniqueId;
-
       this.dataConnector.exitGame(userId, this.currentRoomName);
 
       this.inGame = false;

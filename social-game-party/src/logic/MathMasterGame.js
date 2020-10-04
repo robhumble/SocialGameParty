@@ -1,4 +1,4 @@
-import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+//import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
 import * as sgf from "@/logic/socialGameFramework.js";
 
 import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
@@ -9,7 +9,7 @@ export default class MathMasterGame {
 
     name = "MathMaster";
 
-    gamePlayDataConnector = null;
+    //gamePlayDataConnector = null;
     roomName = null;
 
     activePlayerGameDataConnector = null;
@@ -23,7 +23,7 @@ export default class MathMasterGame {
     }
 
     constructor(roomName) {
-        this.gamePlayDataConnector = new GameplayDataConnector();
+        //this.gamePlayDataConnector = new GameplayDataConnector();
 
         this.activePlayerGameDataConnector = new ActivePlayerGameDataConnector();
         this.hostGameDataConnector = new HostGameDataConnector();
@@ -311,19 +311,17 @@ export default class MathMasterGame {
         let resultObj = {
             userId: userId,
             answerResults: answerResults
-        }
-
-        let gd = remoteDataGroup;
-
-        if (!gd.results)
-            gd.results = [];
-
-        gd.results.push(resultObj);
+        }       
 
         //this.gamePlayDataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
 
-        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {
-            hostData.results = gd.results;          
+        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {            
+            
+            if (!hostData.results)
+            hostData.results = [];
+
+            hostData.results.push(resultObj);
+            
             return hostData;
         });
     }
