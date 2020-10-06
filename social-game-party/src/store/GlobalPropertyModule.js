@@ -7,7 +7,6 @@ export const GlobalPropertyModule = {
     state: () => ({
         //Should be in sync with remote OR null
 
-
         //Room collection ---------------        
         userList: [],
         hostId: null,
@@ -102,7 +101,19 @@ export const GlobalPropertyModule = {
             }
 
             return group;
+        },
+
+        isCurrentUserInGame: (state, getters) =>{
+            
+            let uid = getters.currentUserId;
+            let userInfo = state.userList.filter(x => x.id == uid)[0];
+
+            if(userInfo)
+                return userInfo.isPlaying;
+
+            return false;
         }
+
 
     },
     //Synchronous (Simple setters)
