@@ -36,8 +36,8 @@ export default class RoomDataConnector extends DataConnector {
 
     // //Create the game resources here too?
     this.firestoreDb.doc(`activePlayerGameData/${newRoomName}`).set({});
-    this.firestoreDb.doc(`hostGameData/${newRoomName}`).set({});      
-    
+    this.firestoreDb.doc(`hostGameData/${newRoomName}`).set({});
+
 
 
   };
@@ -99,8 +99,8 @@ export default class RoomDataConnector extends DataConnector {
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
       let chatRoomDocRef = this.firestoreDb.doc(`chatRooms/${roomName}`);
       let apgdDocRef = this.firestoreDb.doc(`activePlayerGameData/${roomName}`);
-      let hostDocRef = this.firestoreDb.doc(`hostGameData/${roomName}`);      
-      
+      let hostDocRef = this.firestoreDb.doc(`hostGameData/${roomName}`);
+
 
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
@@ -160,7 +160,7 @@ export default class RoomDataConnector extends DataConnector {
    */
   exitGame = function (userId, roomName) {
     let that = this;
-    sgf.mainFramework.megaLog(userId +"|"+ roomName);
+    sgf.mainFramework.megaLog(userId + "|" + roomName);
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -251,16 +251,14 @@ export default class RoomDataConnector extends DataConnector {
   }
 
 
-//Migrated from GamePlayDataConnector -------------------------------------->
+  //Migrated from GamePlayDataConnector -------------------------------------->
 
 
-
-
- /**
-   * Update the host for the current game.  
-   * @param {number} newHostId - the unique user id of the new host - likely the current user 
-   * @param {string} roomName 
-   */
+  /**
+    * Update the host for the current game.  
+    * @param {number} newHostId - the unique user id of the new host - likely the current user 
+    * @param {string} roomName 
+    */
   updateHost = function (newHostId, roomName) {
     //let that = this;
 
@@ -275,11 +273,11 @@ export default class RoomDataConnector extends DataConnector {
 
 
 
- /**
-   * Update the room by passing in a function.
-   * @param {string} roomName 
-   * @param {function} updateFunc - function takes the current room data as an arg
-   */
+  /**
+    * Update the room by passing in a function.
+    * @param {string} roomName 
+    * @param {function} updateFunc - function takes the current room data as an arg
+    */
   updateWholeRoomViaFunction = function (roomName, updateFunc) {
     //let that = this;
 
@@ -297,14 +295,14 @@ export default class RoomDataConnector extends DataConnector {
   }
 
 
-   /**
-   * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
-   * @param {object} batch 
-   * @param {string} operation 
-   * @param {string} roomName 
-   * @param {object} dataToUpdate 
-   */
-   roomAddToBatch(batch, operation, roomName, dataToUpdate) {
+  /**
+  * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
+  * @param {object} batch 
+  * @param {string} operation 
+  * @param {string} roomName 
+  * @param {object} dataToUpdate 
+  */
+  roomAddToBatch(batch, operation, roomName, dataToUpdate) {
     let ref = this.firestoreDb.collection("rooms").doc(roomName);
 
     switch (operation) {
@@ -317,10 +315,10 @@ export default class RoomDataConnector extends DataConnector {
   }
 
 
-   /**
-   * Clear the game related data in the room document.
-   * @param {string} roomName 
-   */
+  /**
+  * Clear the game related data in the room document.
+  * @param {string} roomName 
+  */
   resetRoomGameData = function (roomName) {
     this.updateWholeRoomViaFunction(roomName, (docData) => {
       //docData.playerGameData = {};
@@ -332,9 +330,6 @@ export default class RoomDataConnector extends DataConnector {
       return docData;
     });
   }
-
-
-
 
 
 
@@ -383,11 +378,7 @@ export default class RoomDataConnector extends DataConnector {
 
       //Game specific dynamically generated data
       spectatorGameData: {},  //Dynamically generated data that spectators (and anyone in the room) cares about
-      //playerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
 
-      //NEW - Game Instructions
-      //currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
-      //currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
     }
 
     return dbModel;

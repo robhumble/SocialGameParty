@@ -37,7 +37,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-// import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+
 import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
 import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
 
@@ -404,9 +404,9 @@ export default {
     },
 
     exitGame: function () {
-     this.activePlayerGameDataConnector.unsubscribeToActivePlayerGameData();
+      this.activePlayerGameDataConnector.unsubscribeToActivePlayerGameData();
       this.hostGameDataConnector.unsubscribeToHostGameData();
-      
+
       this.$emit("exitGame");
     },
   },

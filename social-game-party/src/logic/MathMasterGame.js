@@ -9,7 +9,6 @@ export default class MathMasterGame {
 
     name = "MathMaster";
 
-    //gamePlayDataConnector = null;
     roomName = null;
 
     activePlayerGameDataConnector = null;
@@ -124,7 +123,6 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
@@ -150,19 +148,14 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            // playerGameData: {
-            //     mathProblems: mathProblems,
-            //     currentStep: 2
-            // }
 
             dynamicPlayerGameData: {
-                mathProblems: mathProblems,                
+                mathProblems: mathProblems,
             },
             currentStep: 2
 
 
         };
-        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
@@ -193,7 +186,6 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
@@ -217,7 +209,6 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentCheckInstructions: currentCheckInstructions
         };
-        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
@@ -271,18 +262,15 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            // playerGameData: {
-            //     winner: winners,
-            // },
+
             dynamicPlayerGameData: {
                 winner: winners,
             },
             currentInstructions: instructions
         };
-        //return this.gamePlayDataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
-        
 
     }
 
@@ -311,17 +299,15 @@ export default class MathMasterGame {
         let resultObj = {
             userId: userId,
             answerResults: answerResults
-        }       
+        }
 
-        //this.gamePlayDataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
+        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {
 
-        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {            
-            
             if (!hostData.results)
-            hostData.results = [];
+                hostData.results = [];
 
             hostData.results.push(resultObj);
-            
+
             return hostData;
         });
     }
@@ -334,7 +320,7 @@ export default class MathMasterGame {
     checkToSeeIfAllPlayersAreDone = function (remoteDataGroup, userId) {
 
         if (userId == remoteDataGroup.hostId) {
-            
+
             let res = remoteDataGroup.results;
             let playerCount = 0;
             remoteDataGroup.userList.forEach(user => {
@@ -343,14 +329,7 @@ export default class MathMasterGame {
             })
 
             if (res && res.length == playerCount) {
-                //Move to step 3 (and clear all existing instructions.)
-
-                // this.gamePlayDataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-                //     roomData.playerGameData.currentStep = 3;
-                //     roomData.currentCheckInstructions = null;
-                //     roomData.currentInstructions = null;
-                //     return roomData;
-                // });
+                //Move to step 3 (and clear all existing instructions.)           
 
                 this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
                     roomData.currentStep = 3;

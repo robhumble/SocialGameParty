@@ -1,4 +1,4 @@
-//import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
 import * as sgf from "@/logic/socialGameFramework.js";
 
@@ -8,7 +8,6 @@ import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
 export default class GameRunner {
 
     constructor() {
-        //this.gamePlayDataConnector = new GameplayDataConnector();
 
         this.roomDataConnector = new RoomDataConnector();
         this.activePlayerGameDataConnector = new ActivePlayerGameDataConnector();
@@ -16,7 +15,6 @@ export default class GameRunner {
     }
 
     currentGame = null;
-    //gamePlayDataConnector = null;
 
     hostId = null;
     currentUserId = null;
@@ -39,9 +37,6 @@ export default class GameRunner {
     async setHost(hostId, roomName) {
 
         this.roomDataConnector.updateHost(hostId, roomName);
-
-        // await this.activePlayerGameDataConnector.makeActivePlayerGameData(roomName);
-        // await this.hostGameDataConnector.makeHostGameData(roomName)
 
     }
 
@@ -127,7 +122,6 @@ export default class GameRunner {
      */
     initializeRemoteGameData = function () {
 
-        //this.gamePlayDataConnector.setPlayerGameData(this.roomName, initialGameData);
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (apgData) => {
 
             apgData.currentStep = 1;
@@ -157,7 +151,6 @@ export default class GameRunner {
 
         //If this is the host, wipe remote game data.
         if (this.isHost() && this.roomName) {
-            //this.gamePlayDataConnector.resetGameData(this.roomName);
 
             this.roomDataConnector.resetRoomGameData(this.roomName);
             this.activePlayerGameDataConnector.resetActivePlayerGameData(this.roomName)
@@ -168,7 +161,6 @@ export default class GameRunner {
 
         //Game Runner vars
         this.currentGame = null;
-        //this.gamePlayDataConnector = null;
 
         this.hostId = null;
         this.currentUserId = null;
@@ -199,7 +191,6 @@ export default class GameRunner {
         return false;
     }
 
-
     /**
      * Clean out the instruction properties in the Room Map
      * @param {object} batch 
@@ -211,14 +202,10 @@ export default class GameRunner {
             currentCheckInstructions: null,
             currentInstructions: null
         };
-        //return this.gamePlayDataConnector.addToBatchUpdate(batch, "rooms", this.roomName, dataToUpdate);
+
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
-
-
-
-
 
 
 }

@@ -12,7 +12,9 @@
           transition="scale-transition"
           width="110"
         />
-        <h1 v-if="isDebugMode" class="d-none d-lg-flex">DEBUG PARTY DEBUG PARTY DEBUG PARTY</h1>
+        <h1 v-if="isDebugMode" class="d-none d-lg-flex">
+          DEBUG PARTY DEBUG PARTY DEBUG PARTY
+        </h1>
         <h1 v-else class="d-none d-lg-flex">Social Game Party Thing!</h1>
 
         <h1 class="d-lg-none">SGPT!</h1>
@@ -43,8 +45,12 @@
       <v-container v-show="showChat">
         <v-row class="text-center">
           <v-col cols="12">
-            <v-btn v-if="!inChatRoom" @click="inChatRoom = true">Enter Chat Room</v-btn>
-            <v-btn v-if="inChatRoom" @click="inChatRoom = false">Exit Chat Room</v-btn>
+            <v-btn v-if="!inChatRoom" @click="inChatRoom = true"
+              >Enter Chat Room</v-btn
+            >
+            <v-btn v-if="inChatRoom" @click="inChatRoom = false"
+              >Exit Chat Room</v-btn
+            >
             <ChatArea v-if="inChatRoom"></ChatArea>
           </v-col>
         </v-row>
@@ -56,11 +62,10 @@
         <!-- ===== Page Content ===== -->
         <div v-if="isDebugMode">
           <span>
-            !!!DEBUG!!! --->
-            Current User name:
-            <b>{{currentUserName}}</b>
-            ||| User UniqueID : {{currentUserId}}
-            ||| Room Name : {{currentRoomName}}
+            !!!DEBUG!!! ---> Current User name:
+            <b>{{ currentUserName }}</b>
+            ||| User UniqueID : {{ currentUserId }} ||| Room Name :
+            {{ currentRoomName }}
           </span>
           <v-btn small @click="clearSessionFromMemory">Clear Memory!</v-btn>
         </div>
@@ -71,7 +76,8 @@
           color="deep-orange accent-4"
           large
           class="float-right"
-        >mdi-chat</v-icon>
+          >mdi-chat</v-icon
+        >
 
         <!-- ===== Router views/components injected here ===== -->
         <router-view></router-view>
@@ -99,14 +105,13 @@ export default {
       "isDebugMode",
       "currentRoomName",
       "currentUserName",
-    ]),   
+    ]),
 
     currentUserId: function () {
       if (this.currentSession)
         return this.currentSession.currentUser.uniqueId ?? "Nada";
       return "Nada";
     },
-    
   },
   methods: {
     clearSessionFromMemory() {
