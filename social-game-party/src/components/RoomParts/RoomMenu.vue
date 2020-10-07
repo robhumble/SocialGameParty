@@ -1,30 +1,35 @@
 <!-- This component lets the user choose what room they will join or make. -->
 <template>
-  <div style="text-align:center;">
+  <div style="text-align: center">
     <div class="d-flex justify-center">
       <v-card max-width="80%" rounded outlined class="room-menu-card">
         <v-card-title class="text-center">Room Menu</v-card-title>
 
         <div class="room-status">
           <h1 v-if="!currentRoomName">You are not in a game room!</h1>
-          <h1 v-if="currentRoomName">You are in room: {{currentRoomName}}</h1>
+          <h1 v-if="currentRoomName">You are in room: {{ currentRoomName }}</h1>
         </div>
 
         <!-- prevent loading both options at once by making the other button's value false -->
-        <div v-if="!currentRoomName && !joinARoom && !makeARoom" class="join-or-make">
+        <div
+          v-if="!currentRoomName && !joinARoom && !makeARoom"
+          class="join-or-make"
+        >
           <h3>Would you like to:</h3>
           <v-btn @click="joinARoom = true">Join a room!</v-btn>
-          <span style="font-weight:bold">Or</span>
+          <span style="font-weight: bold">Or</span>
           <v-btn @click="makeARoom = true">Make a new room!</v-btn>
         </div>
-        <v-btn v-if="currentRoomName" @click="exitRoom">Exit!</v-btn>
+        <v-btn v-if="currentRoomName && !isCurrentUserInGame" @click="exitRoom"
+          >Exit!</v-btn
+        >
 
         <!-- forms for joining and making rooms respectively -->
         <div v-if="joinARoom">
           <h3>What is your room name?</h3>
           <v-container align-center>
             <v-row>
-                <v-text-field outlined v-model="joinRoomName"></v-text-field>
+              <v-text-field outlined v-model="joinRoomName"></v-text-field>
             </v-row>
             <v-row>
               <v-col>
@@ -40,7 +45,7 @@
           <h3>What will you name your room?</h3>
           <v-container align-center>
             <v-row>
-                <v-text-field outlined v-model="makeRoomName"></v-text-field>
+              <v-text-field outlined v-model="makeRoomName"></v-text-field>
             </v-row>
             <v-row>
               <v-col>
@@ -76,7 +81,7 @@ export default {
     this.attemptToRejoinRoom();
   },
   computed: {
-    ...mapGetters(["currentSession", "userList"]),
+    ...mapGetters(["currentSession", "userList", "isCurrentUserInGame"]),
   },
   methods: {
     //Create a room
@@ -139,16 +144,6 @@ export default {
         that.$store.commit(
           "setSpectatorGameData",
           remoteRoomData.spectatorGameData
-        );
-        that.$store.commit("setPlayerGameData", remoteRoomData.playerGameData);
-
-        that.$store.commit(
-          "setCurrentInstructions",
-          remoteRoomData.currentInstructions
-        );
-        that.$store.commit(
-          "setCurrentCheckInstructions",
-          remoteRoomData.currentCheckInstructions
         );
       }, that.currentRoomName);
     },

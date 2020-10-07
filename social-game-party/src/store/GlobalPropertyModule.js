@@ -5,17 +5,24 @@ Vuex Module
 export const GlobalPropertyModule = {
     //namespaced: true,
     state: () => ({
-        
         //Should be in sync with remote OR null
+
+        //Room collection ---------------        
         userList: [],
         hostId: null,
         spectatorGameData: null,
-        playerGameData: null,
 
+        //ActivePlayerGameData collection---------------------
+        playerGameData: null,
+        currentStep: null,
         currentInstructions: null,
         currentCheckInstructions: null,
 
-        //Local only data 
+        //HostGameData collection---------------------
+        results: null,     
+        dynamicHostGameData: null, 
+
+        //Local only data ------------------
         myTempGameData: null
 
     }),
@@ -39,6 +46,10 @@ export const GlobalPropertyModule = {
             return state.playerGameData;
         },
 
+        currentStep: state => {
+            return state.currentStep;
+        },
+
         currentInstructions: state => {
             return state.currentInstructions;
         },
@@ -46,6 +57,18 @@ export const GlobalPropertyModule = {
         currentCheckInstructions: state => {
             return state.currentCheckInstructions;
         },
+
+
+     
+        results: state => {
+            return state.results;
+        },     
+
+        dynamicHostGameData: state => {
+            return state.dynamicHostGameData;
+        },
+
+
 
         //Local only data 
         myTempGameData: state => {
@@ -61,16 +84,36 @@ export const GlobalPropertyModule = {
         getRemoteDataGroup: state => {
 
             let group ={
+                //Room
                 userList: state.userList,
                 hostId: state.hostId,
                 spectatorGameData: state.spectatorGameData,
+                
+                //AGPD
                 playerGameData: state.playerGameData,
                 currentInstructions: state.currentInstructions,
                 currentCheckInstructions: state.currentCheckInstructions,
+                currentStep: state.currentStep,
+
+                //Host
+                results: state.results,
+                dynamicHostGameData: state.dynamicHostGameData,
             }
 
             return group;
+        },
+
+        isCurrentUserInGame: (state, getters) =>{
+            
+            let uid = getters.currentUserId;
+            let userInfo = state.userList.filter(x => x.id == uid)[0];
+
+            if(userInfo)
+                return userInfo.isPlaying;
+
+            return false;
         }
+
 
     },
     //Synchronous (Simple setters)
@@ -92,6 +135,11 @@ export const GlobalPropertyModule = {
             state.playerGameData = payload;
         },        
 
+        setCurrentStep: (state, payload) => {
+            state.currentStep = payload;
+        },        
+
+
         setCurrentInstructions: (state, payload) => {
             state.currentInstructions = payload;
         },        
@@ -99,6 +147,17 @@ export const GlobalPropertyModule = {
         setCurrentCheckInstructions: (state, payload) => {
             state.currentCheckInstructions = payload;
         },        
+
+
+      
+        setResults: (state, payload) => {
+            state.results = payload;
+        },        
+        
+        setDynamicHostGameData: (state, payload) => {
+            state.dynamicHostGameData = payload;
+        },        
+
 
         //Local only data 
         setMyTempGameData: (state, payload) => {

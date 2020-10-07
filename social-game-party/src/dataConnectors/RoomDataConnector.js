@@ -13,7 +13,6 @@ export default class RoomDataConnector extends DataConnector {
 
   // Firebase functions for room movement. -----------------------------
 
-  // presently, make room does not check if the room already exists. 
   /**
    * Create a new Room and automatically join it as a specatator.
    * @param {string} newRoomName 
@@ -34,6 +33,12 @@ export default class RoomDataConnector extends DataConnector {
 
     // This line creates both the room and the document inside that will hold the array of users.
     this.firestoreDb.doc(`rooms/${newRoomName}`).set(roomDbModel);
+
+    // //Create the game resources here too?
+    this.firestoreDb.doc(`activePlayerGameData/${newRoomName}`).set({});
+    this.firestoreDb.doc(`hostGameData/${newRoomName}`).set({});
+
+
 
   };
 
@@ -93,6 +98,9 @@ export default class RoomDataConnector extends DataConnector {
     if (roomName) { //remove the user from the room they are in when they move, if they are in a room
       let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
       let chatRoomDocRef = this.firestoreDb.doc(`chatRooms/${roomName}`);
+      let apgdDocRef = this.firestoreDb.doc(`activePlayerGameData/${roomName}`);
+      let hostDocRef = this.firestoreDb.doc(`hostGameData/${roomName}`);
+
 
       this.firestoreDb.runTransaction(function (transaction) {
         return transaction.get(roomDocRef).then(function (roomDoc) {
@@ -103,8 +111,10 @@ export default class RoomDataConnector extends DataConnector {
           //Last one out closes down the room
           if (updatedUsers.length < 1) {
             transaction.delete(roomDocRef);
-            //close down the chat room too...            
+            //close down the other associated collections as well.         
             transaction.delete(chatRoomDocRef);
+            transaction.delete(apgdDocRef);
+            transaction.delete(hostDocRef);
           }
           else
             transaction.update(roomDocRef, { users: updatedUsers });
@@ -150,7 +160,7 @@ export default class RoomDataConnector extends DataConnector {
    */
   exitGame = function (userId, roomName) {
     let that = this;
-    sgf.mainFramework.megaLog(userId + roomName);
+    sgf.mainFramework.megaLog(userId + "|" + roomName);
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
@@ -240,6 +250,90 @@ export default class RoomDataConnector extends DataConnector {
 
   }
 
+
+  //Migrated from GamePlayDataConnector -------------------------------------->
+
+
+  /**
+    * Update the host for the current game.  
+    * @param {number} newHostId - the unique user id of the new host - likely the current user 
+    * @param {string} roomName 
+    */
+  updateHost = function (newHostId, roomName) {
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function () {
+        transaction.update(roomDocRef, { hostId: newHostId });
+      })
+    })
+  }
+
+
+
+  /**
+    * Update the room by passing in a function.
+    * @param {string} roomName 
+    * @param {function} updateFunc - function takes the current room data as an arg
+    */
+  updateWholeRoomViaFunction = function (roomName, updateFunc) {
+    //let that = this;
+
+    let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
+
+    this.firestoreDb.runTransaction(function (transaction) {
+      return transaction.get(roomDocRef).then(function (roomDoc) {
+
+        let curRoomData = roomDoc.data();
+        let updatedRoomData = updateFunc(curRoomData);
+
+        transaction.update(roomDocRef, updatedRoomData);
+      })
+    })
+  }
+
+
+  /**
+  * Quick version of the base dataConnector batch funcitons that specifically targets the room collection
+  * @param {object} batch 
+  * @param {string} operation 
+  * @param {string} roomName 
+  * @param {object} dataToUpdate 
+  */
+  roomAddToBatch(batch, operation, roomName, dataToUpdate) {
+    let ref = this.firestoreDb.collection("rooms").doc(roomName);
+
+    switch (operation) {
+      case "set": batch.set(ref, dataToUpdate); break;
+      case "update": batch.update(ref, dataToUpdate); break;
+      case "delete": batch.delete(ref); break;
+    }
+
+    return batch;
+  }
+
+
+  /**
+  * Clear the game related data in the room document.
+  * @param {string} roomName 
+  */
+  resetRoomGameData = function (roomName) {
+    this.updateWholeRoomViaFunction(roomName, (docData) => {
+      //docData.playerGameData = {};
+      docData.spectatorGameData = {};
+      //docData.currentCheckInstructions = null;
+      //docData.currentInstructions = null;
+      docData.hostId = null
+
+      return docData;
+    });
+  }
+
+
+
+
   //Private Helpers-------------------------------------->
 
   /**
@@ -284,11 +378,7 @@ export default class RoomDataConnector extends DataConnector {
 
       //Game specific dynamically generated data
       spectatorGameData: {},  //Dynamically generated data that spectators (and anyone in the room) cares about
-      playerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
 
-      //NEW - Game Instructions
-      currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
-      currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
     }
 
     return dbModel;
