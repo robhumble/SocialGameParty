@@ -30,7 +30,7 @@ const routes = [
 
 
   //Don't add public links to these
-  { path: '/experimental', name: 'ExperimentalPage', component: Experimental },
+  { path: '/experimental', name: 'ExperimentalPage', component: Experimental, props: { isDebug: true } },
 
 ]
 

@@ -1,65 +1,6 @@
 <template>
   <div class="experimental">
-    <!-- <div>
-      <h1>This is the experimental page.</h1>
-
-      <v-btn @click="pushMeTest">Push Me</v-btn>
-    </div> -->
-
-    <br />
-
-    <!-- <div style="text-align:center;" id="vuexTest">
-      VUEX TESTING---------------------------------
-      <label style="display:block">Vuex projectName</label>
-      <br />
-      <span>{{projectName}}</span>
-
-      <br />
-      <input v-model="newName" placeholder="new name...." />
-      <v-btn @click="updateProjectName">Update project name!</v-btn>
-    </div>-->
-
-    <!-- <div style="text-align:center;" id="sessionTest">
-      Session TESTING---------------------------------
-      <label style="display:block">Current Session</label>
-      <br />
-
-      <div>
-        <label style="display:block"><b>Current Room Name</b></label>        
-        <span>{{currentRoomName}}</span>
-
-        <br />
-
-        <label style="display:block"><b>Current User</b></label>        
-        <span>{{currentUserName + " | " + currentUserId}}</span>
-        <br />
-      </div>
-      <br />
-      <div style="border-style:solid">
-        <input v-model="newRoomName" placeholder="new room name...." />
-        <br>
-        <input v-model="newUserName" placeholder="new user name...." />
-        <br>
-        <v-btn @click="updateSession">Update Session!</v-btn>
-      </div>
-    </div>-->
-
-    <!-- <div style="text-align:center;">
-      Math Master ---------------------------------
-      <label style="display:block">Math Problem</label>
-      <br />
-      <v-btn @click="getMathProblem">Get New Problem!</v-btn>
-      <br />
-      <span v-if="mathProblem">{{mathProblem.presentationProblem}}</span>
-
-      <br />
-      <input v-model="mathAnswer" placeholder="math answer goes here...." />
-      <v-btn @click="answerMathProblem">submit answer</v-btn>
-    </div> -->
-
-
-    <QuestionAndAnswer questionText="This is a Question" onSubmitFunction="()=>{alert('hello world');}"></QuestionAndAnswer>
-    <ResultScreen resultTitle="Result TITLLLELLELLE" resultText="IM THE WINNAR!!!"></ResultScreen>
+    <CardTable></CardTable>
   </div>
 </template>
 
@@ -70,29 +11,26 @@ import * as sgf from "@/logic/socialGameFramework.js";
 import SessionInfo from "@/logic/SessionInfo.js";
 import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 import MathMasterGameTools from "@/logic/MathMasterGame.js";
-import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
-import ResultScreen from "@/components/GameParts/ResultScreen.vue"
+// import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
+// import ResultScreen from "@/components/GameParts/ResultScreen.vue"
+
+import CardTable from "@/components/CardParts/CardTable.vue";
 
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
   name: "Experimental",
   components: {
-    QuestionAndAnswer,
-    ResultScreen
+    // QuestionAndAnswer,
+    // ResultScreen
+    CardTable,
   },
-  data: () => ({
-    newName: null,
+  data: () => ({}),
+  mounted: function () {
+    if (this.isDebug) this.$store.commit("setIsDebugMode", true);
 
-    newRoomName: null,
-    newUserName: null,
-
-    //Math Master testing
-
-    mathProblem: null,
-    mathAnswer: null,
-  }),
-  mounted: function () {},
+    this.quickLog("Made it to Experimental!");
+  },
   computed: {
     ...mapGetters(["projectName", "currentSession"]),
 
