@@ -6,7 +6,6 @@ export default class Card {
     Suit = ""
     Color = ""
     Value = ""
-    Symbol = ""
 
     //Other Card Properties
     Title = ""
@@ -15,16 +14,17 @@ export default class Card {
     constructor() {
     }
 
-    populateTraditional(suit, color, value, symbol) {
+    populateTraditional(suit, color, value) {
         this.CardType = "traditional";
 
         this.Suit = suit;
         this.Color = color;
         this.Value = value;
-        this.symbol = symbol;
     }
 
     populateOther(title, mes) {
+        this.CardType = "message";
+
         this.Title = title;
         this.Message = mes;
     }

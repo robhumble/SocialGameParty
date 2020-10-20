@@ -11,7 +11,8 @@
         <td>value</td>
       </tr>
 
-      <tr v-for="c in cardDeck.CardArray" :key="c">
+      <tr v-for="c in cardDeck.CardArray" :key="c.Suit + c.Value">
+        <VisualCard :cardObject="c"></VisualCard>
         <td>{{ c.Suit }}</td>
         <td>{{ c.Color }}</td>
         <td>{{ c.Value }}</td>
@@ -28,11 +29,16 @@ import { mapGetters } from "vuex";
 // import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 // import DataConnector from "@/logic/DataConnector.js";
 
+import VisualCard from "@/components/CardParts/VisualCard.vue";
+
 import DeckOfCards from "@/logic/Cards/DeckOfCards.js";
+//import Card from "@/logic/Cards/Card.js";
 
 export default {
   name: "CardTable",
-  components: {},
+  components: {
+    VisualCard,
+  },
   props: [],
   data: () => ({
     // loadingMessageText: "",
