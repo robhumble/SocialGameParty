@@ -362,8 +362,8 @@ export default class MathMasterGame {
         let problemLo = this.#configOptions.problemLo,
             problemHi = this.#configOptions.problemHi
 
-        let x = this.getRandomInt(problemLo, problemHi);
-        let y = this.getRandomInt(problemLo, problemHi);
+        let x = sgf.mainFramework.getRandomInt(problemLo, problemHi);
+        let y = sgf.mainFramework.getRandomInt(problemLo, problemHi);
 
         let op = this.getRandomOperator();
 
@@ -371,7 +371,7 @@ export default class MathMasterGame {
 
         let z = eval(prob);
 
-        let answerVarInt = this.getRandomInt(1, 3);
+        let answerVarInt = sgf.mainFramework.getRandomInt(1, 3);
 
         let actual = `${x} ${op} ${y} = ${z}`;
 
@@ -407,18 +407,6 @@ export default class MathMasterGame {
 
     }
 
-    /**
-     * Get a random integer between lo and hi (inclusive.)
-     * @param {number} lo 
-     * @param {number} hi 
-     */
-    getRandomInt = function (lo, hi) {
-        let min = Math.floor(lo);
-        let max = Math.floor(hi);
-
-        let rand = (Math.random() * (max - min + 1)) + min;
-        return Math.floor(rand);
-    }
 
     //TODO: we are actually excluding "/" for now - need to change how we build these to avoid fractional answers (i.e. when building a "/", multiply instead and then move things around)
     /**
@@ -426,7 +414,7 @@ export default class MathMasterGame {
      */
     getRandomOperator = function () {
 
-        let op = this.getRandomInt(1, 3);
+        let op = sgf.mainFramework.getRandomInt(1, 3);
 
         switch (op) {
             case 1: return '+';

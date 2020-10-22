@@ -79,6 +79,35 @@ export var mainFramework = {
 
         if (isDebug || forcePrint)
             console.log(msg);
+    },
+
+    
+    /**
+     * Get a random integer between lo and hi (inclusive.)
+     * @param {number} lo 
+     * @param {number} hi 
+     */
+    getRandomInt: function (lo, hi) {
+        let min = Math.floor(lo);
+        let max = Math.floor(hi);
+
+        let rand = (Math.random() * (max - min + 1)) + min;
+        return Math.floor(rand);
+    },
+
+    /**
+     * Get a random true or false.
+     */
+    randomTrueFalse(){
+
+        //Get a random number between 1 and 50, return true if even.
+        let rand = this.getRandomInt(0,50);
+
+        if(rand % 2 == 0)
+            return true;
+        
+        return false;
+
     }
 
 }

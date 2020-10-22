@@ -4,7 +4,9 @@
 
     <v-btn @click="popDeck">Go</v-btn>
 
-    <table v-if="cardDeck">
+    <v-btn @click="shuffleDeck">...shuffle?</v-btn>
+
+    <table v-if="cardDeck">  
       <tr>
         <td>suit</td>
         <td>color</td>
@@ -58,6 +60,10 @@ export default {
 
       this.cardDeck = deck;
     },
+
+    shuffleDeck: function(){
+      this.cardDeck.shuffleDeck();
+    }
   },
 };
 </script>
