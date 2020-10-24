@@ -35,6 +35,8 @@ export default class DeckOfCards {
 
     populateTraditionalDeck() {
 
+        this.CardArray = [];
+
         this.traditionalSuits.forEach(s => {
             this.tradtionalValues.forEach(v => {
                 let newCard = new Card();
@@ -66,20 +68,20 @@ export default class DeckOfCards {
 
 
     /**
-     * Shuffle n number of cards
-     * @param {array} cardArray 
+     * Shuffle all the cards in the array.
+     * @param {array} cArray 
      */
-    quickShuffleCards(cardArray) {
+    quickShuffleCards(cArray) {
 
         let listA = [];
         let listB = [];
 
         //Randomly get 2 child lists
-        for (let x = 0; x < cardArray.length; x++) {
+        for (let x = 0; x < cArray.length; x++) {
             if (sgf.mainFramework.randomTrueFalse())
-                listA.push(cardArray[x]);
+                listA.push(cArray[x]);
             else
-                listB.push(cardArray[x]);
+                listB.push(cArray[x]);
         }
 
         //Randomly determine which comesFirst
@@ -89,6 +91,31 @@ export default class DeckOfCards {
             return listB.concat(listA);
 
     }
+
+
+    dealACard() {
+
+        if (this.CardArray.length > 0) {
+            let cardToDeal = this.CardArray.shift();
+
+            return cardToDeal;
+        }
+        else
+            throw new Error("Can't Deal, No Cards in the Deck!")
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    //Experiemental functions ------------------------------------------------------------------
 
 
 
