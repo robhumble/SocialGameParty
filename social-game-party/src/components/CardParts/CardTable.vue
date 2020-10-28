@@ -29,7 +29,7 @@
       </tr>
 
       <tr v-for="c in allCardsInDeck" :key="c.Suit + c.Value">
-        <VisualCard :cardObject="c"></VisualCard>
+        <VisualCard :cardObject="c" :startFaceDown="true"></VisualCard>
         <td>{{ c.Suit }}</td>
         <td>{{ c.Color }}</td>
         <td>{{ c.Value }}</td>
@@ -43,6 +43,7 @@
         v-for="c in allCardsInDeck"
         :key="c.Suit + c.Value"
         :cardObject="c"
+        :startFaceDown="true"
       ></VisualCard>
     </div>
 
@@ -53,6 +54,7 @@
         v-for="c in playerHand"
         :key="c.Suit + c.Value"
         :cardObject="c"
+        :startFaceDown="true"
       ></VisualCard>
     </div>
   </div>
@@ -82,7 +84,7 @@ export default {
 
     playerHand: [], //The players cards
 
-    deckViewType: "",
+    deckViewType: "scroll",
   }),
   mounted: function () {},
   computed: {

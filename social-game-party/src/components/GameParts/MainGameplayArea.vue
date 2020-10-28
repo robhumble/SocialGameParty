@@ -50,7 +50,7 @@ import * as sgf from "@/logic/socialGameFramework.js";
 
 //TODO: integrate these with this component
 import GameRunner from "@/logic/GameRunner.js";
-import MathMasterGame from "@/logic/MathMasterGame.js";
+import MathMasterGame from "@/logic/Games/MathMasterGame.js";
 
 export default {
   name: "MainGameplayArea",

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div class="game-card">
+    <div v-if="!showCard" @click="flipCard" class="game-card card-back"></div>
+    <div v-if="showCard" @click="flipCard" class="game-card card-front">
       <div
         class="top-left-val"
         :style="{ color: cardObject.Color == 'red' ? 'red' : 'black' }"
@@ -36,7 +37,7 @@ import { mapGetters } from "vuex";
 export default {
   name: "VisualCard",
   components: {},
-  props: ["cardObject"],
+  props: ["cardObject","startFaceDown"],
   // [
   //   "CardType"
   //   ,"Suit"
@@ -48,10 +49,18 @@ export default {
   data: () => ({
     // loadingMessageText: "",
     //cardObject: null
+    showCard: true,
   }),
-  mounted: function () {},
+  mounted: function () {
+
+    if(this.startFaceDown)
+      this.showCard = false;
+
+  },
   computed: {
     ...mapGetters(["projectName", "currentSession"]),
+
+
   },
   watch: {},
   methods: {
@@ -67,6 +76,11 @@ export default {
           return require("@/assets/hollowClub.png");
       }
     },
+
+    flipCard(){
+      this.showCard = !this.showCard;
+    }
+
   },
 };
 </script>
@@ -109,5 +123,9 @@ export default {
   bottom: 0px;
   right: 0px;
   margin: 10px;
+}
+
+.card-back{
+  background-image: url("~@/assets/CardBack.png") ;  
 }
 </style>

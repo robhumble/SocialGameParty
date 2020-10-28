@@ -11,6 +11,8 @@ export default class Card {
     Title = ""
     Message = ""
 
+    isFaceUp = false
+
     constructor() {
     }
 

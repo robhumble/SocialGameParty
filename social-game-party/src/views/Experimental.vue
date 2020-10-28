@@ -10,7 +10,7 @@ import { mapGetters } from "vuex";
 import * as sgf from "@/logic/socialGameFramework.js";
 import SessionInfo from "@/logic/SessionInfo.js";
 import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
-import MathMasterGameTools from "@/logic/MathMasterGame.js";
+import MathMasterGameTools from "@/logic/Games/MathMasterGame.js";
 // import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
 // import ResultScreen from "@/components/GameParts/ResultScreen.vue"
 
