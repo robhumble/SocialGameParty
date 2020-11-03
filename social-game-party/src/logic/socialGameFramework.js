@@ -43,7 +43,7 @@ export var mainFramework = {
             //Check each element if it's an array, just properties other wise
             if (Array.isArray(objectA)) {
                 for (let i = 0; i < objectA.length; i++) {
-                   return keyCheck(objectA[i], objectB[i]);
+                    return keyCheck(objectA[i], objectB[i]);
                 }
             }
             else
@@ -81,7 +81,7 @@ export var mainFramework = {
             console.log(msg);
     },
 
-    
+
     /**
      * Get a random integer between lo and hi (inclusive.)
      * @param {number} lo 
@@ -98,15 +98,134 @@ export var mainFramework = {
     /**
      * Get a random true or false.
      */
-    randomTrueFalse(){
+    randomTrueFalse() {
 
         //Get a random number between 1 and 50, return true if even.
-        let rand = this.getRandomInt(0,50);
+        let rand = this.getRandomInt(0, 50);
 
-        if(rand % 2 == 0)
+        if (rand % 2 == 0)
             return true;
-        
+
         return false;
+
+    },
+
+
+
+    //GAME SPECIFIC LOGIC---------------------------------------------------------------------------------------
+
+    gameTools: {
+
+        //Pseudo- Enums
+
+        instructionTypes: {
+            Display: "Display",
+            LoopThrough: "LoopThrough",
+        },
+
+        gameComponents: {
+            LoadingScreen: "LoadingScreen",
+            QuestionAndAnswer: "QuestionAndAnswer",
+            ResultScreen: "ResultScreen",
+        },
+
+        //Used to indicate "where" a src object for a check function is stored
+        rootObjects: {
+
+
+            player: "player",  // ActivePlayerGameData -> playerGameData AKA  ActivePlayerGameData -> dynamicPlayerGameData
+            host: "host",   // HostGameData -> dynamicHostGameData
+            results: "results"  // HostGameData -> results
+
+        },
+
+
+
+        //Instruction Builders
+
+        //Examples from math master
+        /*
+
+          let instructions = {
+            type: "Display",
+            comp: "LoadingScreen",
+            msg: "Preparing Game..."
+        }
+          */
+
+        /*
+           let instructions = {
+             type: "Display",
+             comp: "ResultScreen",
+             title: winnerString,
+             msg: totals
+         }
+         */
+
+        buildSimpleDisplayInstructions: function (c, t, m) {
+
+            let instructions = {
+                type: "Display",
+                comp: c,
+                title: t,
+                msg: m
+            }
+
+            return instructions;
+        },
+
+
+        /*
+        let instructions = {
+          type: "LoopThrough",
+          comp: "QuestionAndAnswer",
+
+          loopSrc: "mathProblems",
+
+          questionVar: "presentationProblem",  //questionText
+          answerVar: "answer",
+
+          resultFunction: "updatePlayerResults"
+      }
+      */
+
+        buildLoopThroughInstructions: function (c, src, qVar, aVar, resFunc) {
+            let instructions = {
+                type: "LoopThrough",
+                comp: c,
+
+                loopSrc: src,
+
+                questionVar: qVar,  //questionText
+                answerVar: aVar,
+
+                resultFunction: resFunc
+            }
+
+            return instructions;
+        },
+
+
+        /*
+               let currentCheckInstructions = {
+                  rootObj: "results", //player, host, or results
+                  watchTarget: "results",  // watchTarget is only checked if we aren't looking at the results rootObj, so going forward this line is redundant
+                  checkFunction: "checkToSeeIfAllPlayersAreDone"
+              }   
+        */
+
+        buildCheckInstructions: function (root, watch, checkFunc) {
+            let currentCheckInstructions = {
+                rootObj: root, //player, host, or results
+                watchTarget: watch,  // watchTarget is only checked if we aren't looking at the results rootObj, so going forward this line is redundant
+                checkFunction: checkFunc
+            }
+
+            return currentCheckInstructions;
+        }
+
+
+
 
     }
 

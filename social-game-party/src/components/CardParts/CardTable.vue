@@ -97,13 +97,18 @@ export default {
   watch: {},
   methods: {
     popDeck: function () {
-      let deck = new DeckOfCards();
 
-      deck.populateTraditionalDeck();
+      this.cardDeck = null;
 
-      this.cardDeck = deck;
+      //Let vue react to nulling the deck, THEN repopulate it with a fresh deck
+      this.$nextTick(() => {
 
-      this.playerHand = [];
+        let deck = new DeckOfCards();
+        deck.populateTraditionalDeck();
+        this.cardDeck = deck;
+        this.playerHand = [];
+
+      });
     },
 
     shuffleDeck: function () {

@@ -34,21 +34,22 @@ export default class BaseGame {
         //Example Step
         /*
         {
-            stepNum: 1,
+           stepNum: 1,
             desc: "Build out problems",
             cleanInstructionsFirst: false, 
 
             preStepTarget: 'host',
-            preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+            preStepFunction: (data, batch) => { return this.setupLoadingScreen(data, batch) },
 
             target: 'host',
-            stepFunction: (d) => { return this.buildProblemsStep(d) },
+            stepFunction: (data, batch) => { return this.buildProblemsStep(data, batch)  },
 
             followUpTarget: 'none',
-            followUpFunction:  (d) => { return this.followUp(d) },
+            followUpFunction:  (data, batch) => { return this.followUp(data, batch)  },
 
             checkTarget: 'host',
-            checkFunction: (d) => { return this.prepareCheckInstructions(d) }
+            checkFunction: (data, batch) => { return this.prepareCheckInstructions(data, batch)  }
+
 
         },
         */    
