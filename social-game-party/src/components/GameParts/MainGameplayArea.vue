@@ -257,6 +257,10 @@ export default {
 
       this.currentGameComponent = instructions.comp;
       this.displayInstructions = instructions;
+
+      //TODO - clean this up, it feels off
+      if (instructions.comp == "QuestionAndAnswer")
+        this.questionAndAnswerQuestionText = instructions.questionText;
     },
 
     //TODO: probably need to alter this to allow for more than just question/answer pattern OR specify that this is just for that pattern
@@ -331,6 +335,24 @@ export default {
           this.loopThroughData.index++;
           this.goThroughLoop();
         }
+      }
+      //...if this isn't a loop through
+      else if (displayInstructions) {
+        this.gameRunner.callGameFunction(
+          this.displayInstructions.followUpFunction,
+          this.getRemoteDataGroup,
+          answer
+        );
+
+        this.clearDisplay();
+
+        this.setUpDisplay(
+          sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(
+            "LoadingScreen",
+            "Loading",
+            "Waiting for all players to finish..."
+          )
+        );
       }
     },
 

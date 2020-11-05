@@ -119,8 +119,8 @@ export var mainFramework = {
         //Pseudo- Enums
 
         instructionTypes: {
-            Display: "Display",
-            LoopThrough: "LoopThrough",
+            Display: "Display",  //Display this to all players
+            LoopThrough: "LoopThrough",  //Run the specified loop for all players
         },
 
         gameComponents: {
@@ -131,8 +131,6 @@ export var mainFramework = {
 
         //Used to indicate "where" a src object for a check function is stored
         rootObjects: {
-
-
             player: "player",  // ActivePlayerGameData -> playerGameData AKA  ActivePlayerGameData -> dynamicPlayerGameData
             host: "host",   // HostGameData -> dynamicHostGameData
             results: "results"  // HostGameData -> results
@@ -147,7 +145,7 @@ export var mainFramework = {
         /*
 
           let instructions = {
-            type: "Display",
+            type: "Display",        //Display this to all p
             comp: "LoadingScreen",
             msg: "Preparing Game..."
         }
@@ -165,7 +163,7 @@ export var mainFramework = {
         buildSimpleDisplayInstructions: function (c, t, m) {
 
             let instructions = {
-                type: "Display",
+                type: this.instructionTypes.Display,
                 comp: c,
                 title: t,
                 msg: m
@@ -191,7 +189,7 @@ export var mainFramework = {
 
         buildLoopThroughInstructions: function (c, src, qVar, aVar, resFunc) {
             let instructions = {
-                type: "LoopThrough",
+                type: this.instructionTypes.LoopThrough,
                 comp: c,
 
                 loopSrc: src,
@@ -214,6 +212,7 @@ export var mainFramework = {
               }   
         */
 
+        //TODO: Root should use the enum - ADD A CHECK
         buildCheckInstructions: function (root, watch, checkFunc) {
             let currentCheckInstructions = {
                 rootObj: root, //player, host, or results
@@ -222,8 +221,19 @@ export var mainFramework = {
             }
 
             return currentCheckInstructions;
-        }
+        },
 
+
+        buildQuestionAndAnswerInstructions: function( qText, followFunc){
+            let instructions = {
+                type: this.instructionTypes.Display,
+                comp: 'QuestionAndAnswer',
+                questionText: qText,
+                followUpFunction: followFunc
+            }            
+
+            return instructions;
+        }
 
 
 

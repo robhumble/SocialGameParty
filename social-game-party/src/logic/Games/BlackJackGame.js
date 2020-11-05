@@ -172,14 +172,14 @@ export default class BlackJackGame extends BaseGame {
                 // preStepTarget: 'host',
                 // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
 
-                // target: 'host',
-                // stepFunction: (d) => { return this.setupBlackJack(d) },
+                target: 'host',
+                stepFunction: (d) => { return this.askPlayersForBets(d) },
 
                 // followUpTarget: 'none',
                 // followUpFunction:  (d) => { return this.followUp(d) },
 
-                // checkTarget: 'host',
-                // checkFunction: (d) => { return this.prepareCheckInstructions(d) }
+                checkTarget: 'host',
+                checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
             },
             {
                 //3) Machine/dealer deals cards face up to everyone, dealers second card is hidden
@@ -210,11 +210,14 @@ export default class BlackJackGame extends BaseGame {
     /*
      * Each of these functions below are supposed to be run exclusively by the host.  Each expects the following params
      * 
+     * function (remoteDataGroup, batch)
+     * 
      * remoteDataGroup - data we listen to and keep in the GlobalPropertyModule vuex store.
      * batch - a write batch, generally there is one per step that is passed in and out of each main step function until the step is completed... at which point we commit the write batch.
      */
 
 
+     //Set up the deck and the playerinfo (hand, money)
     setupBlackJack = function (remoteDataGroup, batch) {
 
         //SetUp the deck 
@@ -234,7 +237,8 @@ export default class BlackJackGame extends BaseGame {
                 id: x.id,
                 name: x.name,
                 cards: [],
-                money: this.#configOptions.startingMoney
+                money: this.#configOptions.startingMoney,
+                bet: null
             }
             playerInfo.push(ph);
 
@@ -255,6 +259,44 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    
+
+    //host asks players for the bets
+    askPlayersForBets = function (remoteDataGroup, batch) {
+
+        let qaInstructions =  sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
+            "How much will you bet?", //question Text
+            "writePlayerBet" //follow up function
+        );
+        
+        let dataToUpdate = {         
+            currentInstructions: qaInstructions
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+    }
+
+
+    //host sets up a check that all bets have been turned in
+    setUpCheckForAllBets = function (remoteDataGroup, batch) {
+
+        
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
+
+        let currentCheckInstructions = sgf.gameTools.buildCheckInstructions(
+            sgf.gameTools.rootObjects.player, 
+            "playerInfo", 
+            "checkForAllBetsIn"); 
+
+        //Add to the writeBatch
+        let dataToUpdate = {
+            currentCheckInstructions: currentCheckInstructions
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);       
+
+    }
 
 
 
@@ -262,17 +304,59 @@ export default class BlackJackGame extends BaseGame {
     /*
      * Each of the functions below is designed to be called by callGameFunction() in the game runner.  These functions expect the following params.
      *
+     * function (remoteDataGroup, userId, answerResults) 
+     * 
      * remoteDataGroup - data we listen to and keep in the GlobalPropertyModule vuex store.
      * userId - the userId of the user calling the function
      * (OPTIONAL)functionParams - an additional object that contains function params, can be named anything, can be an object with multiple params nested inside.
      */
 
 
+    //player writes their bet to the db
+    writePlayerBet = function (remoteDataGroup, userId, answerResults) {
+
+
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {          
+
+            //Update the player info with the bet made in the UI()
+
+            this.roomData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
+            .forEach( (x) => {
+                x.bet = answerResults;
+            });
+
+            return roomData;
+        });
+
+    }
+
+    checkForAllBetsIn = function (remoteDataGroup, userId){
+
+        //TODO - Host check seems redundant...         
+        if (userId == remoteDataGroup.hostId) {
+
+         
+            let betCount = remoteDataGroup.playerGameData.playerInfo.filter(x => x.bet != null).length;
+            let playerCount = this.getActivePlayerCount(remoteDataGroup);
+
+            if (betCount == playerCount) {
+                //Move to step 3 (and clear all existing instructions.)           
+
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
+                    roomData.currentStep = 3;
+                    roomData.currentCheckInstructions = null;
+                    roomData.currentInstructions = null;
+                    return roomData;
+                });
+            }
+        }
+
+
+    }
 
 
 
     //General "Private" Helper functions -----------------------------------------------------------------
-
 
 
 
