@@ -27,11 +27,13 @@ Vue.mixin({
 })
 
 
+
 new Vue({
   router,
   vuetify,
   store,
   render: h => h(App)
 }).$mount('#app')
+
 
 //Vue.config.devTools = true;

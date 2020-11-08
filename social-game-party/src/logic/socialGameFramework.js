@@ -116,8 +116,12 @@ export var mainFramework = {
 
     gameTools: {
 
-        //Pseudo- Enums
+        gameList: {
+            MathMaster: "MathMaster",
+            BlackJack: "BlackJack"
+        },
 
+        //Pseudo- Enums
         instructionTypes: {
             Display: "Display",  //Display this to all players
             LoopThrough: "LoopThrough",  //Run the specified loop for all players

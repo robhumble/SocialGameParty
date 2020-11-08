@@ -37,10 +37,13 @@ export default class DeckOfCards {
 
         this.CardArray = [];
 
+        var it = 1;
+
         this.traditionalSuits.forEach(s => {
             this.tradtionalValues.forEach(v => {
                 let newCard = new Card();
-                newCard.populateTraditional(s.name, s.color, v);
+                newCard.populateTraditional(it, s.name, s.color, v);
+                it++;
                 this.CardArray.push(newCard);
             });
         });

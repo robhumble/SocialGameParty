@@ -22,7 +22,7 @@
 
         <StartGameScreen
           v-if="currentGameComponent == 'StartGameScreen'"
-          @startGame="startGame"
+          @startGame="startGame($event)"
         ></StartGameScreen>
 
         <LoadingScreen
@@ -51,6 +51,7 @@ import * as sgf from "@/logic/socialGameFramework.js";
 //TODO: integrate these with this component
 import GameRunner from "@/logic/GameRunner.js";
 import MathMasterGame from "@/logic/Games/MathMasterGame.js";
+import BlackJackGame from "@/logic/Games/BlackJackGame.js";
 
 export default {
   name: "MainGameplayArea",
@@ -65,6 +66,8 @@ export default {
     // gamePlayDataConnector: new GameplayDataConnector(),
     currentGameComponent: "",
     gameRunner: new GameRunner(),
+
+    selectedGame: "",
 
     //Basic display instructions
     displayInstructions: null,
@@ -207,9 +210,10 @@ export default {
     /**
      * Start the game by setting the host id.
      */
-    startGame: function () {
+    startGame: function (gameName) {
       let hostId = this.currentSession.currentUser.uniqueId;
       let roomName = this.currentRoomName;
+      this.selectedGame = gameName;
 
       this.gameRunner.setHost(hostId, roomName);
     },
@@ -218,7 +222,10 @@ export default {
      * Setup the current game by initializing the gameRunner and game.
      */
     setupGame: function () {
-      let game = new MathMasterGame(this.currentRoomName);
+      let game = this.getGame(this.selectedGame)
+
+      if(game)
+      {
       this.gameRunner.setupCurrentGame(
         game,
         this.currentRoomName,
@@ -229,6 +236,7 @@ export default {
       this.listenToActivePlayerGameData();
 
       if (this.isHost) this.listenToHostGameData();
+      }
     },
 
     /**
@@ -337,7 +345,7 @@ export default {
         }
       }
       //...if this isn't a loop through
-      else if (displayInstructions) {
+      else if (this.displayInstructions) {
         this.gameRunner.callGameFunction(
           this.displayInstructions.followUpFunction,
           this.getRemoteDataGroup,
@@ -431,6 +439,21 @@ export default {
 
       this.$emit("exitGame");
     },
+
+    getGame: function(gameStr){      
+      if(gameStr)
+      {       
+        switch(gameStr)
+        {
+          case sgf.mainFramework.gameTools.gameList.MathMaster:  return new MathMasterGame(this.currentRoomName);
+          case sgf.mainFramework.gameTools.gameList.BlackJack :  return new BlackJackGame(this.currentRoomName);
+          default: return "";
+
+        }
+      }     
+    },
+
+
   },
 };
 </script>

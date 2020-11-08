@@ -12,7 +12,7 @@ export default class BaseGame {
     activePlayerGameDataConnector = null;
     hostGameDataConnector = null;
 
-    #configOptions = {
+    configOptions = {
     }
 
     constructor(roomName) {

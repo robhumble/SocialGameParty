@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div v-if="!showCard" @click="flipCard" class="game-card card-back"></div>
-    <div v-if="showCard" @click="flipCard" class="game-card card-front">
+    <div v-if="!showCard" @click="flipVisualCard" class="game-card card-back"></div>
+    <div v-if="showCard" @click="flipVisualCard" class="game-card card-front">
       <div
         class="top-left-val"
         :style="{ color: cardObject.Color == 'red' ? 'red' : 'black' }"
@@ -37,7 +37,7 @@ import { mapGetters } from "vuex";
 export default {
   name: "VisualCard",
   components: {},
-  props: ["cardObject","startFaceDown"],
+  props: ["cardObject"],
   // [
   //   "CardType"
   //   ,"Suit"
@@ -49,16 +49,21 @@ export default {
   data: () => ({
     // loadingMessageText: "",
     //cardObject: null
-    showCard: true,
+    //showCard: true,
   }),
   mounted: function () {
 
-    if(this.startFaceDown)
-      this.showCard = false;
+    // if(this.startFaceDown)
+    //   this.showCard = false;
 
   },
   computed: {
     ...mapGetters(["projectName", "currentSession"]),
+
+
+    showCard: function(){
+      return this.cardObject.isFaceUp;
+    }
 
 
   },
@@ -77,8 +82,10 @@ export default {
       }
     },
 
-    flipCard(){
-      this.showCard = !this.showCard;
+    flipVisualCard(){
+      //this.showCard = !this.showCard;
+
+      this.$emit("flipTargetCard", this.cardObject.Id );
     }
 
   },
@@ -125,7 +132,7 @@ export default {
   margin: 10px;
 }
 
-.card-back{
-  background-image: url("~@/assets/CardBack.png") ;  
+.card-back {
+  background-image: url("~@/assets/CardBack.png");
 }
 </style>

@@ -29,7 +29,7 @@
       </tr>
 
       <tr v-for="c in allCardsInDeck" :key="c.Suit + c.Value">
-        <VisualCard :cardObject="c" :startFaceDown="true"></VisualCard>
+        <VisualCard :cardObject="c" :startFaceDown="true" @flipTargetCard="flipDeckCard($event)"></VisualCard>
         <td>{{ c.Suit }}</td>
         <td>{{ c.Color }}</td>
         <td>{{ c.Value }}</td>
@@ -44,6 +44,7 @@
         :key="c.Suit + c.Value"
         :cardObject="c"
         :startFaceDown="true"
+        @flipTargetCard="flipDeckCard($event)"
       ></VisualCard>
     </div>
 
@@ -55,6 +56,7 @@
         :key="c.Suit + c.Value"
         :cardObject="c"
         :startFaceDown="true"
+        @flipTargetCard="flipHandCard($event)"
       ></VisualCard>
     </div>
   </div>
@@ -120,6 +122,31 @@ export default {
 
       if (c) this.playerHand.push(c);
     },
+
+
+
+    flipDeckCard: function(id){
+
+      this.allCardsInDeck.filter(x => x.Id == id).forEach(element => {
+        element.flipCard();
+      });
+
+    },
+
+
+    flipHandCard: function(id){
+
+      this.playerHand.filter(x => x.Id == id).forEach(element => {
+        element.flipCard();
+      });
+
+    }
+
+
+
+
+
+
   },
 };
 </script>

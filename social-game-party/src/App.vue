@@ -89,6 +89,7 @@
 <script>
 import { mapGetters } from "vuex";
 import ChatArea from "@/components/ChatArea.vue";
+
 export default {
   name: "App",
   components: {

@@ -2,11 +2,11 @@ import * as sgf from "@/logic/socialGameFramework.js";
 
 import BaseGame from "@/logic/Games/BaseGame.js";
 
-import Card from "@/logic/Cards/Card.js";
+//import Card from "@/logic/Cards/Card.js";
 import DeckOfCards from "@/logic/Cards/DeckOfCards.js";
 
-import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
-import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
+//import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
+//import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
 
 
 export default class BlackJackGame extends BaseGame {
@@ -21,7 +21,7 @@ export default class BlackJackGame extends BaseGame {
         this.loadGameSteps();
 
         //Setup Configuration
-        this.#configOptions.startingMoney = 100;
+        this.configOptions.startingMoney = 100;
 
     }
 
@@ -151,10 +151,10 @@ export default class BlackJackGame extends BaseGame {
                 cleanInstructionsFirst: false,
 
                 preStepTarget: 'host',
-                preStepFunction: (d) => { return this.setupLoadingScreen(data, batch) },
+                preStepFunction: (data, batch) => { return this.setupLoadingScreen(data, batch) },
 
                 target: 'host',
-                stepFunction: (d) => { return this.setupBlackJack(data, batch) },
+                stepFunction: (data, batch) => { return this.setupBlackJack(data, batch) },
 
                 // followUpTarget: 'none',
                 // followUpFunction:  (d) => { return this.followUp(d) },
@@ -173,16 +173,32 @@ export default class BlackJackGame extends BaseGame {
                 // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
 
                 target: 'host',
-                stepFunction: (d) => { return this.askPlayersForBets(d) },
+                stepFunction: (data, batch) => { return this.askPlayersForBets(data, batch) },
 
                 // followUpTarget: 'none',
                 // followUpFunction:  (d) => { return this.followUp(d) },
 
                 checkTarget: 'host',
-                checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
+                checkFunction: (data, batch) => { return this.setUpCheckForAllBets(data, batch) }
             },
             {
                 //3) Machine/dealer deals cards face up to everyone, dealers second card is hidden
+
+                stepNum: 3,
+                desc: "Machine/dealer deals cards face up to everyone, dealers second card is hidden",
+                cleanInstructionsFirst: false,
+
+                // preStepTarget: 'host',
+                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.dealCardsToEachPlayer(data, batch) },
+
+                // followUpTarget: 'none',
+                // followUpFunction:  (d) => { return this.followUp(d) },
+
+                // checkTarget: 'host',
+                // checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
             },
             {
                 //4) Evaluate current cards for Naturals - Determine if there's is a need to PUSH (i.e. player and dealer both have black jack)
@@ -203,7 +219,7 @@ export default class BlackJackGame extends BaseGame {
 
 
         ];
-    };
+    }
 
 
     //Main step functions - (These generally are batched writes)-------------------------------------------------------
@@ -217,7 +233,7 @@ export default class BlackJackGame extends BaseGame {
      */
 
 
-     //Set up the deck and the playerinfo (hand, money)
+    //Set up the deck and the playerinfo (hand, money)
     setupBlackJack = function (remoteDataGroup, batch) {
 
         //SetUp the deck 
@@ -230,19 +246,29 @@ export default class BlackJackGame extends BaseGame {
 
         //Setup player hands
         let playerInfo = [];
-        players = remoteDataGroup.userList.filter((x) => x.isPlaying);
+        let players = remoteDataGroup.userList.filter((x) => x.isPlaying);
         players.forEach((x) => {
 
             let ph = {
                 id: x.id,
                 name: x.name,
                 cards: [],
-                money: this.#configOptions.startingMoney,
+                money: this.configOptions.startingMoney,
                 bet: null
             }
             playerInfo.push(ph);
 
         })
+
+        //Add hand for the dealer
+        let dh = {
+            id: "dealer",
+            name: "dealer",
+            cards: [],
+            money: this.configOptions.startingMoney,
+            bet: null
+        }
+        playerInfo.push(dh);
 
         //Add to the writeBatch
         let dataToUpdate = {
@@ -259,17 +285,17 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
-    
+
 
     //host asks players for the bets
     askPlayersForBets = function (remoteDataGroup, batch) {
 
-        let qaInstructions =  sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
+        let qaInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
             "How much will you bet?", //question Text
             "writePlayerBet" //follow up function
         );
-        
-        let dataToUpdate = {         
+
+        let dataToUpdate = {
             currentInstructions: qaInstructions
         };
 
@@ -281,20 +307,67 @@ export default class BlackJackGame extends BaseGame {
     //host sets up a check that all bets have been turned in
     setUpCheckForAllBets = function (remoteDataGroup, batch) {
 
-        
+
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
-        let currentCheckInstructions = sgf.gameTools.buildCheckInstructions(
-            sgf.gameTools.rootObjects.player, 
-            "playerInfo", 
-            "checkForAllBetsIn"); 
+        let currentCheckInstructions = sgf.mainFramework.gameTools.buildCheckInstructions(
+            sgf.mainFramework.gameTools.rootObjects.player,
+            "playerInfo",
+            "checkForAllBetsIn");
 
         //Add to the writeBatch
         let dataToUpdate = {
             currentCheckInstructions: currentCheckInstructions
         };
 
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);       
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+    }
+
+
+    dealCardsToEachPlayer = function (remoteDataGroup, batch) {
+
+
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
+
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo.filter((x) => x.isPlaying);
+
+        //Deal round 1        
+        playerInfo.forEach((player) => {
+
+            let c = remoteDataGroup.cardDeck.dealACard();
+            c.isFaceUp = true;
+
+            player.cards.push(c);
+        })
+
+        //Deal round 2
+        playerInfo.forEach((player) => {
+
+            let c = remoteDataGroup.cardDeck.dealACard();
+
+            if (player.Id == "dealer")
+                c.isFaceUp = false;
+            else
+                c.isFaceUp = true;
+
+            player.cards.push(c);
+        })
+
+
+        //Add to the writeBatch
+        let dataToUpdate = {
+
+            dynamicPlayerGameData: {
+                cardsInDeck: remoteDataGroup.cardDeck,
+                playerInfo: playerInfo
+            },
+            currentStep: 4
+
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
@@ -316,26 +389,26 @@ export default class BlackJackGame extends BaseGame {
     writePlayerBet = function (remoteDataGroup, userId, answerResults) {
 
 
-        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {          
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
 
             //Update the player info with the bet made in the UI()
 
             this.roomData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
-            .forEach( (x) => {
-                x.bet = answerResults;
-            });
+                .forEach((x) => {
+                    x.bet = answerResults;
+                });
 
             return roomData;
         });
 
     }
 
-    checkForAllBetsIn = function (remoteDataGroup, userId){
+    checkForAllBetsIn = function (remoteDataGroup, userId) {
 
         //TODO - Host check seems redundant...         
         if (userId == remoteDataGroup.hostId) {
 
-         
+
             let betCount = remoteDataGroup.playerGameData.playerInfo.filter(x => x.bet != null).length;
             let playerCount = this.getActivePlayerCount(remoteDataGroup);
 
