@@ -8,7 +8,7 @@
         <p>{{ bodyText }}</p>
 
         <div>
-          <select v-model="selectedGame">
+          <select v-model="selectedGame" class="basic-drop-down">
             <option disabled value="">Please choose a game.</option>
 
             <option v-for="g in listOfGames" :key="g" :value="g">{{ g }}</option>
@@ -70,4 +70,6 @@ export default {
   border-color: $social-game-party-orange !important;
   padding: 5px;
 }
+
+
 </style>

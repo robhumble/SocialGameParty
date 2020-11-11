@@ -1,4 +1,5 @@
 import Card from "@/logic/Cards/Card.js";
+//import CardCollection from "@/logic/Cards/CardCollection.js";
 import * as sgf from "@/logic/socialGameFramework.js";
 
 export default class DeckOfCards {
@@ -30,6 +31,7 @@ export default class DeckOfCards {
     CardArray = []
 
     constructor() {
+       // super();
     }
 
 
@@ -166,6 +168,29 @@ export default class DeckOfCards {
         }
 
         return currentArr.concat(extraArr);
+    }
+
+
+    toMap(){
+
+        let cardMapArray = [];
+        this.CardArray.forEach(x => cardMapArray.push(x.toMap()) );
+
+        let mapObj = {
+            CardArray:  cardMapArray
+        }
+
+        return mapObj;
+    }
+
+    fromMap(mapObj){
+
+        this.CardArray = [];
+
+        mapObj.CardArray.forEach((x) => {
+            let c = new Card();
+            this.CardArray.push(c.fromMap(x));
+        });
     }
 
 

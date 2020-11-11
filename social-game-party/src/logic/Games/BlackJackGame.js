@@ -2,7 +2,7 @@ import * as sgf from "@/logic/socialGameFramework.js";
 
 import BaseGame from "@/logic/Games/BaseGame.js";
 
-//import Card from "@/logic/Cards/Card.js";
+import Card from "@/logic/Cards/Card.js";
 import DeckOfCards from "@/logic/Cards/DeckOfCards.js";
 
 //import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
@@ -239,9 +239,7 @@ export default class BlackJackGame extends BaseGame {
         //SetUp the deck 
         let deck = new DeckOfCards();
         deck.populateTraditionalDeck();
-        deck.shuffleDeck();
-
-        let cardsInDeck = deck.CardArray;
+        deck.shuffleDeck();      
 
 
         //Setup player hands
@@ -270,11 +268,20 @@ export default class BlackJackGame extends BaseGame {
         }
         playerInfo.push(dh);
 
+
+
+        //prep for storage
+        let preparedDeck = deck.toMap();
+        playerInfo.forEach(x => x.cards = this.convertCardArrayToMapArray(x.cards));
+
+
+
+
         //Add to the writeBatch
         let dataToUpdate = {
 
             dynamicPlayerGameData: {
-                cardsInDeck: cardsInDeck,
+                cardDeck: preparedDeck,
                 playerInfo: playerInfo
             },
             currentStep: 2
@@ -327,6 +334,7 @@ export default class BlackJackGame extends BaseGame {
 
     dealCardsToEachPlayer = function (remoteDataGroup, batch) {
 
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START debugging/fixing this step ..... the line to get player info (ln 342) doesn't work right looking at the wrong stuff.....
 
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
@@ -389,16 +397,15 @@ export default class BlackJackGame extends BaseGame {
     writePlayerBet = function (remoteDataGroup, userId, answerResults) {
 
 
-        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
             //Update the player info with the bet made in the UI()
-
-            this.roomData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
+            aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
                 .forEach((x) => {
                     x.bet = answerResults;
                 });
 
-            return roomData;
+            return aData;
         });
 
     }
@@ -431,7 +438,25 @@ export default class BlackJackGame extends BaseGame {
 
     //General "Private" Helper functions -----------------------------------------------------------------
 
+    convertCardArrayToMapArray(cardArray) {
 
+        let cardMapArray = [];
+        cardArray.forEach(x => cardMapArray.push(x.toMap()));
+
+        return cardMapArray;
+    }
+
+    getCardArrayFromMapArray(mapArray) {
+
+        let cardArray = [];
+
+        mapArray.forEach((x) => {
+            let c = new Card();
+            cardArray.push(c.fromMap(x));
+        });
+
+        return cardArray;
+    }
 
 
 

@@ -6,7 +6,7 @@
 
         <h1>{{questionText}}</h1>
 
-        <input v-model="answerText" @keydown.enter="submitAnswer">
+        <input class="basic-text-input" v-model="answerText" @keydown.enter="submitAnswer">
 
         <v-btn @click="submitAnswer">Submit</v-btn>
  
