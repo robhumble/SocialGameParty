@@ -189,7 +189,8 @@ export default class DeckOfCards {
 
         mapObj.CardArray.forEach((x) => {
             let c = new Card();
-            this.CardArray.push(c.fromMap(x));
+            c.fromMap(x);
+            this.CardArray.push(c);
         });
     }
 

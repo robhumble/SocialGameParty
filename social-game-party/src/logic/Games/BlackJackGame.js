@@ -202,6 +202,22 @@ export default class BlackJackGame extends BaseGame {
             },
             {
                 //4) Evaluate current cards for Naturals - Determine if there's is a need to PUSH (i.e. player and dealer both have black jack)
+
+                stepNum: 4,
+                desc: "Evaluate current cards for Naturals - Determine if there's is a need to PUSH (i.e. player and dealer both have black jack)",
+                cleanInstructionsFirst: false,
+
+                // preStepTarget: 'host',
+                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.checkForNaturals(data, batch) },
+
+                // followUpTarget: 'none',
+                // followUpFunction:  (d) => { return this.followUp(d) },
+
+                // checkTarget: 'host',
+                // checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
             },
             {
                 //5) Pass control to each player in order so they can run their turn
@@ -239,7 +255,7 @@ export default class BlackJackGame extends BaseGame {
         //SetUp the deck 
         let deck = new DeckOfCards();
         deck.populateTraditionalDeck();
-        deck.shuffleDeck();      
+        deck.shuffleDeck();
 
 
         //Setup player hands
@@ -273,8 +289,6 @@ export default class BlackJackGame extends BaseGame {
         //prep for storage
         let preparedDeck = deck.toMap();
         playerInfo.forEach(x => x.cards = this.convertCardArrayToMapArray(x.cards));
-
-
 
 
         //Add to the writeBatch
@@ -334,33 +348,35 @@ export default class BlackJackGame extends BaseGame {
 
     dealCardsToEachPlayer = function (remoteDataGroup, batch) {
 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! START debugging/fixing this step ..... the line to get player info (ln 342) doesn't work right looking at the wrong stuff.....
-
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
 
-        let playerInfo = remoteDataGroup.playerGameData.playerInfo.filter((x) => x.isPlaying);
+        let gameDeck = new DeckOfCards();
+        gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
+
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
         //Deal round 1        
         playerInfo.forEach((player) => {
 
-            let c = remoteDataGroup.cardDeck.dealACard();
+            let c = gameDeck.dealACard();
             c.isFaceUp = true;
 
-            player.cards.push(c);
+            player.cards.push(c.toMap());
         })
 
         //Deal round 2
         playerInfo.forEach((player) => {
 
-            let c = remoteDataGroup.cardDeck.dealACard();
+            let c = gameDeck.dealACard();
 
             if (player.Id == "dealer")
                 c.isFaceUp = false;
             else
                 c.isFaceUp = true;
 
-            player.cards.push(c);
+            player.cards.push(c.toMap());
         })
 
 
@@ -368,7 +384,7 @@ export default class BlackJackGame extends BaseGame {
         let dataToUpdate = {
 
             dynamicPlayerGameData: {
-                cardsInDeck: remoteDataGroup.cardDeck,
+                cardsInDeck: gameDeck.toMap(),
                 playerInfo: playerInfo
             },
             currentStep: 4
@@ -377,6 +393,62 @@ export default class BlackJackGame extends BaseGame {
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
+    }
+
+    //Following natural rules from https://bicyclecards.com/how-to-play/blackjack/
+    checkForNaturals = function (remoteDataGroup, batch) {
+        if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
+
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+
+        let playersWithNaturals = [];
+        let dealerHasNatural = false;
+
+        playerInfo.forEach(x => {
+
+            let handVal = this.getHandValue(x.cards);
+
+            if (handVal == 21) {
+                if (x.id == "dealer")
+                    dealerHasNatural = true;
+                else
+                    playersWithNaturals.push(x);
+            }
+
+        });
+
+        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+        // TODO: Continue implementation here next time......
+
+        if (dealerHasNatural) {
+            //If a dealer has a natural the round is over
+            //Collect bets of players who do not have naturals
+            //If players have naturals - it's a tie and they get their bets back.
+        }
+        else {
+            //If a player has a natural and the dealer doesn't
+            //Return their bet and pay out 1.5 times their bet - the round is done for that player (mark it so)
+        }
+
+
+
+
+
+        //Add to the writeBatch
+        let dataToUpdate = {
+
+            // dynamicPlayerGameData: {
+            //     cardsInDeck: gameDeck.toMap(),
+            //     playerInfo: playerInfo
+            // },
+            // currentStep: 4
+
+        };
+
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
@@ -456,6 +528,44 @@ export default class BlackJackGame extends BaseGame {
         });
 
         return cardArray;
+    }
+
+    /**
+     * Using BlackJack rules attempt to get the value of a hand.
+     * @param {array} cardArray 
+     */
+    getHandValue(cardArray) {
+
+        // Ace is either 1 or 11
+        // Face cards are 10
+        // Number cards are their value 
+
+        let faceVals = ["J", "Q", "K"];
+
+        //Add up the total values of each card in the hand (assume ace is 11)
+        var handValue = cardArray.reduce((acc, cur) => {
+
+            if (parseInt(cur.Value))
+                return acc + parseInt(cur.Value);
+
+            if (faceVals.some(x => x == cur.Value))
+                return acc + 10;
+
+            if (cur.Value == "A")
+                return acc + 11;
+        });
+
+        //If the handValue is over 21, check to see if there are aces.  If we have Aces, turn them into "1" by subtracting 10.  Go one by one to try and get below 21, if we succeed stop converting.
+        if (handValue > 21) {
+            let numOfAcesLeft = cardArray.filter(x => x.Value == "A").length;
+
+            while (handValue > 21 && numOfAcesLeft > 0) {
+                handValue -= 10;
+                numOfAcesLeft--;
+            }
+        }
+
+        return handValue;
     }
 
 
