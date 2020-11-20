@@ -22,6 +22,7 @@ export default class BlackJackGame extends BaseGame {
 
         //Setup Configuration
         this.configOptions.startingMoney = 100;
+        this.configOptions.naturalMultiplier = 1.5;
 
     }
 
@@ -221,6 +222,23 @@ export default class BlackJackGame extends BaseGame {
             },
             {
                 //5) Pass control to each player in order so they can run their turn
+
+                stepNum: 5,
+                desc: "Pass control to each player in order so they can run their turn",
+                cleanInstructionsFirst: false,
+
+                // preStepTarget: 'host',
+                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.setUpMainGameRounds(data, batch) },
+
+                // followUpTarget: 'none',
+                // followUpFunction:  (d) => { return this.followUp(d) },
+
+                checkTarget: 'host',
+                checkFunction: (data, batch) => { return this.setUpCheckForEndOfPlayerTurn(data, batch) }
+
             },
             {
                 //6) Machine/dealer runs their turn
@@ -257,31 +275,28 @@ export default class BlackJackGame extends BaseGame {
         deck.populateTraditionalDeck();
         deck.shuffleDeck();
 
-
         //Setup player hands
         let playerInfo = [];
         let players = remoteDataGroup.userList.filter((x) => x.isPlaying);
         players.forEach((x) => {
 
-            let ph = {
-                id: x.id,
-                name: x.name,
-                cards: [],
-                money: this.configOptions.startingMoney,
-                bet: null
-            }
+            let ph = this.buildPlayerInfoObj();
+
+            ph.id = x.id;
+            ph.name = x.name;
+            ph.money = this.configOptions.startingMoney;
+
             playerInfo.push(ph);
 
         })
 
-        //Add hand for the dealer
-        let dh = {
-            id: "dealer",
-            name: "dealer",
-            cards: [],
-            money: this.configOptions.startingMoney,
-            bet: null
-        }
+        //Add hand for the dealer        
+        let dh = this.buildPlayerInfoObj();
+
+        dh.id = "dealer";
+        dh.name = "dealer";
+        dh.money = this.configOptions.startingMoney;
+
         playerInfo.push(dh);
 
 
@@ -304,7 +319,6 @@ export default class BlackJackGame extends BaseGame {
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
-
 
 
 
@@ -399,11 +413,9 @@ export default class BlackJackGame extends BaseGame {
     checkForNaturals = function (remoteDataGroup, batch) {
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
-
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
-
-        let playersWithNaturals = [];
+        let playerIdsWithNaturals = [];
         let dealerHasNatural = false;
 
         playerInfo.forEach(x => {
@@ -414,44 +426,100 @@ export default class BlackJackGame extends BaseGame {
                 if (x.id == "dealer")
                     dealerHasNatural = true;
                 else
-                    playersWithNaturals.push(x);
+                    playerIdsWithNaturals.push(x.id);
             }
 
         });
 
-        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-        // TODO: Continue implementation here next time......
+        let nextStep = 5;
 
         if (dealerHasNatural) {
+
             //If a dealer has a natural the round is over
             //Collect bets of players who do not have naturals
             //If players have naturals - it's a tie and they get their bets back.
+            playerInfo.forEach(x => {
+
+                if (playerIdsWithNaturals.includes(x.id)) {
+                    x.bet = null;
+                    x.turnComplete = true;
+                }
+                else {
+                    x.money -= x.bet;
+                    x.bet = null;
+                    x.turnComplete = true;
+                }
+            });
+
+            //If the dealer has a natural, the round is over so skip to the end;
+            nextStep = 8;
+
         }
         else {
             //If a player has a natural and the dealer doesn't
             //Return their bet and pay out 1.5 times their bet - the round is done for that player (mark it so)
+
+            playerInfo.forEach(x => {
+
+                if (playerIdsWithNaturals.includes(x.id)) {
+                    x.money += (x.money * this.configOptions.naturalMultiplier)
+                    x.bet = null;
+                    x.turnComplete = true;
+                }
+            });
+
         }
-
-
-
-
 
         //Add to the writeBatch
         let dataToUpdate = {
 
-            // dynamicPlayerGameData: {
-            //     cardsInDeck: gameDeck.toMap(),
-            //     playerInfo: playerInfo
-            // },
-            // currentStep: 4
+            dynamicPlayerGameData: {
+                playerInfo: playerInfo
+            },
+            currentStep: nextStep
 
         };
-
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
+    setUpMainGameRounds = function (remoteDataGroup, batch) {
+
+        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+        // TODO: Continue implementation here next time......
+
+        //NOTHING BELOW HERE WAS TESTED OR FULLY THOUGHT OUT
+
+
+        //TODO: initialize whatever data needs to be initialized - i.e. currentPlayerIndex = 0; allRoundsComplete = false (add to the batch)
+
+        //TODO: do a loading screen for all players here
+        batch = this.setupLoadingScreen(remoteDataGroup, batch)
+
+
+        //Call first players turn setup function
+        let firstPlayerId = 0;
+
+        let dataToUpdate = this.setupPlayersTurn(firstPlayerId)
+
+
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+
+
+
+
+    }
+
+    setUpCheckForEndOfPlayerTurn = function (remoteDataGroup, batch) {
+
+        if (!remoteDataGroup || !batch) console.log('oh no!')
+
+        //Setup check instructions to evaluate the end of a players turn
+
+    }
 
     //Functions called from from Vue component (These generally run in their own transaction - NOT BATCH )--------------------------------------------------------------------------
     /*
@@ -503,12 +571,45 @@ export default class BlackJackGame extends BaseGame {
             }
         }
 
+    }
+
+    writePlayerRoundResults = function (remoteDataGroup, userId, answerResults) {
+
+
+        if (!remoteDataGroup || !userId || !answerResults) console.log('oh no!')
+
+        // this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+        //     //Update the player info with the bet made in the UI()
+        //     aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
+        //         .forEach((x) => {
+        //             x.bet = answerResults;
+        //         });
+
+        //     return aData;
+        // });
 
     }
 
 
 
+
     //General "Private" Helper functions -----------------------------------------------------------------
+
+    buildPlayerInfoObj() {
+
+        let ph = {
+            id: null,
+            name: null,
+            cards: [],
+            money: null,
+            bet: null,
+            turnComplete: false
+        }
+
+        return ph;
+
+    }
 
     convertCardArrayToMapArray(cardArray) {
 
@@ -566,6 +667,41 @@ export default class BlackJackGame extends BaseGame {
         }
 
         return handValue;
+    }
+
+
+    setupPlayersTurn(playerToSetupId) {
+
+
+        if (!playerToSetupId) console.log('oh no!')
+
+        //TODO: sort this out
+
+
+        //Create notion of "targetPlayerInstructions" - should be an array of instructions and we identify the specific players by id
+
+        //Clear existing "targetPlayerInstructions"
+
+        //Create display instructions for a specific player
+        //Display instructions render the card table 
+        //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
+        //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())
+
+
+
+        //TODO: Create a data object for a write batch and return it;
+
+        let dataToUpdate = {
+
+            // dynamicPlayerGameData: {             
+            //     playerInfo: playerInfo
+            // },
+            // currentStep: nextStep
+
+        };
+
+
+        return dataToUpdate;
     }
 
 
