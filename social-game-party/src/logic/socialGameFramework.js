@@ -116,6 +116,8 @@ export var mainFramework = {
 
     gameTools: {
 
+        //Enums_________________________________________________________________________________
+
         gameList: {
             MathMaster: "MathMaster",
             BlackJack: "BlackJack"
@@ -131,6 +133,7 @@ export var mainFramework = {
             LoadingScreen: "LoadingScreen",
             QuestionAndAnswer: "QuestionAndAnswer",
             ResultScreen: "ResultScreen",
+            CardTable: "CardTable"
         },
 
         //Used to indicate "where" a src object for a check function is stored
@@ -140,10 +143,50 @@ export var mainFramework = {
             results: "results"  // HostGameData -> results
 
         },
+        
+
+        //TODO: Re-evaluate where this should live.
+        //Card related Helpers?_________________________________________________________________________________
+
+        
+        //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
+         //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
+        //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())
+        buildCardTableConfig: function(){
+
+              // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+        // TODO: Continue implementation here next time......
+
+            //...current card table component data
+            /*
+            cardDeck: null, //The Deck
+            playerHand: [], //The players cards        
+            deckViewType: "scroll",
+            */
+
+
+            //The deck and player hands should be 
+
+            
+
+            let cardTableConfig = {
+
+                showDebugTools: false,
+
+                showContentsOfDeck: false,
 
 
 
-        //Instruction Builders
+            }
+
+
+            return cardTableConfig;
+        },
+
+
+
+
+        //Instruction Builders_________________________________________________________________________________
 
         //Examples from math master
         /*
@@ -164,7 +207,7 @@ export var mainFramework = {
          }
          */
 
-        buildSimpleDisplayInstructions: function (c, t, m) {
+        buildSimpleDisplayInstructions: function (c, t, m, targetUserId = null) {
 
             let instructions = {
                 type: this.instructionTypes.Display,
@@ -173,8 +216,12 @@ export var mainFramework = {
                 msg: m
             }
 
+            if(targetUserId)
+                instructions.targetUserId = targetUserId;
+
             return instructions;
         },
+
 
 
         /*
@@ -191,7 +238,7 @@ export var mainFramework = {
       }
       */
 
-        buildLoopThroughInstructions: function (c, src, qVar, aVar, resFunc) {
+        buildLoopThroughInstructions: function (c, src, qVar, aVar, resFunc, targetUserId = null) {
             let instructions = {
                 type: this.instructionTypes.LoopThrough,
                 comp: c,
@@ -203,6 +250,9 @@ export var mainFramework = {
 
                 resultFunction: resFunc
             }
+
+            if(targetUserId)
+                instructions.targetUserId = targetUserId;
 
             return instructions;
         },
@@ -228,13 +278,16 @@ export var mainFramework = {
         },
 
 
-        buildQuestionAndAnswerInstructions: function( qText, followFunc){
+        buildQuestionAndAnswerInstructions: function( qText, followFunc, targetUserId = null){
             let instructions = {
                 type: this.instructionTypes.Display,
                 comp: 'QuestionAndAnswer',
                 questionText: qText,
                 followUpFunction: followFunc
             }            
+
+            if(targetUserId)
+                instructions.targetUserId = targetUserId;
 
             return instructions;
         }

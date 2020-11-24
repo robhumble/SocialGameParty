@@ -342,7 +342,6 @@ export default class BlackJackGame extends BaseGame {
     //host sets up a check that all bets have been turned in
     setUpCheckForAllBets = function (remoteDataGroup, batch) {
 
-
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
         let currentCheckInstructions = sgf.mainFramework.gameTools.buildCheckInstructions(
@@ -363,7 +362,6 @@ export default class BlackJackGame extends BaseGame {
     dealCardsToEachPlayer = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
-
 
         let gameDeck = new DeckOfCards();
         gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
@@ -486,23 +484,21 @@ export default class BlackJackGame extends BaseGame {
 
     setUpMainGameRounds = function (remoteDataGroup, batch) {
 
-        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-        // TODO: Continue implementation here next time......
+        //TODO: need to test this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        //NOTHING BELOW HERE WAS TESTED OR FULLY THOUGHT OUT
-
-
-        //TODO: initialize whatever data needs to be initialized - i.e. currentPlayerIndex = 0; allRoundsComplete = false (add to the batch)
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;        
 
         //TODO: do a loading screen for all players here
         batch = this.setupLoadingScreen(remoteDataGroup, batch)
 
 
         //Call first players turn setup function
-        let firstPlayerId = 0;
-
+        let firstPlayerId = playerInfo[0].id;
         let dataToUpdate = this.setupPlayersTurn(firstPlayerId)
 
+        //TODO: initialize whatever data needs to be initialized - i.e. currentPlayerIndex = 0; allRoundsComplete = false (add to the batch)
+        dataToUpdate.currentPlayerIndex = 0; 
+        dataToUpdate.allRoundsComplete = false
 
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
@@ -671,6 +667,12 @@ export default class BlackJackGame extends BaseGame {
 
 
     setupPlayersTurn(playerToSetupId) {
+
+
+        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+        // TODO: Continue implementation here next time......
+        //WORKING IN THE SGF to make a function to build the needed config object for the card table....which we will then set up here and put into the "currentTargetedInstructions"
+
 
 
         if (!playerToSetupId) console.log('oh no!')

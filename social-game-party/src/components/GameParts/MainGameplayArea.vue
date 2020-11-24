@@ -29,6 +29,8 @@
           v-if="currentGameComponent == 'LoadingScreen'"
           :loadingMessageText="displayInstructions.msg"
         ></LoadingScreen>
+
+        <CardTable v-if="currentGameComponent == 'CardTable'"></CardTable>
       </div>
     </div>
   </div>
@@ -45,6 +47,8 @@ import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue";
 import ResultScreen from "@/components/GameParts/ResultScreen.vue";
 import StartGameScreen from "@/components/GameParts/StartGameScreen.vue";
 import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
+import CardTable from "@/components/CardParts/CardTable.vue";
+
 
 import * as sgf from "@/logic/socialGameFramework.js";
 
@@ -60,6 +64,7 @@ export default {
     ResultScreen,
     StartGameScreen,
     LoadingScreen,
+    CardTable
   },
   props: ["", ""],
   data: () => ({
@@ -75,7 +80,9 @@ export default {
     //Loop instructions
     loopThroughData: null,
     questionAndAnswerQuestionText: "",
-    //checkInstructions: null
+
+    //TargetedInstructions
+    hasTargetedInstructions: false,
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
@@ -97,6 +104,7 @@ export default {
       "currentStep",
       "currentInstructions",
       "currentCheckInstructions",
+      "currentTargetedInstructions",
 
       "results",
       "dynamicHostGameData",
@@ -134,6 +142,7 @@ export default {
       }
     },
 
+    //AKA activePlayerGameData in the DB
     playerGameData: function (n, o) {
       //Watch from a check instruction -- Check instructions watch target should only be in playerGameData if the rootObj is "player".
       //If there are check instructions and the watch target is updated, run the check function.
@@ -152,6 +161,7 @@ export default {
       }
     },
 
+    //Global instructions - these apply to all players
     currentInstructions: function (n, o) {
       //Instructions
 
@@ -159,14 +169,21 @@ export default {
 
       //Only update if the instructions are different (based on a shallow compare)
       if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
-        if (n.type == "Display") {
-          this.clearDisplay();
-          this.setUpDisplay(n);
+        if (!this.hasTargetedInstructions) {
+          this.setupNewInstructions(n);
         }
+      }
+    },
 
-        if (n.type == "LoopThrough") {
-          this.clearDisplay();
-          this.setUpLoopThrough(n);
+    //Targeted Instructions - these can apply to a single player (this is going to be an array since multiple player may received unique targeted instructions)
+    currentTargetedInstructions: function (n, o) {
+      this.quickLog(n + o);
+
+      if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
+        if (n.targetUserId == this.currentUserId) {
+          this.hasTargetedInstructions = true;
+
+          this.setupNewInstructions(n);
         }
       }
     },
@@ -222,20 +239,19 @@ export default {
      * Setup the current game by initializing the gameRunner and game.
      */
     setupGame: function () {
-      let game = this.getGame(this.selectedGame)
+      let game = this.getGame(this.selectedGame);
 
-      if(game)
-      {
-      this.gameRunner.setupCurrentGame(
-        game,
-        this.currentRoomName,
-        this.hostId,
-        this.currentSession.currentUser.uniqueId
-      );
+      if (game) {
+        this.gameRunner.setupCurrentGame(
+          game,
+          this.currentRoomName,
+          this.hostId,
+          this.currentSession.currentUser.uniqueId
+        );
 
-      this.listenToActivePlayerGameData();
+        this.listenToActivePlayerGameData();
 
-      if (this.isHost) this.listenToHostGameData();
+        if (this.isHost) this.listenToHostGameData();
       }
     },
 
@@ -417,6 +433,10 @@ export default {
           "setCurrentCheckInstructions",
           remoteDocData.currentCheckInstructions
         );
+        that.$store.commit(
+          "setCurrentTargetedInstructions",
+          remoteDocData.currentTargetedInstructions
+        );
       },
       that.currentRoomName);
     },
@@ -440,20 +460,30 @@ export default {
       this.$emit("exitGame");
     },
 
-    getGame: function(gameStr){      
-      if(gameStr)
-      {       
-        switch(gameStr)
-        {
-          case sgf.mainFramework.gameTools.gameList.MathMaster:  return new MathMasterGame(this.currentRoomName);
-          case sgf.mainFramework.gameTools.gameList.BlackJack :  return new BlackJackGame(this.currentRoomName);
-          default: return "";
-
+    getGame: function (gameStr) {
+      if (gameStr) {
+        switch (gameStr) {
+          case sgf.mainFramework.gameTools.gameList.MathMaster:
+            return new MathMasterGame(this.currentRoomName);
+          case sgf.mainFramework.gameTools.gameList.BlackJack:
+            return new BlackJackGame(this.currentRoomName);
+          default:
+            return "";
         }
-      }     
+      }
     },
 
+    setupNewInstructions: function (newInstructions) {
+      if (newInstructions.type == "Display") {
+        this.clearDisplay();
+        this.setUpDisplay(newInstructions);
+      }
 
+      if (newInstructions.type == "LoopThrough") {
+        this.clearDisplay();
+        this.setUpLoopThrough(newInstructions);
+      }
+    },
   },
 };
 </script>

@@ -82,6 +82,8 @@ export default {
   },
   props: [],
   data: () => ({
+
+    //TODO: these should be props
     cardDeck: null, //The Deck
 
     playerHand: [], //The players cards

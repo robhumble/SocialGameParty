@@ -60,6 +60,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
             currentInstructions: docData.currentInstructions,
             currentCheckInstructions: docData.currentCheckInstructions,
+            currentTargetedInstructions: docData.currentTargetedInstructions,
 
             dynamicPlayerGameData: docData.dynamicPlayerGameData,
 
@@ -219,7 +220,8 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
 
       //Game Instructions
       currentInstructions: null,  //Instructions on what the player should be seeing/doing - this may be "show a loading screen" OR "Loop through questions and answer them"
-      currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action 
+      currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action
+      currentTargetedInstructions: null,
 
       //Used to be game data - this is a general container for data that needs to be stored by the current game.
       dynamicPlayerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)
