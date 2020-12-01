@@ -242,6 +242,17 @@ export default class BlackJackGame extends BaseGame {
             },
             {
                 //6) Machine/dealer runs their turn
+
+                stepNum: 6,
+                desc: " Machine/dealer runs their turn",
+                cleanInstructionsFirst: false,
+
+                // preStepTarget: 'host',
+                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.runMachineDealerRound(data, batch) },
+
             },
             {
                 //7) Machine/dealer evaluates and determine who gets money and/or who is out.
@@ -358,7 +369,7 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
-
+    //Deal cards
     dealCardsToEachPlayer = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
@@ -482,11 +493,12 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    //Kick off the main game rounds by setting up the play phase for the first player
     setUpMainGameRounds = function (remoteDataGroup, batch) {
 
         //TODO: need to test this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        let playerInfo = remoteDataGroup.playerGameData.playerInfo;        
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
         //TODO: do a loading screen for all players here
         batch = this.setupLoadingScreen(remoteDataGroup, batch)
@@ -494,26 +506,51 @@ export default class BlackJackGame extends BaseGame {
 
         //Call first players turn setup function
         let firstPlayerId = playerInfo[0].id;
-        let dataToUpdate = this.setupPlayersTurn(firstPlayerId)
+        let targetedInstructions = this.setupPlayersTurn(firstPlayerId);
+
+        let dataToUpdate = {
+
+            dynamicPlayerGameData: {
+                currentPlayerIndex: 0,
+                allRoundsComplete: false
+            },
+            currentTargetedInstructions: [targetedInstructions],
+
+        };
 
         //TODO: initialize whatever data needs to be initialized - i.e. currentPlayerIndex = 0; allRoundsComplete = false (add to the batch)
-        dataToUpdate.currentPlayerIndex = 0; 
-        dataToUpdate.allRoundsComplete = false
+        // dataToUpdate.currentPlayerIndex = 0; 
+        // dataToUpdate.allRoundsComplete = false
 
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
-
-
-
-
-
     }
 
+    //Setup a check function for the Host to see if a player finished their turn
     setUpCheckForEndOfPlayerTurn = function (remoteDataGroup, batch) {
 
         if (!remoteDataGroup || !batch) console.log('oh no!')
 
         //Setup check instructions to evaluate the end of a players turn
+
+        let currentCheckInstructions = sgf.mainFramework.gameTools.buildCheckInstructions(
+            sgf.mainFramework.gameTools.rootObjects.player,
+            "playerInfo",
+            "checkForEndOfPlayersTurn");
+
+        //Add to the writeBatch
+        let dataToUpdate = {
+            currentCheckInstructions: currentCheckInstructions
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+    }
+
+    runMachineDealerRound= function (remoteDataGroup, batch) {
+        if (!remoteDataGroup || !batch) console.log('oh no!')
+        
+              // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
+        // TODO: Continue implementation here next time......
 
     }
 
@@ -546,6 +583,7 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
+    //Check to see if all players have made bets - if so move on to the next step
     checkForAllBetsIn = function (remoteDataGroup, userId) {
 
         //TODO - Host check seems redundant...         
@@ -558,34 +596,105 @@ export default class BlackJackGame extends BaseGame {
             if (betCount == playerCount) {
                 //Move to step 3 (and clear all existing instructions.)           
 
-                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
-                    roomData.currentStep = 3;
-                    roomData.currentCheckInstructions = null;
-                    roomData.currentInstructions = null;
-                    return roomData;
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+                    aData.currentStep = 3;
+                    aData.currentCheckInstructions = null;
+                    aData.currentInstructions = null;
+                    return aData;
                 });
             }
         }
 
     }
 
+
+    //Update the remote db with the new deck and playerinfo state after a player finishes thier turn/round   
+    /*
+    AnswerResults should expect an object that looks like this
+
+    {
+        newDeckState,
+        newPlayerInfoState
+    }
+    */
     writePlayerRoundResults = function (remoteDataGroup, userId, answerResults) {
 
 
         if (!remoteDataGroup || !userId || !answerResults) console.log('oh no!')
 
-        // this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+        let newPlayerInfoState = answerResults.newPlayerInfoState;
 
-        //     //Update the player info with the bet made in the UI()
-        //     aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
-        //         .forEach((x) => {
-        //             x.bet = answerResults;
-        //         });
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
-        //     return aData;
-        // });
+            aData.dynamicPlayerGameData.cardsInDeck = answerResults.newDeckState.toMap();
+
+            //Update the player info with the bet made in the UI()
+            aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
+                .forEach((y) => {
+                    y.id = newPlayerInfoState.id,
+                    y.name = newPlayerInfoState.name,
+                    y.cards = newPlayerInfoState.cards,
+                    y.money = newPlayerInfoState.money,
+                    y.bet = newPlayerInfoState.bet,
+                    y.turnComplete = true;
+                });
+
+            return aData;
+        });
 
     }
+
+    //Check to see if the current players turn is complete, if so move on to the next player OR move on to the next game step
+    checkForEndOfPlayersTurn = function (remoteDataGroup, userId) {
+
+        if (!remoteDataGroup || !userId  )console.log('oh no!')
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+
+        let cpi = remoteDataGroup.playerGameData.currentPlayerIndex;
+
+        if (playerInfo[cpi].turnComplete) {
+
+
+            let nextIndex = cpi + 1;
+
+
+            if (nextIndex < playerInfo.length) {      
+                
+                //Still players left to go through - Setup the next players turn
+                let targetedInstructions = this.setupPlayersTurn(playerInfo[nextIndex].id);
+            
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+                    aData.dynamicPlayerGameData.currentPlayerIndex = nextIndex;
+                    aData.currentTargetedInstructions = targetedInstructions;
+
+                    return aData;
+                });
+
+
+            }
+            else {
+
+                //All rounds are complete - clean up and move on to the next step.
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+                    aData.dynamicPlayerGameData.allRoundsComplete = true;
+                    aData.currentStep = 6;
+                    aData.currentCheckInstructions = null;
+                    aData.currentInstructions = null;
+                    aData.currentTargetedInstructions = null
+
+                    return aData;
+                });
+
+            }
+
+        }
+
+    }
+
 
 
 
@@ -666,12 +775,9 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
-    setupPlayersTurn(playerToSetupId) {
 
-
-        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-        // TODO: Continue implementation here next time......
-        //WORKING IN THE SGF to make a function to build the needed config object for the card table....which we will then set up here and put into the "currentTargetedInstructions"
+    //Get targetedInstructions for the passed in player ID - targeted instructions here should set up the card table component
+    setupTargetedInstructionsForPlayersTurn(playerToSetupId) {      
 
 
 
@@ -691,19 +797,18 @@ export default class BlackJackGame extends BaseGame {
 
 
 
-        //TODO: Create a data object for a write batch and return it;
+        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig();
 
-        let dataToUpdate = {
+        cardTableConfig.showCurrentPlayerHand = true;
+        cardTableConfig.showHitControl = true;
+        cardTableConfig.showStandControl = true;
+        cardTableConfig.endTurnFunctionName = "writePlayerRoundResults";
 
-            // dynamicPlayerGameData: {             
-            //     playerInfo: playerInfo
-            // },
-            // currentStep: nextStep
+        let targetedInstructions = sgf.mainFramework.gameTools.buildCardTableInstructions(cardTableConfig, playerToSetupId);
 
-        };
+        return targetedInstructions;        
 
 
-        return dataToUpdate;
     }
 
 

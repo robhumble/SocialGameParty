@@ -150,12 +150,10 @@ export var mainFramework = {
 
         
         //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
-         //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
+        //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
         //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())
         buildCardTableConfig: function(){
 
-              // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-        // TODO: Continue implementation here next time......
 
             //...current card table component data
             /*
@@ -172,9 +170,30 @@ export var mainFramework = {
             let cardTableConfig = {
 
                 showDebugTools: false,
-
+                
+                //Deck 
                 showContentsOfDeck: false,
 
+                //Deck Controls
+
+
+                //Hands
+                showCurrentPlayerHand: false,
+                showAllPlayerHands: false,
+
+                //Hand Controls                
+                //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
+                showHitControl: false,
+                hitControlFunctionName: null,
+
+                showStandControl: false,
+                standControlFunctionName: null,
+
+
+
+                endTurnFunctionName: null
+
+                
 
 
             }
@@ -290,7 +309,23 @@ export var mainFramework = {
                 instructions.targetUserId = targetUserId;
 
             return instructions;
-        }
+        },
+
+
+        buildCardTableInstructions: function (cardTableConfig, targetUserId = null) {
+
+            let instructions = {
+                type: this.instructionTypes.Display,
+                comp: this.gameComponents.CardTable,                
+                config: cardTableConfig            
+            }
+
+            if(targetUserId)
+                instructions.targetUserId = targetUserId;
+
+            return instructions;
+        },
+
 
 
 
