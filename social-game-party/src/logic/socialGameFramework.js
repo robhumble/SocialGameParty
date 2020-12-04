@@ -133,7 +133,8 @@ export var mainFramework = {
             LoadingScreen: "LoadingScreen",
             QuestionAndAnswer: "QuestionAndAnswer",
             ResultScreen: "ResultScreen",
-            CardTable: "CardTable"
+            CardTable: "CardTable", 
+            YesNoQuestion: "YesNoQuestion"
         },
 
         //Used to indicate "where" a src object for a check function is stored
@@ -297,10 +298,11 @@ export var mainFramework = {
         },
 
 
-        buildQuestionAndAnswerInstructions: function( qText, followFunc, targetUserId = null){
+        //c should be the Q uestionAndAnswer component or the YesNoQuestion component
+        buildQuestionAndAnswerInstructions: function( c, qText, followFunc, targetUserId = null){
             let instructions = {
                 type: this.instructionTypes.Display,
-                comp: 'QuestionAndAnswer',
+                comp: c,
                 questionText: qText,
                 followUpFunction: followFunc
             }            
