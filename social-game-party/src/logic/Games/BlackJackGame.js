@@ -163,6 +163,27 @@ export default class BlackJackGame extends BaseGame {
                 // checkTarget: 'host',
                 // checkFunction: (d) => { return this.prepareCheckInstructions(d) }
             },
+
+            {
+                //1) Reset Game - Set things up for another round.
+                stepNum: '1B',
+                desc: "Reset Game - Set things up for another round.",
+                cleanInstructionsFirst: true,
+
+                preStepTarget: 'host',
+                preStepFunction: (data, batch) => { return this.setupLoadingScreen(data, batch) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.resetBlackJackForAnotherRound(data, batch) },
+
+                // followUpTarget: 'none',
+                // followUpFunction:  (d) => { return this.followUp(d) },
+
+                // checkTarget: 'host',
+                // checkFunction: (d) => { return this.prepareCheckInstructions(d) }
+            },
+
+
             {
                 //2) Each player makes a bet
 
@@ -270,7 +291,22 @@ export default class BlackJackGame extends BaseGame {
                 stepFunction: (data, batch) => { return this.setupEndOfRoundOptions(data, batch) },
             },
 
-            //8) Host has chosen to end the game - show a final end screen
+
+            {
+                //8) Host has chosen to end the game - show a final end screen
+
+
+                stepNum: 8,
+                desc: "Host has chosen to end the game - show a final end screen",
+                cleanInstructionsFirst: true,
+
+                // preStepTarget: 'host',
+                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+
+                target: 'host',
+                stepFunction: (data, batch) => { return this.showTheFinalScreen(data, batch) },
+            },
+
 
 
 
@@ -329,6 +365,55 @@ export default class BlackJackGame extends BaseGame {
         playerInfo.forEach(x => x.cards = this.convertCardArrayToMapArray(x.cards));
         dh.cards = this.convertCardArrayToMapArray(dh.cards);
 
+
+        //Add to the writeBatch
+        let dataToUpdate = {
+
+            dynamicPlayerGameData: {
+                cardDeck: preparedDeck,
+                playerInfo: playerInfo,
+                dealerInfo: dh
+            },
+            currentStep: 2
+
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+    }
+
+    //Set things up for another round
+    resetBlackJackForAnotherRound = function (remoteDataGroup, batch) {
+
+        //SetUp the deck 
+        let deck = new DeckOfCards();
+        deck.populateTraditionalDeck();
+        deck.shuffleDeck();
+
+        //Reset player hands.
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+        playerInfo.forEach(x => {
+            x.cards = [];
+            x.bet = null;
+            x.finalHandTotal = 0;
+            x.turnComplete = false;
+            x.bust = false;
+            x.paidOutForTheRound = false;
+        });
+
+
+        //Reset Dealer
+        let dh = remoteDataGroup.playerGameData.dealerInfo;
+        dh.cards = [];
+        dh.bet = null;
+        dh.finalHandTotal = 0;
+        dh.turnComplete = false;
+        dh.bust = false;
+        dh.paidOutForTheRound = false;
+
+        //prep for storage
+        let preparedDeck = deck.toMap();
+        playerInfo.forEach(x => x.cards = this.convertCardArrayToMapArray(x.cards));
+        dh.cards = this.convertCardArrayToMapArray(dh.cards);
 
         //Add to the writeBatch
         let dataToUpdate = {
@@ -652,15 +737,68 @@ export default class BlackJackGame extends BaseGame {
         //USE new YesNoQuestion Component to ask host if they want to keep playing or call it
         //should feed it a follow up function 
 
-        //for follow up function - yes sends us back to do step one OR an alternate step 1 that resets instead of initializing the game
-        //No moves us to step 8 where we go into the results screen.
+        //Host yes/No
+        let comp = sgf.mainFramework.gameTools.gameComponents.YesNoQuestion;
+        let questionText = "Do you weant to continue playing? (Yes starts another round, No will end the game here)";
+        let followFunc = "endOfRoundHostDecision";
+
+        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup);
 
 
+        //All other players    
+        let generalInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen,
+            "Waiting....",
+            "Waiting for host to decide whether the game continues...");
 
+        let dataToUpdate = {
+            currentInstructions: generalInstructions,
+            currentTargetedInstructions: [hostInstructions],
+        };
 
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
+    //Tally up the results and show all users the results screen
+    showTheFinalScreen = function (remoteDataGroup, batch) {
+
+
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+        //sort players descending based on money.
+        playerInfo.sort((a, b) => {
+            return b.money - a.money;
+        })
+
+        //Title
+        let topScore = playerInfo[0].money;
+        let winners = playerInfo.filter(x => x.money == topScore);
+
+        let winnerStr = "The game is over, your winner";
+        winnerStr += (winners.length > 1) ? "'s are: " : " is: ";
+        winners.forEach(x => {
+            winnerStr += `${x.name}, \n`
+        });
+
+        //msg
+        let msgStr = ''
+        playerInfo.forEach(x => {
+            msgStr += `${x.name} | final amount = $ ${x.money} \n`; 
+        });
+
+
+        let generalInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.ResultScreen,
+            winnerStr,
+            msgStr);
+
+        let dataToUpdate = {
+            currentInstructions: generalInstructions,
+        };
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+    }
 
 
     //Functions called from from Vue component (These generally run in their own transaction - NOT BATCH )--------------------------------------------------------------------------
@@ -804,6 +942,29 @@ export default class BlackJackGame extends BaseGame {
 
         }
 
+    }
+
+    endOfRoundHostDecision = function (remoteDataGroup, userId, answerResults) {
+
+        //for follow up function - yes sends us back to do step one OR an alternate step 1 that resets instead of initializing the game
+        //No moves us to step 8 where we go into the results screen.
+
+        //Continue do another round of stuff 
+        if (answerResults === true || answerResults === "true") {
+
+            this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+                aData.currentStep = "1B";
+                return aData;
+            });
+        }
+        //Don't continue - everybody goes to the end results screen
+        else {
+
+            this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+                aData.currentStep = 8;
+                return aData;
+            });
+        }
     }
 
 

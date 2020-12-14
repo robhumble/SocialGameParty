@@ -200,7 +200,8 @@ export default class GameRunner {
         //Add to writeBatch
         let dataToUpdate = {
             currentCheckInstructions: null,
-            currentInstructions: null
+            currentInstructions: null,
+            currentTargetedInstructions: null
         };
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
