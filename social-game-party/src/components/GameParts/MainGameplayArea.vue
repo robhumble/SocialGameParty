@@ -49,7 +49,6 @@ import StartGameScreen from "@/components/GameParts/StartGameScreen.vue";
 import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
 import CardTable from "@/components/CardParts/CardTable.vue";
 
-
 import * as sgf from "@/logic/socialGameFramework.js";
 
 //TODO: integrate these with this component
@@ -64,7 +63,7 @@ export default {
     ResultScreen,
     StartGameScreen,
     LoadingScreen,
-    CardTable
+    CardTable,
   },
   props: ["", ""],
   data: () => ({
@@ -82,7 +81,7 @@ export default {
     questionAndAnswerQuestionText: "",
 
     //TargetedInstructions
-    hasTargetedInstructions: false,
+    //hasTargetedInstructions: false,
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
@@ -97,6 +96,7 @@ export default {
       "userList",
       "currentSession",
       "currentRoomName",
+      "currentUserId",
       "isGameStarted",
       "hostId",
       "spectatorGameData",
@@ -169,7 +169,7 @@ export default {
 
       //Only update if the instructions are different (based on a shallow compare)
       if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
-        if (!this.hasTargetedInstructions) {
+        if (!this.currentTargetedInstructions) {
           this.setupNewInstructions(n);
         }
       }
@@ -177,13 +177,15 @@ export default {
 
     //Targeted Instructions - these can apply to a single player (this is going to be an array since multiple player may received unique targeted instructions)
     currentTargetedInstructions: function (n, o) {
-      this.quickLog(n + o);
+      this.quickLog(n + o); 
 
       if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
-        if (n.targetUserId == this.currentUserId) {
-          this.hasTargetedInstructions = true;
+        let targetedInstructionsForCurrentUser = n.find(
+          (x) => x.targetUserId == this.currentUserId
+        );
 
-          this.setupNewInstructions(n);
+        if (targetedInstructionsForCurrentUser) {
+          this.setupNewInstructions(targetedInstructionsForCurrentUser);
         }
       }
     },

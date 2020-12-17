@@ -418,11 +418,17 @@ export default class BlackJackGame extends BaseGame {
         //Add to the writeBatch
         let dataToUpdate = {
 
-            dynamicPlayerGameData: {
-                cardDeck: preparedDeck,
-                playerInfo: playerInfo,
-                dealerInfo: dh
-            },
+            // dynamicPlayerGameData: {
+            //     cardDeck: preparedDeck,
+            //     playerInfo: playerInfo,
+            //     dealerInfo: dh
+            // },
+
+            "dynamicPlayerGameData.cardDeck":preparedDeck,
+            "dynamicPlayerGameData.playerInfo":playerInfo,
+            "dynamicPlayerGameData.dealerInfo": dh,
+
+
             currentStep: 2
 
         };
@@ -435,7 +441,7 @@ export default class BlackJackGame extends BaseGame {
     askPlayersForBets = function (remoteDataGroup, batch) {
 
         let qaInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
-            sgf.mainFramework.gameComponents.QuestionAndAnswer,
+            sgf.mainFramework.gameTools.gameComponents.QuestionAndAnswer,
             "How much will you bet?", //question Text
             "writePlayerBet" //follow up function
         );
@@ -479,7 +485,7 @@ export default class BlackJackGame extends BaseGame {
 
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
-        //Deal round 1        
+        //Deal a face up card to each player    
         playerInfo.forEach((player) => {
 
             let c = gameDeck.dealACard();
@@ -488,27 +494,35 @@ export default class BlackJackGame extends BaseGame {
             player.cards.push(c.toMap());
         })
 
-        //Deal round 2
+        //Deal a face down card to each player
         playerInfo.forEach((player) => {
-
-            let c = gameDeck.dealACard();
-
-            if (player.Id == "dealer")
-                c.isFaceUp = false;
-            else
-                c.isFaceUp = true;
-
+            let c = gameDeck.dealACard();            
+            c.isFaceUp = true;
             player.cards.push(c.toMap());
         })
+
+
+        //Deal 2 cards to the dealer.
+        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+        let c1 = gameDeck.dealACard(); 
+        let c2 = gameDeck.dealACard(); 
+        dealerInfo.cards.push(c1.toMap(),c2.toMap() );
+        
+
 
 
         //Add to the writeBatch
         let dataToUpdate = {
 
-            dynamicPlayerGameData: {
-                cardsInDeck: gameDeck.toMap(),
-                playerInfo: playerInfo
-            },
+            // dynamicPlayerGameData: {
+            //     cardsInDeck: gameDeck.toMap(),
+            //     playerInfo: playerInfo
+            // },
+
+            "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
+            "dynamicPlayerGameData.playerInfo": playerInfo,
+            "dynamicPlayerGameData.dealerInfo": dealerInfo,
+
             currentStep: 4
 
         };
@@ -584,9 +598,13 @@ export default class BlackJackGame extends BaseGame {
         //Add to the writeBatch
         let dataToUpdate = {
 
-            dynamicPlayerGameData: {
-                playerInfo: playerInfo
-            },
+            // dynamicPlayerGameData: {
+            //     playerInfo: playerInfo
+            // },
+            "dynamicPlayerGameData.playerInfo": playerInfo,
+
+
+
             currentStep: nextStep
 
         };
@@ -608,14 +626,19 @@ export default class BlackJackGame extends BaseGame {
 
         //Call first players turn setup function
         let firstPlayerId = playerInfo[0].id;
-        let targetedInstructions = this.setupPlayersTurn(firstPlayerId);
+        let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(firstPlayerId);
 
         let dataToUpdate = {
 
-            dynamicPlayerGameData: {
-                currentPlayerIndex: 0,
-                allRoundsComplete: false
-            },
+            // dynamicPlayerGameData: {
+            //     currentPlayerIndex: 0,
+            //     allRoundsComplete: false
+            // },
+            "dynamicPlayerGameData.currentPlayerIndex": 0,
+            "dynamicPlayerGameData.allRoundsComplete": false,
+
+
+
             currentTargetedInstructions: [targetedInstructions],
 
         };
@@ -714,11 +737,17 @@ export default class BlackJackGame extends BaseGame {
         //Add to the writeBatch
         let dataToUpdate = {
 
-            dynamicPlayerGameData: {
-                cardDeck: gameDeck.toMap(),
-                playerInfo: playerInfo,
-                dealerInfo: dealerInfo
-            },
+            // dynamicPlayerGameData: {
+            //     cardDeck: gameDeck.toMap(),
+            //     playerInfo: playerInfo,
+            //     dealerInfo: dealerInfo
+            // },
+
+            "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
+            "dynamicPlayerGameData.playerInfo": playerInfo,
+            "dynamicPlayerGameData.dealerInfo": dealerInfo,
+
+
             currentStep: 7
         };
 
@@ -912,7 +941,7 @@ export default class BlackJackGame extends BaseGame {
             if (nextIndex < playerInfo.length) {
 
                 //Still players left to go through - Setup the next players turn
-                let targetedInstructions = this.setupPlayersTurn(playerInfo[nextIndex].id);
+                let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(playerInfo[nextIndex].id);
 
                 this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
