@@ -1,4 +1,5 @@
 import store from '@/store/store.js'
+import Card from "@/logic/Cards/Card.js";
 
 export var mainFramework = {
 
@@ -17,7 +18,7 @@ export var mainFramework = {
             mainChat.scrollTop = mainChat.scrollHeight;
     },
 
-    //TODO: Consider making recursive to check nested arrays....might get unweildly though.
+    //TODO: Make this recursive to check for nested objects and Arrays
     /**
      * (Shallow Compare) Quick check to see if an object is "roughly" the same. 
      * @param {object} objectA 
@@ -29,6 +30,15 @@ export var mainFramework = {
             this.megaLog("Cannot compare null/undefined for similarities.");
             return false;
         }
+
+        
+        //hacky quick check - if the object have matching time stamp keys, consider them the same
+        if(objectA.timeStampKey == objectB.timeStampKey)
+        return true;
+        
+
+
+
 
         //Check each property in an object a against object b
         let keyCheck = (oA, oB) => {
@@ -149,11 +159,41 @@ export var mainFramework = {
         //TODO: Re-evaluate where this should live.
         //Card related Helpers?_________________________________________________________________________________
 
+
+        convertCardArrayToMapArray(cardArray) {
+
+            let cardMapArray = [];
+            cardArray.forEach(x => cardMapArray.push(x.toMap()));
+    
+            return cardMapArray;
+        },
+    
+        getCardArrayFromMapArray(mapArray) {
+    
+            let cardArray = [];
+    
+            mapArray.forEach((x) => {
+                let c = new Card();
+                c.fromMap(x)
+                cardArray.push(c);
+            });
+    
+            return cardArray;
+        },
+
         
         //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
         //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
-        //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())
-        buildCardTableConfig: function(){
+        //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())\
+
+
+        //gn is the gameName (only black jack atm)
+        //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE ----------------------
+        //dL (deckLocation) - the remote object where the deck map is located
+        //dN (deckName) - the name of the deck map in the deck location
+        //pIL (playerInfoLocation) - the remote object where the playerInfo array is located (everything about the players - including thier hand - which we assume will be called "cards")
+        //pIN (playerInfoName) the name of the array of playerInfo maps in the pIN
+        buildCardTableConfig: function(gn , dL, dN, pIL, pIN){
 
 
             //...current card table component data
@@ -170,7 +210,19 @@ export var mainFramework = {
 
             let cardTableConfig = {
 
+                gameName: gn,
+
                 showDebugTools: false,
+
+                //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE
+                //Describe the location and name of the deck and the player hand object in the remote document...
+                deckLocation: dL,
+                deckName: dN,
+                playerInfoLocation: pIL,
+                playerInfoName: pIN,
+
+
+
                 
                 //Deck 
                 showContentsOfDeck: false,
@@ -186,9 +238,11 @@ export var mainFramework = {
                 //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
                 showHitControl: false,
                 hitControlFunctionName: null,
+                hitControlFunc:null,
 
                 showStandControl: false,
                 standControlFunctionName: null,
+                standControlFunc: null,
 
 
 
@@ -239,6 +293,8 @@ export var mainFramework = {
             if(targetUserId)
                 instructions.targetUserId = targetUserId;
 
+            instructions.timeStampKey = Date.now();
+
             return instructions;
         },
 
@@ -274,6 +330,8 @@ export var mainFramework = {
             if(targetUserId)
                 instructions.targetUserId = targetUserId;
 
+            instructions.timeStampKey = Date.now();
+
             return instructions;
         },
 
@@ -294,6 +352,7 @@ export var mainFramework = {
                 checkFunction: checkFunc
             }
 
+            currentCheckInstructions.timeStampKey = Date.now();
             return currentCheckInstructions;
         },
 
@@ -310,6 +369,7 @@ export var mainFramework = {
             if(targetUserId)
                 instructions.targetUserId = targetUserId;
 
+            instructions.timeStampKey = Date.now();
             return instructions;
         },
 
@@ -325,6 +385,7 @@ export var mainFramework = {
             if(targetUserId)
                 instructions.targetUserId = targetUserId;
 
+            instructions.timeStampKey = Date.now();
             return instructions;
         },
 

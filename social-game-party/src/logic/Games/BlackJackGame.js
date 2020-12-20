@@ -2,7 +2,7 @@ import * as sgf from "@/logic/socialGameFramework.js";
 
 import BaseGame from "@/logic/Games/BaseGame.js";
 
-import Card from "@/logic/Cards/Card.js";
+//import Card from "@/logic/Cards/Card.js";
 import DeckOfCards from "@/logic/Cards/DeckOfCards.js";
 
 //import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
@@ -23,6 +23,11 @@ export default class BlackJackGame extends BaseGame {
         //Setup Configuration
         this.configOptions.startingMoney = 100;
         this.configOptions.naturalMultiplier = 1.5;
+
+
+
+        this.convertCardArrayToMapArray = sgf.mainFramework.gameTools.convertCardArrayToMapArray;
+        this.getCardArrayFromMapArray = sgf.mainFramework.gameTools.getCardArrayFromMapArray;
 
     }
 
@@ -771,7 +776,7 @@ export default class BlackJackGame extends BaseGame {
         let questionText = "Do you weant to continue playing? (Yes starts another round, No will end the game here)";
         let followFunc = "endOfRoundHostDecision";
 
-        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup);
+        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup.hostId);
 
 
         //All other players    
@@ -887,34 +892,44 @@ export default class BlackJackGame extends BaseGame {
     //Update the remote db with the new deck and playerinfo state after a player finishes thier turn/round   
     /*
     AnswerResults should expect an object that looks like this
-
-    {
-        newDeckState,
-        newPlayerInfoState
-    }
+ 
+    endTurnResult = {
+          endTurnFunctionName: this.endTurnFunctionName,
+          deck: this.cardDeck,
+          hand: this.hand,
+          finalHandValue: finalHandValue,
+          isBust: isBust
+        }
     */
     writePlayerRoundResults = function (remoteDataGroup, userId, answerResults) {
+        
 
 
         if (!remoteDataGroup || !userId || !answerResults) console.log('oh no!')
 
-        let newPlayerInfoState = answerResults.newPlayerInfoState;
+        //let newPlayerInfoState = answerResults.newPlayerInfoState;
+
+        let newDeck = answerResults.deck.toMap();
+        let newHand =  this.convertCardArrayToMapArray(answerResults.hand);
+
+
+
 
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
-            aData.dynamicPlayerGameData.cardsInDeck = answerResults.newDeckState.toMap();
+            aData.dynamicPlayerGameData.cardsInDeck = newDeck;
 
             //Update the player info with the bet made in the UI()
             aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
                 .forEach((y) => {
-                    y.id = newPlayerInfoState.id;
-                    y.name = newPlayerInfoState.name;
-                    y.cards = newPlayerInfoState.cards;
-                    y.money = newPlayerInfoState.money;
-                    y.bet = newPlayerInfoState.bet;
-                    y.finalHandTotal = newPlayerInfoState.finalHandTotal;
+                    //y.id = newPlayerInfoState.id;
+                    //y.name = newPlayerInfoState.name;
+                    y.cards = newHand;
+                    //y.money = newPlayerInfoState.money;
+                    //y.bet = newPlayerInfoState.bet;
+                    y.finalHandTotal = answerResults.finalHandValue;
                     y.turnComplete = true;
-                    y.bust = newPlayerInfoState.bust;
+                    y.bust = answerResults.isBust;
                 });
 
             return aData;
@@ -962,7 +977,7 @@ export default class BlackJackGame extends BaseGame {
                     aData.currentStep = 6;
                     aData.currentCheckInstructions = null;
                     aData.currentInstructions = null;
-                    aData.currentTargetedInstructions = null
+                    aData.currentTargetedInstructions = null;
 
                     return aData;
                 });
@@ -997,6 +1012,50 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    //CARD TABLE SPECIFIC functions - (THESE ARE ADDITIONAL RESOURCE FUNCTIONS MEANT TO BE CALLED BY THE CARD TABLE COMPONENT)-------------------------------------------------------
+
+
+    hitFunction(deck, hand){
+
+        let c = deck.dealACard();
+        if(c) {
+            c.isFaceUp = true;
+            hand.push(c);
+        }
+
+
+        let handVal = this.getHandValue(hand);
+
+        let isBust = (handVal > 21 ) ;      
+
+        let result = {
+            deck: deck,
+            hand: hand,
+            handValue: handVal,
+            readyForEnd:isBust,
+            isBust: isBust
+        }
+
+        return result;
+    }
+
+    standFunction(deck, hand){
+
+        let handVal = this.getHandValue(hand);
+        
+        let result = {
+            deck: deck,
+            hand: hand,
+            handValue: handVal,
+            readyForEnd: true,
+            isBust: false
+        }
+
+        return result;
+    }
+
+
+
 
 
 
@@ -1020,25 +1079,7 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
-    convertCardArrayToMapArray(cardArray) {
-
-        let cardMapArray = [];
-        cardArray.forEach(x => cardMapArray.push(x.toMap()));
-
-        return cardMapArray;
-    }
-
-    getCardArrayFromMapArray(mapArray) {
-
-        let cardArray = [];
-
-        mapArray.forEach((x) => {
-            let c = new Card();
-            cardArray.push(c.fromMap(x));
-        });
-
-        return cardArray;
-    }
+   
 
     /**
      * Using BlackJack rules attempt to get the value of a hand.
@@ -1058,12 +1099,12 @@ export default class BlackJackGame extends BaseGame {
             if (parseInt(cur.Value))
                 return acc + parseInt(cur.Value);
 
-            if (faceVals.some(x => x == cur.Value))
+            else if (faceVals.some(x => x == cur.Value))
                 return acc + 10;
 
-            if (cur.Value == "A")
+            else if (cur.Value == "A")
                 return acc + 11;
-        });
+        }, 0);
 
         //If the handValue is over 21, check to see if there are aces.  If we have Aces, turn them into "1" by subtracting 10.  Go one by one to try and get below 21, if we succeed stop converting.
         if (handValue > 21) {
@@ -1100,13 +1141,28 @@ export default class BlackJackGame extends BaseGame {
         //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())
 
 
+        //gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
 
-        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig();
+
+        let gn = sgf.mainFramework.gameTools.gameList.BlackJack;
+
+        //Location and names of the deck and player info maps.
+        let        dL ="playerGameData", 
+        dN = "cardDeck", 
+        pIL = "playerGameData", 
+        pIN ="playerInfo";
+
+        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig(gn, dL, dN, pIL, pIN);
 
         cardTableConfig.showCurrentPlayerHand = true;
         cardTableConfig.showHitControl = true;
-        cardTableConfig.showStandControl = true;
+        cardTableConfig.hitControlFunctionName= "hitFunction";        
+        cardTableConfig.showStandControl = true;                
+        cardTableConfig.standControlFunctionName= "standFunction";
         cardTableConfig.endTurnFunctionName = "writePlayerRoundResults";
+
+
+
 
         let targetedInstructions = sgf.mainFramework.gameTools.buildCardTableInstructions(cardTableConfig, playerToSetupId);
 

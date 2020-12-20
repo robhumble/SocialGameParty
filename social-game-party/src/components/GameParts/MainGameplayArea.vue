@@ -30,7 +30,18 @@
           :loadingMessageText="displayInstructions.msg"
         ></LoadingScreen>
 
-        <CardTable v-if="currentGameComponent == 'CardTable'"></CardTable>
+        <CardTable
+          v-if="currentGameComponent == 'CardTable'"
+          :cardTableConfig="displayInstructions.config"
+          :gameClass="gameClass"
+          @endOfTurnEvent="cardTableEndTurnHandler"
+        ></CardTable>
+
+                <YesNoQuestion
+          v-if="currentGameComponent == 'YesNoQuestion'"
+          :questionText="questionAndAnswerQuestionText"
+          @answerEvent="questionAndAnswerHandler"
+        ></YesNoQuestion>
       </div>
     </div>
   </div>
@@ -48,6 +59,7 @@ import ResultScreen from "@/components/GameParts/ResultScreen.vue";
 import StartGameScreen from "@/components/GameParts/StartGameScreen.vue";
 import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
 import CardTable from "@/components/CardParts/CardTable.vue";
+import YesNoQuestion from "@/components/GameParts/YesNoQuestion.vue";
 
 import * as sgf from "@/logic/socialGameFramework.js";
 
@@ -64,6 +76,7 @@ export default {
     StartGameScreen,
     LoadingScreen,
     CardTable,
+    YesNoQuestion
   },
   props: ["", ""],
   data: () => ({
@@ -85,6 +98,8 @@ export default {
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
+
+    gameClass: null,
   }),
   mounted: function () {
     //If the game hasn't been started yet (i.e. no host), show the start screen.
@@ -177,16 +192,20 @@ export default {
 
     //Targeted Instructions - these can apply to a single player (this is going to be an array since multiple player may received unique targeted instructions)
     currentTargetedInstructions: function (n, o) {
-      this.quickLog(n + o); 
+      this.quickLog(n + o);
 
-      if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
-        let targetedInstructionsForCurrentUser = n.find(
-          (x) => x.targetUserId == this.currentUserId
-        );
+      let newTargeted = null,
+        oldTargeted = null;
 
-        if (targetedInstructionsForCurrentUser) {
-          this.setupNewInstructions(targetedInstructionsForCurrentUser);
-        }
+      if (n) newTargeted = n.find((x) => x.targetUserId == this.currentUserId);
+
+      if (o) oldTargeted = o.find((x) => x.targetUserId == this.currentUserId);
+
+      if (
+        newTargeted &&
+        !sgf.mainFramework.isObjectSimilar(newTargeted, oldTargeted)
+      ) {
+        this.setupNewInstructions(newTargeted);
       }
     },
 
@@ -244,6 +263,8 @@ export default {
       let game = this.getGame(this.selectedGame);
 
       if (game) {
+        this.gameClass = game;
+
         this.gameRunner.setupCurrentGame(
           game,
           this.currentRoomName,
@@ -382,6 +403,14 @@ export default {
       }
     },
 
+    cardTableEndTurnHandler: function (endResultObject) {
+      this.gameRunner.callGameFunction(
+        endResultObject.endTurnFunctionName,
+        this.getRemoteDataGroup,
+        endResultObject
+      );
+    },
+
     /**
      * Reset all the properties related to the current game.  i.e. null out the game runner, clear db, reset display props for this component.
      */
@@ -396,6 +425,8 @@ export default {
         //this.gamePlayDataConnector.resetGameData(this.currentRoomName);
       }
       //this.gameRunner = null;
+
+      this.gameClass = null;
 
       this.clearDisplay();
       this.currentGameComponent = "StartGameScreen";
