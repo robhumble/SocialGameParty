@@ -429,8 +429,8 @@ export default class BlackJackGame extends BaseGame {
             //     dealerInfo: dh
             // },
 
-            "dynamicPlayerGameData.cardDeck":preparedDeck,
-            "dynamicPlayerGameData.playerInfo":playerInfo,
+            "dynamicPlayerGameData.cardDeck": preparedDeck,
+            "dynamicPlayerGameData.playerInfo": playerInfo,
             "dynamicPlayerGameData.dealerInfo": dh,
 
 
@@ -501,7 +501,7 @@ export default class BlackJackGame extends BaseGame {
 
         //Deal a face down card to each player
         playerInfo.forEach((player) => {
-            let c = gameDeck.dealACard();            
+            let c = gameDeck.dealACard();
             c.isFaceUp = true;
             player.cards.push(c.toMap());
         })
@@ -509,10 +509,10 @@ export default class BlackJackGame extends BaseGame {
 
         //Deal 2 cards to the dealer.
         let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
-        let c1 = gameDeck.dealACard(); 
-        let c2 = gameDeck.dealACard(); 
-        dealerInfo.cards.push(c1.toMap(),c2.toMap() );
-        
+        let c1 = gameDeck.dealACard();
+        let c2 = gameDeck.dealACard();
+        dealerInfo.cards.push(c1.toMap(), c2.toMap());
+
 
 
 
@@ -573,7 +573,7 @@ export default class BlackJackGame extends BaseGame {
                     x.paidOutForTheRound = true;
                 }
                 else {
-                    x.money -= x.bet;
+                    x.money = parseInt(x.money) - parseInt(x.bet);
                     x.bet = null;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
@@ -591,7 +591,7 @@ export default class BlackJackGame extends BaseGame {
             playerInfo.forEach(x => {
 
                 if (playerIdsWithNaturals.includes(x.id)) {
-                    x.money += (x.money * this.configOptions.naturalMultiplier)
+                    x.money += (parseInt(x.money) * parseInt(this.configOptions.naturalMultiplier))
                     x.bet = null;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
@@ -679,84 +679,86 @@ export default class BlackJackGame extends BaseGame {
     runMachineDealerEndOfTurnTasks = function (remoteDataGroup, batch) {
         if (!remoteDataGroup || !batch) console.log('oh no!')
 
-        //6a) Machine/dealer runs their turn
-        //...Dealer goes last. - Dealer hits until 17 or over
-        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
-        let gameDeck = new DeckOfCards();
-        gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
+        //TODO - This should prevent this from running multiple times.....why is this running multiple times.
+        if (remoteDataGroup.currentStep != 6)
+            return batch;
+        else
+        {
 
+            //6a) Machine/dealer runs their turn
+            //...Dealer goes last. - Dealer hits until 17 or over
+            let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+            let gameDeck = new DeckOfCards();
+            gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
 
-        let stay = false;
-        let dealerHandTotal = 0;
-
-        while (!stay) {
-
-            dealerHandTotal = this.getHandValue(dealerInfo.cards);
-
-            if (dealerHandTotal < 17) {
+            //Hit until we have over 17                
+            while (this.getHandValue(dealerInfo.cards) < 17) {
                 let c = gameDeck.dealACard();
                 dealerInfo.cards.push(c.toMap());
             }
-            else
-                stay = true;
-        }
 
-        dealerInfo.turnComplete = true;
-        dealerInfo.paidOutForTheRound = true;
+            let finalDealerTotal = this.getHandValue(dealerInfo.cards);
 
+            if (finalDealerTotal > 21)
+                dealerInfo.bust = true;
 
-        //6b) Machine/dealer evaluates and determine who gets money and/or who is out.
-        // On a "win" the winner gets their bet back + 1x their bet from the dealer 
-        // On a "loss" the loser loses their bet
-        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
-
-        playerInfo.forEach(x => {
+            dealerInfo.finalHandTotal = 0;
+            dealerInfo.turnComplete = true;
+            dealerInfo.paidOutForTheRound = true;
 
 
-            if (!x.bust) {
+            //6b) Machine/dealer evaluates and determine who gets money and/or who is out.
+            // On a "win" the winner gets their bet back + 1x their bet from the dealer 
+            // On a "loss" the loser loses their bet
+            let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
-                //tie with dealer
-                if (dealerHandTotal == x.finalHandTotal) {
+            playerInfo.forEach(x => {
+
+                //player lose
+                if (x.bust || (!dealerInfo.bust && finalDealerTotal > x.finalHandTotal)) {
+                    x.money = parseInt(x.money) - parseInt(x.bet);
                     x.bet = null;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
                 }
-                //player lose
-                else if (dealerHandTotal > x.finalHandTotal) {
-                    x.money -= x.bet;
+
+                //tie with dealer
+                else if (finalDealerTotal == x.finalHandTotal && !x.bust && !dealerInfo.bust) {
                     x.bet = null;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
                 }
                 //player win
-                else if (dealerHandTotal < x.finalHandTotal) {
-                    x.money += x.bet;
+                else if ((dealerInfo.bust && !x.bust) || (finalDealerTotal < x.finalHandTotal && !x.bust)) {
+                    x.money = parseInt(x.money) + parseInt(x.bet);
                     x.bet = null;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
                 }
-            }
 
-        });
+            });
 
-        //Add to the writeBatch
-        let dataToUpdate = {
+            //Add to the writeBatch
+            let dataToUpdate = {
 
-            // dynamicPlayerGameData: {
-            //     cardDeck: gameDeck.toMap(),
-            //     playerInfo: playerInfo,
-            //     dealerInfo: dealerInfo
-            // },
+                // dynamicPlayerGameData: {
+                //     cardDeck: gameDeck.toMap(),
+                //     playerInfo: playerInfo,
+                //     dealerInfo: dealerInfo
+                // },
 
-            "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
-            "dynamicPlayerGameData.playerInfo": playerInfo,
-            "dynamicPlayerGameData.dealerInfo": dealerInfo,
+                "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
+                "dynamicPlayerGameData.playerInfo": playerInfo,
+                "dynamicPlayerGameData.dealerInfo": dealerInfo,
 
 
-            currentStep: 7
-        };
+                currentStep: 7
+            };
 
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        }
+        
 
     }
 
@@ -818,7 +820,7 @@ export default class BlackJackGame extends BaseGame {
         //msg
         let msgStr = ''
         playerInfo.forEach(x => {
-            msgStr += `${x.name} | final amount = $ ${x.money} \n`; 
+            msgStr += `${x.name} | final amount = $ ${x.money} \n`;
         });
 
 
@@ -902,7 +904,7 @@ export default class BlackJackGame extends BaseGame {
         }
     */
     writePlayerRoundResults = function (remoteDataGroup, userId, answerResults) {
-        
+
 
 
         if (!remoteDataGroup || !userId || !answerResults) console.log('oh no!')
@@ -910,14 +912,14 @@ export default class BlackJackGame extends BaseGame {
         //let newPlayerInfoState = answerResults.newPlayerInfoState;
 
         let newDeck = answerResults.deck.toMap();
-        let newHand =  this.convertCardArrayToMapArray(answerResults.hand);
+        let newHand = this.convertCardArrayToMapArray(answerResults.hand);
 
 
 
 
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
-            aData.dynamicPlayerGameData.cardsInDeck = newDeck;
+            aData.dynamicPlayerGameData.cardDeck = newDeck;
 
             //Update the player info with the bet made in the UI()
             aData.dynamicPlayerGameData.playerInfo.filter(x => x.id == userId)
@@ -1015,10 +1017,10 @@ export default class BlackJackGame extends BaseGame {
     //CARD TABLE SPECIFIC functions - (THESE ARE ADDITIONAL RESOURCE FUNCTIONS MEANT TO BE CALLED BY THE CARD TABLE COMPONENT)-------------------------------------------------------
 
 
-    hitFunction(deck, hand){
+    hitFunction(deck, hand) {
 
         let c = deck.dealACard();
-        if(c) {
+        if (c) {
             c.isFaceUp = true;
             hand.push(c);
         }
@@ -1026,23 +1028,23 @@ export default class BlackJackGame extends BaseGame {
 
         let handVal = this.getHandValue(hand);
 
-        let isBust = (handVal > 21 ) ;      
+        let isBust = (handVal > 21);
 
         let result = {
             deck: deck,
             hand: hand,
             handValue: handVal,
-            readyForEnd:isBust,
+            readyForEnd: isBust,
             isBust: isBust
         }
 
         return result;
     }
 
-    standFunction(deck, hand){
+    standFunction(deck, hand) {
 
         let handVal = this.getHandValue(hand);
-        
+
         let result = {
             deck: deck,
             hand: hand,
@@ -1079,7 +1081,7 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
-   
+
 
     /**
      * Using BlackJack rules attempt to get the value of a hand.
@@ -1147,18 +1149,18 @@ export default class BlackJackGame extends BaseGame {
         let gn = sgf.mainFramework.gameTools.gameList.BlackJack;
 
         //Location and names of the deck and player info maps.
-        let        dL ="playerGameData", 
-        dN = "cardDeck", 
-        pIL = "playerGameData", 
-        pIN ="playerInfo";
+        let dL = "playerGameData",
+            dN = "cardDeck",
+            pIL = "playerGameData",
+            pIN = "playerInfo";
 
         let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig(gn, dL, dN, pIL, pIN);
 
         cardTableConfig.showCurrentPlayerHand = true;
         cardTableConfig.showHitControl = true;
-        cardTableConfig.hitControlFunctionName= "hitFunction";        
-        cardTableConfig.showStandControl = true;                
-        cardTableConfig.standControlFunctionName= "standFunction";
+        cardTableConfig.hitControlFunctionName = "hitFunction";
+        cardTableConfig.showStandControl = true;
+        cardTableConfig.standControlFunctionName = "standFunction";
         cardTableConfig.endTurnFunctionName = "writePlayerRoundResults";
 
 

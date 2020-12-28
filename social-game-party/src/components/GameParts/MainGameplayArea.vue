@@ -39,7 +39,7 @@
 
                 <YesNoQuestion
           v-if="currentGameComponent == 'YesNoQuestion'"
-          :questionText="questionAndAnswerQuestionText"
+          :questionText="displayInstructions.questionText"
           @answerEvent="questionAndAnswerHandler"
         ></YesNoQuestion>
       </div>
