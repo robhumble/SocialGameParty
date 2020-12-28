@@ -33,8 +33,8 @@ export var mainFramework = {
 
         
         //hacky quick check - if the object have matching time stamp keys, consider them the same
-        if(objectA.timeStampKey == objectB.timeStampKey)
-        return true;
+        if(objectA.timeStampKey && objectB.timeStampKey && objectA.timeStampKey == objectB.timeStampKey)
+            return true;
         
 
 
@@ -82,10 +82,15 @@ export var mainFramework = {
      * @param {*} msg 
      * @param {*} forcePrint - true will force the console log regardless of if the application is in debug mode.
      */
-    megaLog: function (msg, forcePrint) {
+    megaLog: function (msg, forcePrint, includeStackTrace) {
 
         //check to see if the vuex store says we are in debug
-        let isDebug = store.getters.isDebugMode;
+        let isDebug = store.getters.isDebugMode;       
+
+        if(includeStackTrace){
+            let stackTrace = (new Error()).stack;
+            msg += '[['+ stackTrace +']]';          
+        }
 
         if (isDebug || forcePrint)
             console.log(msg);

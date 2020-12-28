@@ -114,6 +114,7 @@ export default {
       "currentUserId",
       "isGameStarted",
       "hostId",
+      "selectedGameName",
       "spectatorGameData",
       "playerGameData",
       "currentStep",
@@ -251,16 +252,16 @@ export default {
     startGame: function (gameName) {
       let hostId = this.currentSession.currentUser.uniqueId;
       let roomName = this.currentRoomName;
-      this.selectedGame = gameName;
+      //this.selectedGame = gameName;
 
-      this.gameRunner.setHost(hostId, roomName);
+      this.gameRunner.setHost(hostId, roomName, gameName);
     },
 
     /**
      * Setup the current game by initializing the gameRunner and game.
      */
     setupGame: function () {
-      let game = this.getGame(this.selectedGame);
+      let game = this.getGame(this.selectedGameName);
 
       if (game) {
         this.gameClass = game;

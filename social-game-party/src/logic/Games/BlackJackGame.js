@@ -161,12 +161,6 @@ export default class BlackJackGame extends BaseGame {
 
                 target: 'host',
                 stepFunction: (data, batch) => { return this.setupBlackJack(data, batch) },
-
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
-
-                // checkTarget: 'host',
-                // checkFunction: (d) => { return this.prepareCheckInstructions(d) }
             },
 
             {
@@ -180,12 +174,6 @@ export default class BlackJackGame extends BaseGame {
 
                 target: 'host',
                 stepFunction: (data, batch) => { return this.resetBlackJackForAnotherRound(data, batch) },
-
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
-
-                // checkTarget: 'host',
-                // checkFunction: (d) => { return this.prepareCheckInstructions(d) }
             },
 
 
@@ -196,14 +184,8 @@ export default class BlackJackGame extends BaseGame {
                 desc: "Each player makes a bet",
                 cleanInstructionsFirst: false,
 
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
-
                 target: 'host',
                 stepFunction: (data, batch) => { return this.askPlayersForBets(data, batch) },
-
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
 
                 checkTarget: 'host',
                 checkFunction: (data, batch) => { return this.setUpCheckForAllBets(data, batch) }
@@ -215,17 +197,8 @@ export default class BlackJackGame extends BaseGame {
                 desc: "Machine/dealer deals cards face up to everyone, dealers second card is hidden",
                 cleanInstructionsFirst: false,
 
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
-
                 target: 'host',
                 stepFunction: (data, batch) => { return this.dealCardsToEachPlayer(data, batch) },
-
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
-
-                // checkTarget: 'host',
-                // checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
             },
             {
                 //4) Evaluate current cards for Naturals - Determine if there's is a need to PUSH (i.e. player and dealer both have black jack)
@@ -234,17 +207,9 @@ export default class BlackJackGame extends BaseGame {
                 desc: "Evaluate current cards for Naturals - Determine if there's is a need to PUSH (i.e. player and dealer both have black jack)",
                 cleanInstructionsFirst: false,
 
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
-
                 target: 'host',
                 stepFunction: (data, batch) => { return this.checkForNaturals(data, batch) },
 
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
-
-                // checkTarget: 'host',
-                // checkFunction: (d) => { return this.setUpCheckForAllBets(d) }
             },
             {
                 //5) Pass control to each player in order so they can run their turn
@@ -253,19 +218,14 @@ export default class BlackJackGame extends BaseGame {
                 desc: "Pass control to each player in order so they can run their turn",
                 cleanInstructionsFirst: false,
 
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
-
                 target: 'host',
                 stepFunction: (data, batch) => { return this.setUpMainGameRounds(data, batch) },
-
-                // followUpTarget: 'none',
-                // followUpFunction:  (d) => { return this.followUp(d) },
 
                 checkTarget: 'host',
                 checkFunction: (data, batch) => { return this.setUpCheckForEndOfPlayerTurn(data, batch) }
 
             },
+            /*
             {
                 //6a) Machine/dealer runs their turn
                 //6b) Machine/dealer evaluates and determine who gets money and/or who is out.
@@ -281,6 +241,9 @@ export default class BlackJackGame extends BaseGame {
                 stepFunction: (data, batch) => { return this.runMachineDealerEndOfTurnTasks(data, batch) },
 
             },
+            */
+
+            /*
             {
                 //7) Machine/dealer gives option to host to continue or to end game early (which would declare the user with the most money as the winner)
 
@@ -288,13 +251,11 @@ export default class BlackJackGame extends BaseGame {
                 stepNum: 7,
                 desc: "Machine/dealer gives option to host to continue or to end game early (which would declare the user with the most money as the winner)",
                 cleanInstructionsFirst: false,
-
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
-
+          
                 target: 'host',
                 stepFunction: (data, batch) => { return this.setupEndOfRoundOptions(data, batch) },
             },
+            */
 
 
             {
@@ -304,9 +265,6 @@ export default class BlackJackGame extends BaseGame {
                 stepNum: 8,
                 desc: "Host has chosen to end the game - show a final end screen",
                 cleanInstructionsFirst: true,
-
-                // preStepTarget: 'host',
-                // preStepFunction: (d) => { return this.setupLoadingScreen(d) },
 
                 target: 'host',
                 stepFunction: (data, batch) => { return this.showTheFinalScreen(data, batch) },
@@ -331,6 +289,7 @@ export default class BlackJackGame extends BaseGame {
      */
 
 
+    //Step 1
     //Set up the deck and the playerinfo (hand, money)
     setupBlackJack = function (remoteDataGroup, batch) {
 
@@ -386,6 +345,7 @@ export default class BlackJackGame extends BaseGame {
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
+    //Step 1B
     //Set things up for another round
     resetBlackJackForAnotherRound = function (remoteDataGroup, batch) {
 
@@ -442,6 +402,7 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    //Step 2
     //host asks players for the bets
     askPlayersForBets = function (remoteDataGroup, batch) {
 
@@ -479,6 +440,7 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
+    //Step 3
     //Deal cards
     dealCardsToEachPlayer = function (remoteDataGroup, batch) {
 
@@ -536,27 +498,31 @@ export default class BlackJackGame extends BaseGame {
 
     }
 
+    //Step 4
     //Following natural rules from https://bicyclecards.com/how-to-play/blackjack/
     checkForNaturals = function (remoteDataGroup, batch) {
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions');
 
+        //Check players for naturals
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
-
         let playerIdsWithNaturals = [];
-        let dealerHasNatural = false;
 
         playerInfo.forEach(x => {
 
             let handVal = this.getHandValue(x.cards);
 
-            if (handVal == 21) {
-                if (x.id == "dealer")
-                    dealerHasNatural = true;
-                else
-                    playerIdsWithNaturals.push(x.id);
-            }
-
+            if (handVal == 21)
+                playerIdsWithNaturals.push(x.id);
         });
+
+
+        //Check dealer for natural
+        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+        let dealerHasNatural = false;
+
+        if (this.getHandValue(dealerInfo.cards) == 21)
+            dealerHasNatural = true;
+
 
         let nextStep = 5;
 
@@ -581,7 +547,25 @@ export default class BlackJackGame extends BaseGame {
             });
 
             //If the dealer has a natural, the round is over so skip to the end;
-            nextStep = 7;
+            //nextStep = 7;
+
+            let endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+
+            //Add to the writeBatch
+            let dataToUpdate = {
+
+                // dynamicPlayerGameData: {
+                //     playerInfo: playerInfo
+                // },
+                "dynamicPlayerGameData.playerInfo": playerInfo,
+
+                //currentStep: nextStep
+                currentInstructions: endOfRoundInstructions.currentInstructions,
+                currentTargetedInstructions: endOfRoundInstructions.currentTargetedInstructions,
+
+            };
+
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
         }
         else {
@@ -598,26 +582,26 @@ export default class BlackJackGame extends BaseGame {
                 }
             });
 
+            //Add to the writeBatch
+            let dataToUpdate = {
+
+                // dynamicPlayerGameData: {
+                //     playerInfo: playerInfo
+                // },
+                "dynamicPlayerGameData.playerInfo": playerInfo,
+
+                currentStep: nextStep
+            };
+
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
         }
 
-        //Add to the writeBatch
-        let dataToUpdate = {
 
-            // dynamicPlayerGameData: {
-            //     playerInfo: playerInfo
-            // },
-            "dynamicPlayerGameData.playerInfo": playerInfo,
-
-
-
-            currentStep: nextStep
-
-        };
-
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
+    //Step 5
     //Kick off the main game rounds by setting up the play phase for the first player
     setUpMainGameRounds = function (remoteDataGroup, batch) {
 
@@ -676,125 +660,11 @@ export default class BlackJackGame extends BaseGame {
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
-    runMachineDealerEndOfTurnTasks = function (remoteDataGroup, batch) {
-        if (!remoteDataGroup || !batch) console.log('oh no!')
-
-        //TODO - This should prevent this from running multiple times.....why is this running multiple times.
-        if (remoteDataGroup.currentStep != 6)
-            return batch;
-        else
-        {
-
-            //6a) Machine/dealer runs their turn
-            //...Dealer goes last. - Dealer hits until 17 or over
-            let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
-            let gameDeck = new DeckOfCards();
-            gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
-
-            //Hit until we have over 17                
-            while (this.getHandValue(dealerInfo.cards) < 17) {
-                let c = gameDeck.dealACard();
-                dealerInfo.cards.push(c.toMap());
-            }
-
-            let finalDealerTotal = this.getHandValue(dealerInfo.cards);
-
-            if (finalDealerTotal > 21)
-                dealerInfo.bust = true;
-
-            dealerInfo.finalHandTotal = 0;
-            dealerInfo.turnComplete = true;
-            dealerInfo.paidOutForTheRound = true;
-
-
-            //6b) Machine/dealer evaluates and determine who gets money and/or who is out.
-            // On a "win" the winner gets their bet back + 1x their bet from the dealer 
-            // On a "loss" the loser loses their bet
-            let playerInfo = remoteDataGroup.playerGameData.playerInfo;
-
-            playerInfo.forEach(x => {
-
-                //player lose
-                if (x.bust || (!dealerInfo.bust && finalDealerTotal > x.finalHandTotal)) {
-                    x.money = parseInt(x.money) - parseInt(x.bet);
-                    x.bet = null;
-                    x.turnComplete = true;
-                    x.paidOutForTheRound = true;
-                }
-
-                //tie with dealer
-                else if (finalDealerTotal == x.finalHandTotal && !x.bust && !dealerInfo.bust) {
-                    x.bet = null;
-                    x.turnComplete = true;
-                    x.paidOutForTheRound = true;
-                }
-                //player win
-                else if ((dealerInfo.bust && !x.bust) || (finalDealerTotal < x.finalHandTotal && !x.bust)) {
-                    x.money = parseInt(x.money) + parseInt(x.bet);
-                    x.bet = null;
-                    x.turnComplete = true;
-                    x.paidOutForTheRound = true;
-                }
-
-            });
-
-            //Add to the writeBatch
-            let dataToUpdate = {
-
-                // dynamicPlayerGameData: {
-                //     cardDeck: gameDeck.toMap(),
-                //     playerInfo: playerInfo,
-                //     dealerInfo: dealerInfo
-                // },
-
-                "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
-                "dynamicPlayerGameData.playerInfo": playerInfo,
-                "dynamicPlayerGameData.dealerInfo": dealerInfo,
-
-
-                currentStep: 7
-            };
-
-            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
-
-        }
-        
-
-    }
 
 
 
-    setupEndOfRoundOptions = function (remoteDataGroup, batch) {
-        if (!remoteDataGroup || !batch) console.log('oh no!')
 
-        // !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-        // TODO: Continue implementation here next time......
-
-        //USE new YesNoQuestion Component to ask host if they want to keep playing or call it
-        //should feed it a follow up function 
-
-        //Host yes/No
-        let comp = sgf.mainFramework.gameTools.gameComponents.YesNoQuestion;
-        let questionText = "Do you weant to continue playing? (Yes starts another round, No will end the game here)";
-        let followFunc = "endOfRoundHostDecision";
-
-        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup.hostId);
-
-
-        //All other players    
-        let generalInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen,
-            "Waiting....",
-            "Waiting for host to decide whether the game continues...");
-
-        let dataToUpdate = {
-            currentInstructions: generalInstructions,
-            currentTargetedInstructions: [hostInstructions],
-        };
-
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
-
-    }
-
+    //Step 8
     //Tally up the results and show all users the results screen
     showTheFinalScreen = function (remoteDataGroup, batch) {
 
@@ -963,7 +833,7 @@ export default class BlackJackGame extends BaseGame {
                 this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
                     aData.dynamicPlayerGameData.currentPlayerIndex = nextIndex;
-                    aData.currentTargetedInstructions = targetedInstructions;
+                    aData.currentTargetedInstructions = [targetedInstructions];
 
                     return aData;
                 });
@@ -972,23 +842,31 @@ export default class BlackJackGame extends BaseGame {
             }
             else {
 
-                //All rounds are complete - clean up and move on to the next step.
-                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+                //Now calling step 6 directly from this function
 
-                    aData.dynamicPlayerGameData.allRoundsComplete = true;
-                    aData.currentStep = 6;
-                    aData.currentCheckInstructions = null;
-                    aData.currentInstructions = null;
-                    aData.currentTargetedInstructions = null;
+                this.runMachineDealerEndOfTurnTasks(remoteDataGroup);
 
-                    return aData;
-                });
+                // //All rounds are complete - clean up and move on to the next step.
+                // this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+                //     if(aData.currentStep!=6){
+                //     aData.dynamicPlayerGameData.allRoundsComplete = true;
+                //     aData.currentStep = 6;
+                //     aData.currentCheckInstructions = null;
+                //     aData.currentInstructions = null;
+                //     aData.currentTargetedInstructions = null;                    
+                //     }
+                //     return aData;
+                // });
 
             }
 
         }
 
     }
+
+
+
 
     endOfRoundHostDecision = function (remoteDataGroup, userId, answerResults) {
 
@@ -1172,6 +1050,156 @@ export default class BlackJackGame extends BaseGame {
 
 
     }
+
+
+    //OLD Step 6 - Now only called in "checkForEndOfPlayersTurn()"
+    runMachineDealerEndOfTurnTasks = function (remoteDataGroup) {
+        if (!remoteDataGroup) console.log('oh no!')
+
+        //TODO - This should prevent this from running multiple times.....why is this running multiple times.
+        // if (remoteDataGroup.currentStep != 6)
+        //     return batch;
+        // else
+        // {
+
+        //6a) Machine/dealer runs their turn
+        //...Dealer goes last. - Dealer hits until 17 or over
+        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+        let gameDeck = new DeckOfCards();
+        gameDeck.fromMap(remoteDataGroup.playerGameData.cardDeck);
+
+        //Hit until we have over 17                
+        while (this.getHandValue(dealerInfo.cards) < 17) {
+            let c = gameDeck.dealACard();
+            dealerInfo.cards.push(c.toMap());
+        }
+
+        let finalDealerTotal = this.getHandValue(dealerInfo.cards);
+
+        if (finalDealerTotal > 21)
+            dealerInfo.bust = true;
+
+        dealerInfo.finalHandTotal = finalDealerTotal;
+        dealerInfo.turnComplete = true;
+        dealerInfo.paidOutForTheRound = true;
+
+
+        //6b) Machine/dealer evaluates and determine who gets money and/or who is out.
+        // On a "win" the winner gets their bet back + 1x their bet from the dealer 
+        // On a "loss" the loser loses their bet
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+        playerInfo.forEach(x => {
+
+            //player lose
+            if (x.bust || (!dealerInfo.bust && finalDealerTotal > x.finalHandTotal)) {
+                x.money = parseInt(x.money) - parseInt(x.bet);
+                x.bet = null;
+                x.turnComplete = true;
+                x.paidOutForTheRound = true;
+            }
+
+            //tie with dealer
+            else if (finalDealerTotal == x.finalHandTotal && !x.bust && !dealerInfo.bust) {
+                x.bet = null;
+                x.turnComplete = true;
+                x.paidOutForTheRound = true;
+            }
+            //player win
+            else if ((dealerInfo.bust && !x.bust) || (finalDealerTotal < x.finalHandTotal && !x.bust)) {
+                x.money = parseInt(x.money) + parseInt(x.bet);
+                x.bet = null;
+                x.turnComplete = true;
+                x.paidOutForTheRound = true;
+            }
+
+        });
+
+        /*
+        //Add to the writeBatch
+         let dataToUpdate = {
+ 
+            // dynamicPlayerGameData: {
+            //     cardDeck: gameDeck.toMap(),
+            //     playerInfo: playerInfo,
+            //     dealerInfo: dealerInfo
+            // },
+ 
+            "dynamicPlayerGameData.cardDeck": gameDeck.toMap(),
+            "dynamicPlayerGameData.playerInfo": playerInfo,
+            "dynamicPlayerGameData.dealerInfo": dealerInfo,
+ 
+ 
+            currentStep: 7
+        };
+ 
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        */
+
+        //Calling this step directly from a check function now.....so no batch anymore
+
+        //Replacing step 7 here
+        var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+
+        //All rounds are complete - clean up and move on to the next step.
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+            //Stuff we used to do in the check function
+            aData.dynamicPlayerGameData.allRoundsComplete = true;
+            aData.currentCheckInstructions = null;
+
+            //Stuff from old step 6
+            aData.dynamicPlayerGameData.cardDeck = gameDeck.toMap();
+            aData.dynamicPlayerGameData.playerInfo = playerInfo;
+            aData.dynamicPlayerGameData.dealerInfo = dealerInfo;                
+
+            //Step 7
+            aData.currentInstructions = endOfRoundInstructions.currentInstructions;
+            aData.currentTargetedInstructions = endOfRoundInstructions.currentTargetedInstructions;            
+
+            return aData;
+        });
+
+
+
+
+        //}
+
+
+    }
+
+    //OLD step 7 - Now called in "runMachineDealerEndOfTurnTasks()" and "checkForNaturals()""
+    setupEndOfRoundOptions = function (remoteDataGroup) {
+
+        if (!remoteDataGroup ) console.log('oh no!')
+
+        //USE new YesNoQuestion Component to ask host if they want to keep playing or call it
+        //should feed it a follow up function 
+
+        //Host yes/No
+        let comp = sgf.mainFramework.gameTools.gameComponents.YesNoQuestion;
+        let questionText = "Do you weant to continue playing? (Yes starts another round, No will end the game here)";
+        let followFunc = "endOfRoundHostDecision";
+
+        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup.hostId);
+
+
+        //All other players    
+        let generalInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen,
+            "Waiting....",
+            "Waiting for host to decide whether the game continues...");
+
+        let endOfRoundInstructions = {
+            currentInstructions: generalInstructions,
+            currentTargetedInstructions: [hostInstructions],
+        };
+
+
+
+        return endOfRoundInstructions;
+
+    }
+
 
 
 

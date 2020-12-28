@@ -34,9 +34,9 @@ export default class GameRunner {
      * @param {number} hostId 
      * @param {string} roomName 
      */
-    async setHost(hostId, roomName) {
+    async setHost(hostId, roomName, gameName) {
 
-        this.roomDataConnector.updateHost(hostId, roomName);
+        this.roomDataConnector.updateHost(hostId, roomName, gameName);
 
     }
 

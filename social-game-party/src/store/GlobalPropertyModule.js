@@ -10,6 +10,7 @@ export const GlobalPropertyModule = {
         //Room collection ---------------        
         userList: [],
         hostId: null,
+        selectedGameName: null,
         spectatorGameData: null,
 
         //ActivePlayerGameData collection---------------------
@@ -37,6 +38,10 @@ export const GlobalPropertyModule = {
 
         hostId: state => {
             return state.hostId;
+        },
+
+        selectedGameName: state => {
+            return state.selectedGameName;
         },
 
         spectatorGameData: state => {
@@ -92,6 +97,7 @@ export const GlobalPropertyModule = {
                 //Room
                 userList: state.userList,
                 hostId: state.hostId,
+                selectedGameName: state.selectedGameName,
                 spectatorGameData: state.spectatorGameData,
                 
                 //AGPD
@@ -131,6 +137,10 @@ export const GlobalPropertyModule = {
 
         setHostId: (state, payload) => {
             state.hostId = payload;
+        },
+
+        setSelectedGameName:(state, payload) => {
+            state.selectedGameName = payload
         },
 
         setSpectatorGameData: (state, payload) => {

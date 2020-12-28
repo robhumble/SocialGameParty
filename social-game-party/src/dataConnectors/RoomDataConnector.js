@@ -201,6 +201,7 @@ export default class RoomDataConnector extends DataConnector {
           let remoteRoomData = {
             users: docData.users,
             hostId: docData.hostId,
+            selectedGameName: docData.selectedGameName,
             spectatorGameData: docData.spectatorGameData,
             playerGameData: docData.playerGameData,
 
@@ -259,14 +260,14 @@ export default class RoomDataConnector extends DataConnector {
     * @param {number} newHostId - the unique user id of the new host - likely the current user 
     * @param {string} roomName 
     */
-  updateHost = function (newHostId, roomName) {
+  updateHost = function (newHostId, roomName, gameName) {
     //let that = this;
 
     let roomDocRef = this.firestoreDb.doc(`rooms/${roomName}`);
 
     this.firestoreDb.runTransaction(function (transaction) {
       return transaction.get(roomDocRef).then(function () {
-        transaction.update(roomDocRef, { hostId: newHostId });
+        transaction.update(roomDocRef, { hostId: newHostId, selectedGameName: gameName });
       })
     })
   }
@@ -326,6 +327,7 @@ export default class RoomDataConnector extends DataConnector {
       //docData.currentCheckInstructions = null;
       //docData.currentInstructions = null;
       docData.hostId = null
+      docData.selectedGameName = null
 
       return docData;
     });
@@ -375,6 +377,7 @@ export default class RoomDataConnector extends DataConnector {
     let dbModel = {
       users: userArr, //Users in the room      
       hostId: null,   //The games host user - basically a player that will act as the server
+      selectedGameName: null,
 
       //Game specific dynamically generated data
       spectatorGameData: {},  //Dynamically generated data that spectators (and anyone in the room) cares about
