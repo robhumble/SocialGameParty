@@ -290,7 +290,9 @@ export default class RoomDataConnector extends DataConnector {
         let curRoomData = roomDoc.data();
         let updatedRoomData = updateFunc(curRoomData);
 
-        transaction.update(roomDocRef, updatedRoomData);
+        //Only update if the doc data exists
+        if (updatedRoomData)
+          transaction.update(roomDocRef, updatedRoomData);
       })
     })
   }

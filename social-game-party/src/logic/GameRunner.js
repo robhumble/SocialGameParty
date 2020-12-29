@@ -128,6 +128,7 @@ export default class GameRunner {
             apgData.currentCheckInstructions = null;
             apgData.currentInstructions = null;
             apgData.dynamicPlayerGameData = {};
+            apgData.currentTargetedInstructions = null;
 
             return apgData;
 

@@ -37,7 +37,7 @@
           @endOfTurnEvent="cardTableEndTurnHandler"
         ></CardTable>
 
-                <YesNoQuestion
+        <YesNoQuestion
           v-if="currentGameComponent == 'YesNoQuestion'"
           :questionText="displayInstructions.questionText"
           @answerEvent="questionAndAnswerHandler"
@@ -76,7 +76,7 @@ export default {
     StartGameScreen,
     LoadingScreen,
     CardTable,
-    YesNoQuestion
+    YesNoQuestion,
   },
   props: ["", ""],
   data: () => ({

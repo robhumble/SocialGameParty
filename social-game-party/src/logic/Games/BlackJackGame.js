@@ -534,15 +534,17 @@ export default class BlackJackGame extends BaseGame {
             playerInfo.forEach(x => {
 
                 if (playerIdsWithNaturals.includes(x.id)) {
-                    x.bet = null;
+                    x.bet = 0;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
+                    x.finalHandTotal = 21
                 }
                 else {
                     x.money = parseInt(x.money) - parseInt(x.bet);
-                    x.bet = null;
+                    x.bet = 0;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
+                    x.finalHandTotal = 0;
                 }
             });
 
@@ -576,9 +578,10 @@ export default class BlackJackGame extends BaseGame {
 
                 if (playerIdsWithNaturals.includes(x.id)) {
                     x.money += (parseInt(x.money) * parseInt(this.configOptions.naturalMultiplier))
-                    x.bet = null;
+                    x.bet = 0;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
+                    x.finalHandTotal = 21;
                 }
             });
 
@@ -614,7 +617,7 @@ export default class BlackJackGame extends BaseGame {
 
 
         //Call first players turn setup function
-        let firstPlayerId = playerInfo[0].id;
+        let firstPlayerId = playerInfo.find(x => !x.turnComplete).id;
         let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(firstPlayerId);
 
         let dataToUpdate = {
@@ -776,16 +779,12 @@ export default class BlackJackGame extends BaseGame {
     writePlayerRoundResults = function (remoteDataGroup, userId, answerResults) {
 
 
-
         if (!remoteDataGroup || !userId || !answerResults) console.log('oh no!')
 
         //let newPlayerInfoState = answerResults.newPlayerInfoState;
 
         let newDeck = answerResults.deck.toMap();
         let newHand = this.convertCardArrayToMapArray(answerResults.hand);
-
-
-
 
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
@@ -810,11 +809,13 @@ export default class BlackJackGame extends BaseGame {
     }
 
     //Check to see if the current players turn is complete, if so move on to the next player OR move on to the next game step
-    checkForEndOfPlayersTurn = function (remoteDataGroup, userId) {
+    checkForEndOfPlayersTurn = async function (remoteDataGroup, userId) {
 
         if (!remoteDataGroup || !userId) console.log('oh no!')
 
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+
 
 
         let cpi = remoteDataGroup.playerGameData.currentPlayerIndex;
@@ -822,44 +823,38 @@ export default class BlackJackGame extends BaseGame {
         if (playerInfo[cpi].turnComplete) {
 
 
-            let nextIndex = cpi + 1;
+            let nextIndex = playerInfo.findIndex(x => !x.turnComplete);
 
 
-            if (nextIndex < playerInfo.length) {
+            if (nextIndex != -1 && nextIndex < playerInfo.length) {
 
                 //Still players left to go through - Setup the next players turn
                 let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(playerInfo[nextIndex].id);
 
                 this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
-                    aData.dynamicPlayerGameData.currentPlayerIndex = nextIndex;
-                    aData.currentTargetedInstructions = [targetedInstructions];
+                    //This check may have been run multiple times before we realize it's already been done, don't run it if the data looks like it's already been updated.
+                    if (aData.dynamicPlayerGameData.currentPlayerIndex == nextIndex)
+                        return null;
+                    else {
+                        aData.dynamicPlayerGameData.currentPlayerIndex = nextIndex;
+                        aData.currentTargetedInstructions = [targetedInstructions];
+                        return aData;
+                    }
 
-                    return aData;
+
                 });
 
 
             }
-            else {
+            else if (playerInfo.every(x => x.turnComplete)) {
 
                 //Now calling step 6 directly from this function
-
                 this.runMachineDealerEndOfTurnTasks(remoteDataGroup);
 
-                // //All rounds are complete - clean up and move on to the next step.
-                // this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
-
-                //     if(aData.currentStep!=6){
-                //     aData.dynamicPlayerGameData.allRoundsComplete = true;
-                //     aData.currentStep = 6;
-                //     aData.currentCheckInstructions = null;
-                //     aData.currentInstructions = null;
-                //     aData.currentTargetedInstructions = null;                    
-                //     }
-                //     return aData;
-                // });
-
             }
+            else
+                sgf.mainFramework.megaLog('No next player index and not everything is complete....?');
 
         }
 
@@ -1151,11 +1146,11 @@ export default class BlackJackGame extends BaseGame {
             //Stuff from old step 6
             aData.dynamicPlayerGameData.cardDeck = gameDeck.toMap();
             aData.dynamicPlayerGameData.playerInfo = playerInfo;
-            aData.dynamicPlayerGameData.dealerInfo = dealerInfo;                
+            aData.dynamicPlayerGameData.dealerInfo = dealerInfo;
 
             //Step 7
             aData.currentInstructions = endOfRoundInstructions.currentInstructions;
-            aData.currentTargetedInstructions = endOfRoundInstructions.currentTargetedInstructions;            
+            aData.currentTargetedInstructions = endOfRoundInstructions.currentTargetedInstructions;
 
             return aData;
         });
@@ -1171,7 +1166,7 @@ export default class BlackJackGame extends BaseGame {
     //OLD step 7 - Now called in "runMachineDealerEndOfTurnTasks()" and "checkForNaturals()""
     setupEndOfRoundOptions = function (remoteDataGroup) {
 
-        if (!remoteDataGroup ) console.log('oh no!')
+        if (!remoteDataGroup) console.log('oh no!')
 
         //USE new YesNoQuestion Component to ask host if they want to keep playing or call it
         //should feed it a follow up function 

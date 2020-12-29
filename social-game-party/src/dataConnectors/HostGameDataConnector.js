@@ -112,7 +112,9 @@ export default class HostGameDataConnector extends DataConnector {
         let curDocData = targetDoc.data();
         let updatedDocData = updateFunc(curDocData);
 
-        transaction.update(docRef, updatedDocData);
+        //Only update if the doc data exists
+        if (updatedDocData)
+          transaction.update(docRef, updatedDocData);
       })
     })
   }

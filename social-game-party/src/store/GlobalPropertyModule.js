@@ -21,8 +21,8 @@ export const GlobalPropertyModule = {
         currentTargetedInstructions: null,
 
         //HostGameData collection---------------------
-        results: null,     
-        dynamicHostGameData: null, 
+        results: null,
+        dynamicHostGameData: null,
 
         //Local only data ------------------
         myTempGameData: null
@@ -69,10 +69,10 @@ export const GlobalPropertyModule = {
         },
 
 
-     
+
         results: state => {
             return state.results;
-        },     
+        },
 
         dynamicHostGameData: state => {
             return state.dynamicHostGameData;
@@ -93,13 +93,13 @@ export const GlobalPropertyModule = {
         //Collect everything we think we know about the state of remote data right now.
         getRemoteDataGroup: state => {
 
-            let group ={
+            let group = {
                 //Room
                 userList: state.userList,
                 hostId: state.hostId,
                 selectedGameName: state.selectedGameName,
                 spectatorGameData: state.spectatorGameData,
-                
+
                 //AGPD
                 playerGameData: state.playerGameData,
                 currentInstructions: state.currentInstructions,
@@ -115,12 +115,12 @@ export const GlobalPropertyModule = {
             return group;
         },
 
-        isCurrentUserInGame: (state, getters) =>{
-            
+        isCurrentUserInGame: (state, getters) => {
+
             let uid = getters.currentUserId;
             let userInfo = state.userList.filter(x => x.id == uid)[0];
 
-            if(userInfo)
+            if (userInfo)
                 return userInfo.isPlaying;
 
             return false;
@@ -139,7 +139,7 @@ export const GlobalPropertyModule = {
             state.hostId = payload;
         },
 
-        setSelectedGameName:(state, payload) => {
+        setSelectedGameName: (state, payload) => {
             state.selectedGameName = payload
         },
 
@@ -149,33 +149,33 @@ export const GlobalPropertyModule = {
 
         setPlayerGameData: (state, payload) => {
             state.playerGameData = payload;
-        },        
+        },
 
         setCurrentStep: (state, payload) => {
             state.currentStep = payload;
-        },        
+        },
 
 
         setCurrentInstructions: (state, payload) => {
             state.currentInstructions = payload;
-        },        
+        },
 
         setCurrentCheckInstructions: (state, payload) => {
             state.currentCheckInstructions = payload;
-        },        
+        },
 
-        setCurrentTargetedInstructions: (state, payload) =>{
+        setCurrentTargetedInstructions: (state, payload) => {
             state.currentTargetedInstructions = payload;
         },
 
-      
+
         setResults: (state, payload) => {
             state.results = payload;
-        },        
-        
+        },
+
         setDynamicHostGameData: (state, payload) => {
             state.dynamicHostGameData = payload;
-        },        
+        },
 
 
         //Local only data 

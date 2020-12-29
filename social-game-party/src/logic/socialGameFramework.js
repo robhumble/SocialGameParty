@@ -31,11 +31,11 @@ export var mainFramework = {
             return false;
         }
 
-        
+
         //hacky quick check - if the object have matching time stamp keys, consider them the same
-        if(objectA.timeStampKey && objectB.timeStampKey && objectA.timeStampKey == objectB.timeStampKey)
+        if (objectA.timeStampKey && objectB.timeStampKey && objectA.timeStampKey == objectB.timeStampKey)
             return true;
-        
+
 
 
 
@@ -85,11 +85,13 @@ export var mainFramework = {
     megaLog: function (msg, forcePrint, includeStackTrace) {
 
         //check to see if the vuex store says we are in debug
-        let isDebug = store.getters.isDebugMode;       
+        let isDebug = store.getters.isDebugMode;
 
-        if(includeStackTrace){
+        //includeStackTrace = 1;
+
+        if (includeStackTrace) {
             let stackTrace = (new Error()).stack;
-            msg += '[['+ stackTrace +']]';          
+            msg += '[[' + stackTrace + ']]';
         }
 
         if (isDebug || forcePrint)
@@ -148,7 +150,7 @@ export var mainFramework = {
             LoadingScreen: "LoadingScreen",
             QuestionAndAnswer: "QuestionAndAnswer",
             ResultScreen: "ResultScreen",
-            CardTable: "CardTable", 
+            CardTable: "CardTable",
             YesNoQuestion: "YesNoQuestion"
         },
 
@@ -159,7 +161,7 @@ export var mainFramework = {
             results: "results"  // HostGameData -> results
 
         },
-        
+
 
         //TODO: Re-evaluate where this should live.
         //Card related Helpers?_________________________________________________________________________________
@@ -169,24 +171,24 @@ export var mainFramework = {
 
             let cardMapArray = [];
             cardArray.forEach(x => cardMapArray.push(x.toMap()));
-    
+
             return cardMapArray;
         },
-    
+
         getCardArrayFromMapArray(mapArray) {
-    
+
             let cardArray = [];
-    
+
             mapArray.forEach((x) => {
                 let c = new Card();
                 c.fromMap(x)
                 cardArray.push(c);
             });
-    
+
             return cardArray;
         },
 
-        
+
         //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
         //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
         //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())\
@@ -198,7 +200,7 @@ export var mainFramework = {
         //dN (deckName) - the name of the deck map in the deck location
         //pIL (playerInfoLocation) - the remote object where the playerInfo array is located (everything about the players - including thier hand - which we assume will be called "cards")
         //pIN (playerInfoName) the name of the array of playerInfo maps in the pIN
-        buildCardTableConfig: function(gn , dL, dN, pIL, pIN){
+        buildCardTableConfig: function (gn, dL, dN, pIL, pIN) {
 
 
             //...current card table component data
@@ -211,7 +213,7 @@ export var mainFramework = {
 
             //The deck and player hands should be 
 
-            
+
 
             let cardTableConfig = {
 
@@ -228,7 +230,7 @@ export var mainFramework = {
 
 
 
-                
+
                 //Deck 
                 showContentsOfDeck: false,
 
@@ -243,7 +245,7 @@ export var mainFramework = {
                 //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
                 showHitControl: false,
                 hitControlFunctionName: null,
-                hitControlFunc:null,
+                hitControlFunc: null,
 
                 showStandControl: false,
                 standControlFunctionName: null,
@@ -253,7 +255,7 @@ export var mainFramework = {
 
                 endTurnFunctionName: null
 
-                
+
 
 
             }
@@ -295,7 +297,7 @@ export var mainFramework = {
                 msg: m
             }
 
-            if(targetUserId)
+            if (targetUserId)
                 instructions.targetUserId = targetUserId;
 
             instructions.timeStampKey = Date.now();
@@ -332,7 +334,7 @@ export var mainFramework = {
                 resultFunction: resFunc
             }
 
-            if(targetUserId)
+            if (targetUserId)
                 instructions.targetUserId = targetUserId;
 
             instructions.timeStampKey = Date.now();
@@ -363,15 +365,15 @@ export var mainFramework = {
 
 
         //c should be the Q uestionAndAnswer component or the YesNoQuestion component
-        buildQuestionAndAnswerInstructions: function( c, qText, followFunc, targetUserId = null){
+        buildQuestionAndAnswerInstructions: function (c, qText, followFunc, targetUserId = null) {
             let instructions = {
                 type: this.instructionTypes.Display,
                 comp: c,
                 questionText: qText,
                 followUpFunction: followFunc
-            }            
+            }
 
-            if(targetUserId)
+            if (targetUserId)
                 instructions.targetUserId = targetUserId;
 
             instructions.timeStampKey = Date.now();
@@ -383,11 +385,11 @@ export var mainFramework = {
 
             let instructions = {
                 type: this.instructionTypes.Display,
-                comp: this.gameComponents.CardTable,                
-                config: cardTableConfig            
+                comp: this.gameComponents.CardTable,
+                config: cardTableConfig
             }
 
-            if(targetUserId)
+            if (targetUserId)
                 instructions.targetUserId = targetUserId;
 
             instructions.timeStampKey = Date.now();

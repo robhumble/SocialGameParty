@@ -161,7 +161,9 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
         let curDocData = targetDoc.data();
         let updatedDocData = updateFunc(curDocData);
 
-        transaction.update(docRef, updatedDocData);
+        //Only update if the doc data exists
+        if (updatedDocData)
+          transaction.update(docRef, updatedDocData);
       })
     })
   }
@@ -199,6 +201,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
       //docData.spectatorGameData = {};
       docData.currentCheckInstructions = null;
       docData.currentInstructions = null;
+      docData.currentTargetedInstructions = null;
       //docData.hostId = null
 
       return docData;

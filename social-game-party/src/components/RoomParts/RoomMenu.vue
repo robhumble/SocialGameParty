@@ -141,7 +141,10 @@ export default {
 
         //Game data contained in room
         that.$store.commit("setHostId", remoteRoomData.hostId);
-        that.$store.commit("setSelectedGameName", remoteRoomData.selectedGameName)
+        that.$store.commit(
+          "setSelectedGameName",
+          remoteRoomData.selectedGameName
+        );
         that.$store.commit(
           "setSpectatorGameData",
           remoteRoomData.spectatorGameData
