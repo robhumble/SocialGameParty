@@ -4,9 +4,7 @@
       <v-card max-width="80%" rounded outlined class="question-answer-card">
         <v-card-title class="text-center">Question!</v-card-title>
 
-        <h1>{{ questionText }}</h1>
-
-        <!-- <input class="basic-text-input" v-model="answerText" @keydown.enter="submitAnswer"> -->
+        <h1>{{ questionText }}</h1>    
 
         <v-btn @click="submitAnswer(true)">Yes!</v-btn>
         <v-btn @click="submitAnswer(false)">No</v-btn>
