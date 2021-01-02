@@ -393,8 +393,13 @@ export default class BlackJackGame extends BaseGame {
             "writePlayerBet" //follow up function
         );
 
+
+        //Setup Hud 
+        let hudInstructions = sgf.mainFramework.gameTools.buildHudInstructions(null, "getHudData");
+
         let dataToUpdate = {
-            currentInstructions: qaInstructions
+            currentInstructions: qaInstructions,
+            currentHudInstructions: hudInstructions
         };
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
@@ -925,6 +930,25 @@ export default class BlackJackGame extends BaseGame {
         }
 
         return result;
+    }
+
+    getHudData(remoteDataGroup, userId) {
+
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+        let curInfo = playerInfo.find(x => x.id = userId);
+
+
+        let hudData = [];
+
+        let buildHudPart = (t, d) => { return { "title": t, "data": d } };
+
+        hudData.push(buildHudPart("Bank", curInfo.money));
+        hudData.push(buildHudPart("Current Bet", curInfo.bet));
+        hudData.push(buildHudPart("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
+
+        return hudData;
     }
 
 

@@ -31,14 +31,9 @@ export var mainFramework = {
             return false;
         }
 
-
         //hacky quick check - if the object have matching time stamp keys, consider them the same
         if (objectA.timeStampKey && objectB.timeStampKey && objectA.timeStampKey == objectB.timeStampKey)
             return true;
-
-
-
-
 
         //Check each property in an object a against object b
         let keyCheck = (oA, oB) => {
@@ -62,7 +57,6 @@ export var mainFramework = {
             console.log(err.message);
             return false;
         }
-
 
         return true;
     },
@@ -88,7 +82,6 @@ export var mainFramework = {
         let isDebug = store.getters.isDebugMode;
 
         //includeStackTrace = 1;
-
         if (includeStackTrace) {
             let stackTrace = (new Error()).stack;
             msg += '[[' + stackTrace + ']]';
@@ -151,7 +144,8 @@ export var mainFramework = {
             QuestionAndAnswer: "QuestionAndAnswer",
             ResultScreen: "ResultScreen",
             CardTable: "CardTable",
-            YesNoQuestion: "YesNoQuestion"
+            YesNoQuestion: "YesNoQuestion",
+            RowHUD: "RowHUD"
         },
 
         //Used to indicate "where" a src object for a check function is stored
@@ -218,7 +212,6 @@ export var mainFramework = {
             let cardTableConfig = {
 
                 gameName: gn,
-
                 showDebugTools: false,
 
                 //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE
@@ -227,9 +220,6 @@ export var mainFramework = {
                 deckName: dN,
                 playerInfoLocation: pIL,
                 playerInfoName: pIN,
-
-
-
 
                 //Deck 
                 showContentsOfDeck: false,
@@ -251,13 +241,7 @@ export var mainFramework = {
                 standControlFunctionName: null,
                 standControlFunc: null,
 
-
-
                 endTurnFunctionName: null
-
-
-
-
             }
 
 
@@ -395,6 +379,25 @@ export var mainFramework = {
             instructions.timeStampKey = Date.now();
             return instructions;
         },
+
+
+        buildHudInstructions: function (hudInfoData, hudInfoFuncName) {
+
+            let instructions = {
+                type: this.instructionTypes.Display,
+                comp: this.gameComponents.RowHUD,
+                hudInfoData: hudInfoData,
+                hudInfoFuncName: hudInfoFuncName
+            }
+
+            //Don't know if this is needed?
+            // if (targetUserId)
+            // instructions.targetUserId = targetUserId;
+
+            instructions.timeStampKey = Date.now();
+
+            return instructions;
+        }
 
 
 

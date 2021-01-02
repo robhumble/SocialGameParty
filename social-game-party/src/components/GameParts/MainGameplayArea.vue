@@ -7,6 +7,17 @@
         <v-btn @click="resetGame">Reset Game</v-btn>
       </div>
 
+      <!-- Top Row HUD -->
+      <div class="top-hud-row">
+        <RowHUD
+          v-if="hudInstructions"
+          :hudInfoData="hudInstructions.hudInfoData"
+          :gameClass="hudInstructions.hudInfoFuncName ? gameClass : null"
+          :hudInfoFunc="hudInstructions.hudInfoFuncName"
+        ></RowHUD>
+      </div>
+
+      <!-- Main Centered Game Parts -->
       <div class="game-components">
         <QuestionAndAnswer
           v-if="currentGameComponent == 'QuestionAndAnswer'"
@@ -60,6 +71,7 @@ import StartGameScreen from "@/components/GameParts/StartGameScreen.vue";
 import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
 import CardTable from "@/components/CardParts/CardTable.vue";
 import YesNoQuestion from "@/components/GameParts/YesNoQuestion.vue";
+import RowHUD from "@/components/GameParts/RowHUD.vue";
 
 import * as sgf from "@/logic/socialGameFramework.js";
 
@@ -77,6 +89,7 @@ export default {
     LoadingScreen,
     CardTable,
     YesNoQuestion,
+    RowHUD,
   },
   props: ["", ""],
   data: () => ({
@@ -86,15 +99,15 @@ export default {
 
     selectedGame: "",
 
-    //Basic display instructions
+    //Basic display instructions - can come from currentInstructions OR currentTargetedInstructions
     displayInstructions: null,
 
-    //Loop instructions
+    //Loop instructions - can come from currentInstructions OR currentTargetedInstructions
     loopThroughData: null,
     questionAndAnswerQuestionText: "",
 
-    //TargetedInstructions
-    //hasTargetedInstructions: false,
+    //HUD Instructions
+    hudInstructions: null,
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
@@ -121,6 +134,7 @@ export default {
       "currentInstructions",
       "currentCheckInstructions",
       "currentTargetedInstructions",
+      "currentHudInstructions",
 
       "results",
       "dynamicHostGameData",
@@ -210,6 +224,21 @@ export default {
       }
     },
 
+    //Instructions for HUD
+    currentHudInstructions: function (n, o) {
+      //Instructions
+
+      this.quickLog(n + o);
+
+      //Only update if the instructions are different (based on a shallow compare)
+      if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
+        //TODO: Setup HUD instructions.......
+        this.hudInstructions = n;
+      } else if (!n && o) {
+        this.hudInstructions = null;
+      }
+    },
+
     //Host---------------------------------------------------------------------
     results: function (n) {
       //Watch from a check instruction -- Check instructions
@@ -280,7 +309,7 @@ export default {
     },
 
     /**
-     * Clear local component display properties.
+     * Clear local component display properties (main gameplay section ).
      */
     clearDisplay: function () {
       this.currentGameComponent = null;
@@ -431,6 +460,7 @@ export default {
 
       this.clearDisplay();
       this.currentGameComponent = "StartGameScreen";
+      this.hudInstructions = null;
 
       this.quickLog("Game reset by host...");
     },
@@ -470,6 +500,11 @@ export default {
         that.$store.commit(
           "setCurrentTargetedInstructions",
           remoteDocData.currentTargetedInstructions
+        );
+
+        that.$store.commit(
+          "setCurrentHudInstructions",
+          remoteDocData.currentHudInstructions
         );
       },
       that.currentRoomName);
