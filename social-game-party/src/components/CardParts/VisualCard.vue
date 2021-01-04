@@ -1,6 +1,10 @@
 <template>
   <div>
-    <div v-if="!showCard" @click="flipVisualCard" class="game-card card-back"></div>
+    <div
+      v-if="!showCard"
+      @click="flipVisualCard"
+      class="game-card card-back"
+    ></div>
     <div v-if="showCard" @click="flipVisualCard" class="game-card card-front">
       <div
         class="top-left-val"
@@ -52,20 +56,15 @@ export default {
     //showCard: true,
   }),
   mounted: function () {
-
     // if(this.startFaceDown)
     //   this.showCard = false;
-
   },
   computed: {
     ...mapGetters(["projectName", "currentSession"]),
 
-
-    showCard: function(){
+    showCard: function () {
       return this.cardObject.isFaceUp;
-    }
-
-
+    },
   },
   watch: {},
   methods: {
@@ -82,12 +81,11 @@ export default {
       }
     },
 
-    flipVisualCard(){
+    flipVisualCard() {
       //this.showCard = !this.showCard;
 
-      this.$emit("flipTargetCard", this.cardObject.Id );
-    }
-
+      this.$emit("flipTargetCard", this.cardObject.Id);
+    },
   },
 };
 </script>
@@ -101,6 +99,10 @@ export default {
   border-style: solid;
   box-shadow: 4px 6px #404040;
   border-width: 1px;
+
+  // Min height and width for the card to be somewhat recognizable
+  // min-width: 80px;
+  // min-height: 138px;
 
   margin: 15px;
   position: relative;

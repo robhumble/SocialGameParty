@@ -130,6 +130,7 @@ export default class GameRunner {
             apgData.dynamicPlayerGameData = {};
             apgData.currentTargetedInstructions = null;
             apgData.currentHudInstructions = null;
+            apgData.currentAltViewInstructions = null;
 
             return apgData;
 
@@ -204,7 +205,8 @@ export default class GameRunner {
             currentCheckInstructions: null,
             currentInstructions: null,
             currentTargetedInstructions: null,
-            currentHudInstructions: null
+            currentHudInstructions: null,
+            currentAltViewInstructions: null,
         };
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);

@@ -397,9 +397,13 @@ export default class BlackJackGame extends BaseGame {
         //Setup Hud 
         let hudInstructions = sgf.mainFramework.gameTools.buildHudInstructions(null, "getHudData");
 
+        //Setup Alt View 
+        let altViewInstructions = sgf.mainFramework.gameTools.buildAltViewInstructions(sgf.mainFramework.gameTools.gameComponents.ScoreBoard, null, "getScoreBoardData");
+
         let dataToUpdate = {
             currentInstructions: qaInstructions,
-            currentHudInstructions: hudInstructions
+            currentHudInstructions: hudInstructions,
+            currentAltViewInstructions: altViewInstructions
         };
 
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
@@ -796,7 +800,7 @@ export default class BlackJackGame extends BaseGame {
      */
     checkForEndOfPlayersTurn = async function (remoteDataGroup, userId) {
 
-        if (!remoteDataGroup || !userId) console.log('oh no!')
+        if (!remoteDataGroup || !userId) sgf.mainFramework.megaLog('oh no!')
 
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
@@ -879,7 +883,7 @@ export default class BlackJackGame extends BaseGame {
 
 
 
-    //RESOURCE FUNCTIONS - (Additional Functions to be used by sub component)-------------------------------------------------------
+    //RESOURCE FUNCTIONS - (Additional Functions to be used by sub components)-------------------------------------------------------
 
     //CARD TABLE SPECIFIC functions --------------------------------------------------------
 
@@ -932,12 +936,17 @@ export default class BlackJackGame extends BaseGame {
         return result;
     }
 
+    /**
+     * Get Top Row Hud Data to display throughout the black jack game - resource function to be used by the rowHUD component
+     * @param {*} remoteDataGroup 
+     * @param {*} userId 
+     */
     getHudData(remoteDataGroup, userId) {
 
 
         let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
-        let curInfo = playerInfo.find(x => x.id = userId);
+        let curInfo = playerInfo.find(x => x.id == userId);
 
 
         let hudData = [];
@@ -949,6 +958,53 @@ export default class BlackJackGame extends BaseGame {
         hudData.push(buildHudPart("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
 
         return hudData;
+    }
+
+
+    getScoreBoardData(remoteDataGroup, userId) {
+
+        if (!remoteDataGroup || !userId) sgf.mainFramework.megaLog('oh no!')
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+        let userList = remoteDataGroup.userList;
+
+        let scoreCardData = []
+
+        let buildScoreDetail = (t, d) => { return { "title": t, "data": d } };
+
+        //Players
+        playerInfo.forEach(curInfo => {
+
+            let usr = userList.find(x => x.id == curInfo.id);
+
+            let pName = usr ? usr.name : "?";
+
+            let playerInfoCard = {
+                "playerName": pName,
+                "details": []
+            }
+
+            playerInfoCard.details.push(buildScoreDetail("Bank", curInfo.money));
+            playerInfoCard.details.push(buildScoreDetail("Current Bet", curInfo.bet));
+            playerInfoCard.details.push(buildScoreDetail("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
+
+            scoreCardData.push(playerInfoCard);
+        })
+
+        //Dealer
+        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+        let dCard = {
+            "playerName": "Dealer(Host Machine)",
+            "details": []
+        }
+
+        dCard.details.push(buildScoreDetail("Bank", dealerInfo.money));
+        dCard.details.push(buildScoreDetail("Current Bet", dealerInfo.bet));
+        dCard.details.push(buildScoreDetail("Turn Status", dealerInfo.turnComplete ? "Complete" : "Incomplete"));
+
+        scoreCardData.push(dCard);
+
+        return scoreCardData;
     }
 
 

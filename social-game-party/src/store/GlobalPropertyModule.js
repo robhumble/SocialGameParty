@@ -20,6 +20,7 @@ export const GlobalPropertyModule = {
         currentCheckInstructions: null,
         currentTargetedInstructions: null,
         currentHudInstructions: null,
+        currentAltViewInstructions: null,
 
         //HostGameData collection---------------------
         results: null,
@@ -73,6 +74,10 @@ export const GlobalPropertyModule = {
             return state.currentHudInstructions;
         },
 
+        currentAltViewInstructions: state => {
+            return state.currentAltViewInstructions;
+        },
+
         results: state => {
             return state.results;
         },
@@ -109,6 +114,7 @@ export const GlobalPropertyModule = {
                 currentCheckInstructions: state.currentCheckInstructions,
                 currentTargetedInstructions: state.currentTargetedInstructions,
                 currentHudInstructions: state.currentHudInstructions,
+                currentAltViewInstructions: state.currentAltViewInstructions,
                 currentStep: state.currentStep,
 
                 //Host
@@ -174,6 +180,10 @@ export const GlobalPropertyModule = {
 
         setCurrentHudInstructions: (state, payload) => {
             state.currentHudInstructions = payload;
+        },
+
+        setCurrentAltViewInstructions: (state, payload) => {
+            state.currentAltViewInstructions = payload;
         },
 
 

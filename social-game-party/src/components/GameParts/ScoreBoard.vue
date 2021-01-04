@@ -1,8 +1,23 @@
 <template>
   <div style="text-align: center">
-    <div class="hud-row d-flex justify-space-around">
-      <div v-for="hp in hudInfo" :key="hp.title" class="hud-part">
+    <div class="score-board d-flex justify-space-around">
+      <!-- <div v-for="hp in altViewInfo" :key="hp.title" class="score-board-part">
         <b>{{ hp.title }}</b> : {{ hp.data }}
+      </div> -->
+
+      <div
+        v-for="sc in altViewInfo"
+        :key="sc.playerName"
+        class="score-board-part"
+      >
+        <v-card class="mx-auto my-1" width="20vw">
+          <v-card-title>{{ sc.playerName }}</v-card-title>
+          <v-card-text>
+            <v-row v-for="d in sc.details" :key="d.title" class="mx-0 my-1">
+              <b>{{ d.title }}</b> : {{ d.data }}
+            </v-row>
+          </v-card-text>
+        </v-card>
       </div>
     </div>
   </div>
@@ -17,21 +32,24 @@ import { mapGetters } from "vuex";
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
-  name: "RowHUD",
+  name: "ScoreBoard",
   components: {},
-  props: ["hudInfoData", "gameClass", "hudInfoFunc"],
+  props: ["altViewInfoData", "gameClass", "altViewInfoFuncName"],
   data: () => ({
     // loadingMessageText: "",
-    hudInfo: [],
+    altViewInfo: [],
   }),
   mounted: function () {
-    if (this.hudInfoData) this.hudInfo = this.hudInfoData;
-    else if (this.gameClass && this.hudInfoFunc)
-      this.hudInfo = this.gameClass[this.hudInfoFunc](
+    if (this.altViewInfoData) this.altViewInfo = this.altViewInfoData;
+    else if (this.gameClass && this.altViewInfoFuncName)
+      this.altViewInfo = this.gameClass[this.altViewInfoFuncName](
         this.getRemoteDataGroup,
         this.currentUserId
       );
-    else this.quickLog("No instuctions provided to populate HUD provided!");
+    else
+      this.quickLog(
+        "No instuctions provided to populate Alt View Info provided!"
+      );
   },
   computed: {
     ...mapGetters([
@@ -46,8 +64,8 @@ export default {
     //If the playerGameData is update and this is using a class function for it's data source, run it again.
     playerGameData: function (n, o) {
       if (n != o) {
-        if (this.gameClass && this.hudInfoFunc)
-          this.hudInfo = this.gameClass[this.hudInfoFunc](
+        if (this.gameClass && this.altViewInfoFuncName)
+          this.altViewInfo = this.gameClass[this.altViewInfoFuncName](
             this.getRemoteDataGroup,
             this.currentUserId
           );
@@ -60,16 +78,15 @@ export default {
 <style lang="scss" scoped>
 @import "@/assets/custom.scss";
 
-.hud-row {
-  // display: flex;
-  // flex-direction: column;
+.score-board {
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   border-style: solid;
   border-color: $social-game-party-orange !important;
-  margin: 5px 0px 5px 0px;
 }
-// .hud-part{
+// .score-board-part{
 //   // display: flex;
 //   margin: 10px;
 // }

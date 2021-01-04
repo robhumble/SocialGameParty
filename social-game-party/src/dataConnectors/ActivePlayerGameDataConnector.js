@@ -62,6 +62,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
             currentCheckInstructions: docData.currentCheckInstructions,
             currentTargetedInstructions: docData.currentTargetedInstructions,
             currentHudInstructions: docData.currentHudInstructions,
+            currentAltViewInstructions: docData.currentAltViewInstructions,
 
             dynamicPlayerGameData: docData.dynamicPlayerGameData,
 
@@ -204,6 +205,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
       docData.currentInstructions = null;
       docData.currentTargetedInstructions = null;
       docData.currentHudInstructions = null;
+      docData.currentAltViewInstructions = null;
       //docData.hostId = null
 
       return docData;
@@ -225,6 +227,7 @@ export default class ActivePlayerGameDataConnector extends DataConnector {
       currentCheckInstructions: null,  //Instructions for the host to check for a certain scenario and then do a specified action
       currentTargetedInstructions: null,
       currentHudInstructions: null,
+      currentAltViewInstructions: null,
 
       //Used to be game data - this is a general container for data that needs to be stored by the current game.
       dynamicPlayerGameData: {},  //Dynamically generated data that only active players care about (probably private, and also only stuff that is relevant to other active players)

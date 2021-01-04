@@ -3,57 +3,98 @@
     <v-btn @click="exitGame()">Leave Game</v-btn>
 
     <div class="gameplay-area">
-      <div v-if="isGameStarted && isHost" class="host-reset">
-        <v-btn @click="resetGame">Reset Game</v-btn>
-      </div>
+      <v-tabs
+        v-model="tab"
+        centered
+        background-color="$social-game-party-orange"
+        class="gameplay-tabs"
+      >
+        <v-tabs-slider></v-tabs-slider>
 
-      <!-- Top Row HUD -->
-      <div class="top-hud-row">
-        <RowHUD
-          v-if="hudInstructions"
-          :hudInfoData="hudInstructions.hudInfoData"
-          :gameClass="hudInstructions.hudInfoFuncName ? gameClass : null"
-          :hudInfoFunc="hudInstructions.hudInfoFuncName"
-        ></RowHUD>
-      </div>
+        <v-tab :class="!altViewInstructions ? 'hide-me' : ''">
+          GAME
+          <!-- <v-icon>mdi-phone</v-icon> -->
+        </v-tab>
 
-      <!-- Main Centered Game Parts -->
-      <div class="game-components">
-        <QuestionAndAnswer
-          v-if="currentGameComponent == 'QuestionAndAnswer'"
-          :questionText="questionAndAnswerQuestionText"
-          @answerEvent="questionAndAnswerHandler"
-        ></QuestionAndAnswer>
+        <v-tab v-if="altViewInstructions">
+          ALT
+          <!-- <v-icon>mdi-phone</v-icon> -->
+        </v-tab>
 
-        <ResultScreen
-          v-if="currentGameComponent == 'ResultScreen'"
-          :resultTitle="displayInstructions.title"
-          :resultText="displayInstructions.msg"
-        ></ResultScreen>
+        <v-tabs-items v-model="tab">
+          <v-tab-item>
+            <!-- Reset Game Button -->
+            <div v-if="isGameStarted && isHost" class="host-reset">
+              <v-btn @click="resetGame">Reset Game</v-btn>
+            </div>
 
-        <StartGameScreen
-          v-if="currentGameComponent == 'StartGameScreen'"
-          @startGame="startGame($event)"
-        ></StartGameScreen>
+            <!-- Top Row HUD -->
+            <div class="top-hud-row">
+              <RowHUD
+                v-if="hudInstructions"
+                :hudInfoData="hudInstructions.hudInfoData"
+                :gameClass="hudInstructions.hudInfoFuncName ? gameClass : null"
+                :hudInfoFunc="hudInstructions.hudInfoFuncName"
+              ></RowHUD>
+            </div>
 
-        <LoadingScreen
-          v-if="currentGameComponent == 'LoadingScreen'"
-          :loadingMessageText="displayInstructions.msg"
-        ></LoadingScreen>
+            <!-- Main Centered Game Parts -->
+            <div class="game-components">
+              <QuestionAndAnswer
+                v-if="currentGameComponent == 'QuestionAndAnswer'"
+                :questionText="questionAndAnswerQuestionText"
+                @answerEvent="questionAndAnswerHandler"
+              ></QuestionAndAnswer>
 
-        <CardTable
-          v-if="currentGameComponent == 'CardTable'"
-          :cardTableConfig="displayInstructions.config"
-          :gameClass="gameClass"
-          @endOfTurnEvent="cardTableEndTurnHandler"
-        ></CardTable>
+              <ResultScreen
+                v-if="currentGameComponent == 'ResultScreen'"
+                :resultTitle="displayInstructions.title"
+                :resultText="displayInstructions.msg"
+              ></ResultScreen>
 
-        <YesNoQuestion
-          v-if="currentGameComponent == 'YesNoQuestion'"
-          :questionText="displayInstructions.questionText"
-          @answerEvent="questionAndAnswerHandler"
-        ></YesNoQuestion>
-      </div>
+              <StartGameScreen
+                v-if="currentGameComponent == 'StartGameScreen'"
+                @startGame="startGame($event)"
+              ></StartGameScreen>
+
+              <LoadingScreen
+                v-if="currentGameComponent == 'LoadingScreen'"
+                :loadingMessageText="displayInstructions.msg"
+              ></LoadingScreen>
+
+              <CardTable
+                v-if="currentGameComponent == 'CardTable'"
+                :cardTableConfig="displayInstructions.config"
+                :gameClass="gameClass"
+                @endOfTurnEvent="cardTableEndTurnHandler"
+              ></CardTable>
+
+              <YesNoQuestion
+                v-if="currentGameComponent == 'YesNoQuestion'"
+                :questionText="displayInstructions.questionText"
+                @answerEvent="questionAndAnswerHandler"
+              ></YesNoQuestion>
+            </div>
+          </v-tab-item>
+
+          <v-tab-item v-if="altViewInstructions">
+            <!-- Top Row HUD -->
+            <div class="top-hud-row">
+              <ScoreBoard
+                v-if="
+                  altViewInstructions &&
+                  altViewInstructions.comp == 'ScoreBoard'
+                "
+                :altViewInfoData="altViewInstructions.altViewInfoData"
+                :gameClass="
+                  altViewInstructions.altViewInfoFuncName ? gameClass : null
+                "
+                :altViewInfoFuncName="altViewInstructions.altViewInfoFuncName"
+              ></ScoreBoard>
+            </div>
+          </v-tab-item>
+        </v-tabs-items>
+      </v-tabs>
     </div>
   </div>
 </template>
@@ -72,6 +113,7 @@ import LoadingScreen from "@/components/GameParts/LoadingScreen.vue";
 import CardTable from "@/components/CardParts/CardTable.vue";
 import YesNoQuestion from "@/components/GameParts/YesNoQuestion.vue";
 import RowHUD from "@/components/GameParts/RowHUD.vue";
+import ScoreBoard from "@/components/GameParts/ScoreBoard.vue";
 
 import * as sgf from "@/logic/socialGameFramework.js";
 
@@ -90,16 +132,19 @@ export default {
     CardTable,
     YesNoQuestion,
     RowHUD,
+    ScoreBoard,
   },
   props: ["", ""],
   data: () => ({
+    tab: null,
+
     // gamePlayDataConnector: new GameplayDataConnector(),
     currentGameComponent: "",
     gameRunner: new GameRunner(),
 
     selectedGame: "",
 
-    //Basic display instructions - can come from currentInstructions OR currentTargetedInstructions
+    //MAIN VIEW - Basic display instructions - can come from currentInstructions OR currentTargetedInstructions
     displayInstructions: null,
 
     //Loop instructions - can come from currentInstructions OR currentTargetedInstructions
@@ -108,6 +153,9 @@ export default {
 
     //HUD Instructions
     hudInstructions: null,
+
+    //Alt View Instructions
+    altViewInstructions: null,
 
     activePlayerGameDataConnector: new ActivePlayerGameDataConnector(),
     hostGameDataConnector: new HostGameDataConnector(),
@@ -135,6 +183,7 @@ export default {
       "currentCheckInstructions",
       "currentTargetedInstructions",
       "currentHudInstructions",
+      "currentAltViewInstructions",
 
       "results",
       "dynamicHostGameData",
@@ -236,6 +285,18 @@ export default {
         this.hudInstructions = n;
       } else if (!n && o) {
         this.hudInstructions = null;
+      }
+    },
+
+    currentAltViewInstructions: function (n, o) {
+      this.quickLog(n + o);
+
+      //Only update if the instructions are different (based on a shallow compare)
+      if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
+        //TODO: Setup HUD instructions.......
+        this.altViewInstructions = n;
+      } else if (!n && o) {
+        this.altViewInstructions = null;
       }
     },
 
@@ -458,9 +519,12 @@ export default {
 
       this.gameClass = null;
 
-      this.clearDisplay();
+      this.clearDisplay(); //Main Display clear
       this.currentGameComponent = "StartGameScreen";
+
+      //Hud and Alt view clear
       this.hudInstructions = null;
+      this.altViewInstructions = null;
 
       this.quickLog("Game reset by host...");
     },
@@ -505,6 +569,11 @@ export default {
         that.$store.commit(
           "setCurrentHudInstructions",
           remoteDocData.currentHudInstructions
+        );
+
+        that.$store.commit(
+          "setCurrentAltViewInstructions",
+          remoteDocData.currentAltViewInstructions
         );
       },
       that.currentRoomName);
@@ -566,5 +635,9 @@ export default {
   padding: 5px;
   margin: 5px;
   min-height: 50vh;
+}
+
+.gameplay-tabs {
+  margin-top: 5px;
 }
 </style>

@@ -140,12 +140,18 @@ export var mainFramework = {
         },
 
         gameComponents: {
+            //Main Display Components
             LoadingScreen: "LoadingScreen",
             QuestionAndAnswer: "QuestionAndAnswer",
             ResultScreen: "ResultScreen",
             CardTable: "CardTable",
             YesNoQuestion: "YesNoQuestion",
-            RowHUD: "RowHUD"
+
+            //HUD components
+            RowHUD: "RowHUD",
+
+            //Alt View Components
+            ScoreBoard: "ScoreBoard"
         },
 
         //Used to indicate "where" a src object for a check function is stored
@@ -364,7 +370,7 @@ export var mainFramework = {
             return instructions;
         },
 
-
+        //Build instructions for displaying the card table component
         buildCardTableInstructions: function (cardTableConfig, targetUserId = null) {
 
             let instructions = {
@@ -381,6 +387,7 @@ export var mainFramework = {
         },
 
 
+        //Build instructions to be used for the Top Row HUD
         buildHudInstructions: function (hudInfoData, hudInfoFuncName) {
 
             let instructions = {
@@ -388,6 +395,26 @@ export var mainFramework = {
                 comp: this.gameComponents.RowHUD,
                 hudInfoData: hudInfoData,
                 hudInfoFuncName: hudInfoFuncName
+            }
+
+            //Don't know if this is needed?
+            // if (targetUserId)
+            // instructions.targetUserId = targetUserId;
+
+            instructions.timeStampKey = Date.now();
+
+            return instructions;
+        },
+
+
+        //Build instructions to use with the alt view - (i.e. scoreboard)
+        buildAltViewInstructions: function (altViewComponent, altViewInfoData, altViewInfoFuncName) {
+
+            let instructions = {
+                type: this.instructionTypes.Display,
+                comp: altViewComponent, //Should be a component enum that can be used in the altView section
+                altViewInfoData: altViewInfoData,
+                altViewInfoFuncName: altViewInfoFuncName
             }
 
             //Don't know if this is needed?
