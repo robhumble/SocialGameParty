@@ -37,11 +37,12 @@ $social-game-party-green: #37ff8b;
 
 
 
-
 .basic-drop-down{
-    border: $social-game-party-orange;
-    border-style: solid;
+    border: $social-game-party-black;
+
+    outline-style: auto;
     margin: 5px;
+    color: $social-game-party-black;
 }
 
 .basic-text-input {
@@ -52,4 +53,14 @@ $social-game-party-green: #37ff8b;
 
 .hide-me {
     display: none !important;
+}
+
+
+
+
+
+/*Animations*/
+@keyframes fade-in {
+    0% {opacity:0;}
+    100% {opacity:1;}
 }

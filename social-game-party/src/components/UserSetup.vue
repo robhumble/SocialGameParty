@@ -1,15 +1,13 @@
 <template>
-  <div>   
+  <div>
     <v-btn class="user-info-chip" @click="tryToEdit">
-        <v-icon color="white" large>mdi-account-settings</v-icon>
-        {{currentUserName}}
-    </v-btn>  
-    <span v-if="!currentUserName && !isDialogOpen"> &#x3C;- Use the blue button to choose a username. </span> 
-    <v-dialog 
-      v-model="isDialogOpen"
-      persistent
-      width=650
-    >
+      <v-icon color="white std-icon-size" medium>mdi-account-settings</v-icon>
+      {{ currentUserName }}
+    </v-btn>
+    <span v-if="!currentUserName && !isDialogOpen">
+      &#x3C;- Use the blue button to choose a username.
+    </span>
+    <v-dialog v-model="isDialogOpen" persistent width="650">
       <div class="user-setup-main">
         <h1>Provide a name to display to other users.</h1>
         <v-text-field
@@ -19,7 +17,9 @@
           placeholder="Type Display Name Here..."
         ></v-text-field>
         <v-btn @click="updateCurrentUserName">Update Name</v-btn>
-        <v-btn v-if="currentUserName" @click="isDialogOpen=false">close</v-btn>
+        <v-btn v-if="currentUserName" @click="isDialogOpen = false"
+          >close</v-btn
+        >
       </div>
     </v-dialog>
   </div>
@@ -67,7 +67,7 @@ export default {
         alert(
           "If you would like to update your display name, please leave the current room and try again!"
         );
-      else this.isDialogOpen=true;
+      else this.isDialogOpen = true;
     },
   },
 };

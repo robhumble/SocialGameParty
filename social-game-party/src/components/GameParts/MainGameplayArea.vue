@@ -1,8 +1,7 @@
 <template>
   <div>
-    <v-btn @click="exitGame()">Leave Game</v-btn>
-
     <div class="gameplay-area">
+      <v-btn @click="exitGame()">Leave Game</v-btn>
       <v-tabs
         v-model="tab"
         centered
@@ -630,11 +629,13 @@ export default {
 
 .gameplay-area {
   color: black;
-  border-style: dotted;
+  // border-style: dotted;
   border-color: $social-game-party-orange !important;
   padding: 5px;
   margin: 5px;
   min-height: 50vh;
+  border-radius: 5px;
+  background-color: white;
 }
 
 .gameplay-tabs {
