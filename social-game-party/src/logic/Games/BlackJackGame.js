@@ -1202,7 +1202,7 @@ export default class BlackJackGame extends BaseGame {
 
         //Host yes/No
         let comp = sgf.mainFramework.gameTools.gameComponents.YesNoQuestion;
-        let questionText = "Do you weant to continue playing? (Yes starts another round, No will end the game here)";
+        let questionText = "Do you want to continue playing? (Yes starts another round, No will end the game here)";
         let followFunc = "endOfRoundHostDecision";
 
         let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup.hostId);
