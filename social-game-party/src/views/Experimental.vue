@@ -1,169 +1,73 @@
 <template>
-  <div class="experimental">
-    <!-- <div>
-      <h1>This is the experimental page.</h1>
+  <div>
+    <div class="test-div">
+      <button @click="toggleDrop">Drop</button>
 
-      <v-btn @click="pushMeTest">Push Me</v-btn>
-    </div> -->
+      <img src="@/assets/SocialGameParty.png" />
+    </div>
 
-    <br />
-
-    <!-- <div style="text-align:center;" id="vuexTest">
-      VUEX TESTING---------------------------------
-      <label style="display:block">Vuex projectName</label>
-      <br />
-      <span>{{projectName}}</span>
-
-      <br />
-      <input v-model="newName" placeholder="new name...." />
-      <v-btn @click="updateProjectName">Update project name!</v-btn>
-    </div>-->
-
-    <!-- <div style="text-align:center;" id="sessionTest">
-      Session TESTING---------------------------------
-      <label style="display:block">Current Session</label>
-      <br />
-
-      <div>
-        <label style="display:block"><b>Current Room Name</b></label>        
-        <span>{{currentRoomName}}</span>
-
-        <br />
-
-        <label style="display:block"><b>Current User</b></label>        
-        <span>{{currentUserName + " | " + currentUserId}}</span>
-        <br />
-      </div>
-      <br />
-      <div style="border-style:solid">
-        <input v-model="newRoomName" placeholder="new room name...." />
-        <br>
-        <input v-model="newUserName" placeholder="new user name...." />
-        <br>
-        <v-btn @click="updateSession">Update Session!</v-btn>
-      </div>
-    </div>-->
-
-    <!-- <div style="text-align:center;">
-      Math Master ---------------------------------
-      <label style="display:block">Math Problem</label>
-      <br />
-      <v-btn @click="getMathProblem">Get New Problem!</v-btn>
-      <br />
-      <span v-if="mathProblem">{{mathProblem.presentationProblem}}</span>
-
-      <br />
-      <input v-model="mathAnswer" placeholder="math answer goes here...." />
-      <v-btn @click="answerMathProblem">submit answer</v-btn>
-    </div> -->
-
-
-    <QuestionAndAnswer questionText="This is a Question" onSubmitFunction="()=>{alert('hello world');}"></QuestionAndAnswer>
-    <ResultScreen resultTitle="Result TITLLLELLELLE" resultText="IM THE WINNAR!!!"></ResultScreen>
+    <div v-show="isDroppedIn" class="drop-bg-div"></div>
   </div>
 </template>
 
 
 <script>
 import { mapGetters } from "vuex";
-import * as sgf from "@/logic/socialGameFramework.js";
-import SessionInfo from "@/logic/SessionInfo.js";
-import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
-import MathMasterGameTools from "@/logic/MathMasterGame.js";
-import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
-import ResultScreen from "@/components/GameParts/ResultScreen.vue"
+// import * as sgf from "@/logic/socialGameFramework.js";
+// import SessionInfo from "@/logic/SessionInfo.js";
+// import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
+// import MathMasterGameTools from "@/logic/Games/MathMasterGame.js";
+// import QuestionAndAnswer from "@/components/GameParts/QuestionAndAnswer.vue"
+// import ResultScreen from "@/components/GameParts/ResultScreen.vue"
+
+// import CardTable from "@/components/CardParts/CardTable.vue";
 
 // import DataConnector from "@/logic/DataConnector.js";
 
 export default {
   name: "Experimental",
   components: {
-    QuestionAndAnswer,
-    ResultScreen
+    // QuestionAndAnswer,
+    // ResultScreen
+    // CardTable,
   },
   data: () => ({
-    newName: null,
-
-    newRoomName: null,
-    newUserName: null,
-
-    //Math Master testing
-
-    mathProblem: null,
-    mathAnswer: null,
+    isDroppedIn: false,
   }),
-  mounted: function () {},
-  computed: {
-    ...mapGetters(["projectName", "currentSession"]),
+  mounted: function () {
+    if (this.isDebug) this.$store.commit("setIsDebugMode", true);
 
-    currentRoomName: function () {
-      if (
-        this.currentSession &&
-        this.currentSession.currentRoom &&
-        this.currentSession.currentRoom.name
-      )
-        return this.currentSession.currentRoom.name;
-      return "";
-    },
-    currentUserId: function () {
-      if (
-        this.currentSession &&
-        this.currentSession.currentUser &&
-        this.currentSession.currentUser.uniqueId
-      )
-        return this.currentSession.currentUser.uniqueId;
-      return "";
-    },
-    currentUserName: function () {
-      if (
-        this.currentSession &&
-        this.currentSession.currentUser &&
-        this.currentSession.currentUser.name
-      )
-        return this.currentSession.currentUser.name;
-      return "";
-    },
+    this.quickLog("Made it to Experimental!");
+  },
+  computed: {
+    ...mapGetters([
+      "projectName",
+      "userList",
+      "currentSession",
+      "currentRoomName",
+      "currentUserId",
+      "isGameStarted",
+      "hostId",
+      "selectedGameName",
+      "spectatorGameData",
+      "playerGameData",
+      "currentStep",
+      "currentInstructions",
+      "currentCheckInstructions",
+      "currentTargetedInstructions",
+      "currentHudInstructions",
+      "currentAltViewInstructions",
+
+      "results",
+      "dynamicHostGameData",
+      "myTempGameData",
+      "getRemoteDataGroup",
+    ]),
   },
   watch: {},
   methods: {
-    pushMeTest: function () {
-      alert("The frameworks name is: " + sgf.mainFramework.name);
-      var x = 2;
-      var y = 3;
-      alert(`${x} + ${y} = ${sgf.mainFramework.addStuff(x, y)} `);
-    },
-
-    updateProjectName() {
-      this.$store.commit("setProjectName", this.newName);
-    },
-
-    updateSession() {
-      let room = new SessionRoom(this.newRoomName);
-      let usr = new SessionUser(1, this.newUserName);
-
-      let sess = new SessionInfo(room, usr);
-
-      this.$store.dispatch("UpdateCurrentSession", sess);
-    },
-
-    //Math Master testing-==-=-=-=-=-=-=-=-
-
-    getMathProblem() {
-      this.resetMathStuff();
-      let tools = new MathMasterGameTools();
-
-      this.mathProblem = tools.buildMathProblem();
-    },
-
-    answerMathProblem() {
-      if (this.mathAnswer == this.mathProblem.answer)
-        alert("Correct Answer, you are great!");
-      else alert("Incorrect Answer, you fail!");
-    },
-
-    resetMathStuff() {
-      this.mathProblem = null;
-      this.mathAnswer = null;
+    toggleDrop: function () {
+      this.isDroppedIn = !this.isDroppedIn;
     },
   },
 };
@@ -171,5 +75,35 @@ export default {
 <style lang="scss" scoped>
 .experimental {
   text-align: center;
+}
+
+.test-div {
+  display: inline-grid;
+  z-index: 1;
+  position: relative;
+}
+
+.drop-bg-div {
+  width: 100%;
+  height: 100px;
+  background: red;
+  position: relative;
+  animation: myfirst 5s 1;
+  //animation-direction: alternate;
+  top: -50px;
+}
+
+@keyframes myfirst {
+  0% {
+    background: red;
+    top: 800px;
+  }
+  // 25%  {background: yellow; left: 200px; top: 0px;}
+  // 50%  {background: blue; left: 200px; top: 200px;}
+  // 75%  {background: green; left: 0px; top: 200px;}
+  100% {
+    background: red;
+    top: -50px;
+  }
 }
 </style>

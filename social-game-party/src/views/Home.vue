@@ -1,7 +1,10 @@
 <template>
   <div>
     <!-- Room navigation. Still in progress. -->
-    <UserSetup></UserSetup>
+    <div class="nav-and-info">
+      <UserSetup></UserSetup>
+      <RoomInfo></RoomInfo>
+    </div>
     <v-container>
       <v-row v-if="currentUserName" class="text-center">
         <v-col>
@@ -19,6 +22,7 @@ import { mapGetters } from "vuex";
 import RoomMenu from "@/components/RoomParts/RoomMenu.vue";
 import GameRoom from "@/components/RoomParts/GameRoom.vue";
 import UserSetup from "@/components/UserSetup.vue";
+import RoomInfo from "@/components/InfoParts/RoomInfo.vue";
 
 export default {
   name: "Home",
@@ -27,6 +31,7 @@ export default {
     RoomMenu,
     UserSetup,
     GameRoom,
+    RoomInfo,
   },
   data: () => ({}),
   computed: {
@@ -52,4 +57,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.nav-and-info {
+  display: flex;
+}
 </style>

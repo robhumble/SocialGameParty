@@ -1,40 +1,49 @@
 <!-- This component lets the user choose what room they will join or make. -->
 <template>
-  <div style="text-align:center;">
+  <div style="text-align: center">
     <div class="d-flex justify-center">
-      <v-card max-width="80%" rounded outlined class="room-menu-card">
-        <v-card-title class="text-center">Room Menu</v-card-title>
+      <v-card
+        v-if="!currentRoomName"
+        max-width="80%"
+        rounded
+        outlined
+        class="room-menu-card"
+      >
+        <v-card-title class="text-center">Room Selector</v-card-title>
 
         <div class="room-status">
-          <h1 v-if="!currentRoomName">You are not in a game room!</h1>
-          <h1 v-if="currentRoomName">You are in room: {{currentRoomName}}</h1>
+          <h1>You are not in a game room!</h1>
+          <!-- <h1 v-if="currentRoomName">You are in room: {{ currentRoomName }}</h1> -->
         </div>
 
         <!-- prevent loading both options at once by making the other button's value false -->
-        <div v-if="!currentRoomName && !joinARoom && !makeARoom" class="join-or-make">
+        <div
+          v-if="!currentRoomName && !joinARoom && !makeARoom"
+          class="join-or-make"
+        >
           <h3>Would you like to:</h3>
           <v-btn @click="joinARoom = true">Join a room!</v-btn>
-          <span style="font-weight:bold">Or</span>
+          <span style="font-weight: bold"> Or </span>
           <v-btn @click="makeARoom = true">Make a new room!</v-btn>
         </div>
-        <v-btn v-if="currentRoomName" @click="exitRoom">Exit!</v-btn>
+        <!-- <v-btn v-if="currentRoomName && !isCurrentUserInGame" @click="exitRoom"
+          >Exit!</v-btn
+        > -->
 
         <!-- forms for joining and making rooms respectively -->
         <div v-if="joinARoom">
           <h3>What is your room name?</h3>
           <v-container align-center>
             <v-row>
-              <v-col />
-              <v-col>
-                <v-text-field outlined v-model="joinRoomName"></v-text-field>
-              </v-col>
+              <v-text-field outlined v-model="joinRoomName"></v-text-field>
+            </v-row>
+            <v-row>
               <v-col>
                 <v-btn @click="joinRoom(joinRoomName)">Join</v-btn>
               </v-col>
               <v-col>
                 <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
-              <v-col />
             </v-row>
           </v-container>
         </div>
@@ -42,21 +51,24 @@
           <h3>What will you name your room?</h3>
           <v-container align-center>
             <v-row>
-              <v-col />
-              <v-col>
-                <v-text-field outlined v-model="makeRoomName"></v-text-field>
-              </v-col>
+              <v-text-field outlined v-model="makeRoomName"></v-text-field>
+            </v-row>
+            <v-row>
               <v-col>
                 <v-btn @click="makeRoom(makeRoomName)">Make</v-btn>
               </v-col>
               <v-col>
                 <v-btn @click="resetNavProperties">Cancel</v-btn>
               </v-col>
-              <v-col />
             </v-row>
           </v-container>
         </div>
       </v-card>
+
+      <v-btn class="room-info-chip" v-if="currentRoomName" @click="exitRoom">
+        <v-icon color="white" medium>mdi-exit-run</v-icon>
+        Leave Room
+      </v-btn>
     </div>
   </div>
 </template>
@@ -64,6 +76,7 @@
 <script>
 import { mapGetters } from "vuex";
 import RoomDataConnector from "@/dataConnectors/RoomDataConnector.js";
+//import { config } from "vue/types/umd";
 
 export default {
   data() {
@@ -80,7 +93,7 @@ export default {
     this.attemptToRejoinRoom();
   },
   computed: {
-    ...mapGetters(["currentSession", "userList"]),
+    ...mapGetters(["currentSession", "userList", "isCurrentUserInGame"]),
   },
   methods: {
     //Create a room
@@ -120,14 +133,22 @@ export default {
 
     //Leave the users current room
     exitRoom() {
-      this.dataConnector.exitRoom(
-        this.currentSession.currentUser.uniqueId,
-        this.currentRoomName
-      );
+      if (this.currentRoomName && this.isCurrentUserInGame)
+        alert("You need to quit the game before you leave the room!");
+      else {
+        let confirmChoice = confirm("Would you like to leave the room?");
 
-      this.updateCurrentRoom("");
+        if (confirmChoice) {
+          this.dataConnector.exitRoom(
+            this.currentSession.currentUser.uniqueId,
+            this.currentRoomName
+          );
 
-      this.resetNavProperties();
+          this.updateCurrentRoom("");
+
+          this.resetNavProperties();
+        }
+      }
     },
 
     //Get list of users in the current room
@@ -141,18 +162,12 @@ export default {
         //Game data contained in room
         that.$store.commit("setHostId", remoteRoomData.hostId);
         that.$store.commit(
+          "setSelectedGameName",
+          remoteRoomData.selectedGameName
+        );
+        that.$store.commit(
           "setSpectatorGameData",
           remoteRoomData.spectatorGameData
-        );
-        that.$store.commit("setPlayerGameData", remoteRoomData.playerGameData);
-
-        that.$store.commit(
-          "setCurrentInstructions",
-          remoteRoomData.currentInstructions
-        );
-        that.$store.commit(
-          "setCurrentCheckInstructions",
-          remoteRoomData.currentCheckInstructions
         );
       }, that.currentRoomName);
     },
@@ -199,5 +214,15 @@ export default {
   color: $social-game-party-orange !important;
   border-color: $social-game-party-orange !important;
   padding: 5px;
+}
+
+.room-info-chip {
+  color: $social-game-party-white !important;
+  border-color: $social-game-party-orange !important;
+  background-color: $social-game-party-orange !important;
+}
+
+.v-btn {
+  margin: 5px;
 }
 </style>

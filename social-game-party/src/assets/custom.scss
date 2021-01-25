@@ -29,3 +29,38 @@ $social-game-party-blue: #2274a5;
 $social-game-party-white: #f4ebd9;
 $social-game-party-black: #0f1a20;
 $social-game-party-green: #37ff8b;
+
+
+
+
+
+
+
+
+.basic-drop-down{
+    border: $social-game-party-black;
+
+    outline-style: auto;
+    margin: 5px;
+    color: $social-game-party-black;
+}
+
+.basic-text-input {
+    border: $social-game-party-orange;
+    border-style: solid;
+    padding: 5px;
+  }
+
+.hide-me {
+    display: none !important;
+}
+
+
+
+
+
+/*Animations*/
+@keyframes fade-in {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}

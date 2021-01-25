@@ -1,12 +1,18 @@
-import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
+//import GameplayDataConnector from "@/dataConnectors/GameplayDataConnector.js";
 import * as sgf from "@/logic/socialGameFramework.js";
+
+import ActivePlayerGameDataConnector from "@/dataConnectors/ActivePlayerGameDataConnector.js";
+import HostGameDataConnector from "@/dataConnectors/HostGameDataConnector.js";
+
 
 export default class MathMasterGame {
 
     name = "MathMaster";
 
-    dataConnector = null;
     roomName = null;
+
+    activePlayerGameDataConnector = null;
+    hostGameDataConnector = null;
 
     #configOptions = {
         totalMathProblems: 10,
@@ -16,7 +22,10 @@ export default class MathMasterGame {
     }
 
     constructor(roomName) {
-        this.dataConnector = new GameplayDataConnector();
+        //this.gamePlayDataConnector = new GameplayDataConnector();
+
+        this.activePlayerGameDataConnector = new ActivePlayerGameDataConnector();
+        this.hostGameDataConnector = new HostGameDataConnector();
 
         this.roomName = roomName;
     }
@@ -36,16 +45,16 @@ export default class MathMasterGame {
             cleanInstructionsFirst: false, 
 
             preStepTarget: 'host',
-            preStepFunction: (d) => { return this.setupLoadingScreen(d) },
+            preStepFunction: (data, batch) => { return this.setupLoadingScreen(data, batch) },
 
             target: 'host',
-            stepFunction: (d) => { return this.buildProblemsStep(d) },
+            stepFunction: (data, batch) => { return this.buildProblemsStep(data, batch)  },
 
             followUpTarget: 'none',
-            followUpFunction:  (d) => { return this.followUp(d) },
+            followUpFunction:  (data, batch) => { return this.followUp(data, batch)  },
 
             checkTarget: 'host',
-            checkFunction: (d) => { return this.prepareCheckInstructions(d) }
+            checkFunction: (data, batch) => { return this.prepareCheckInstructions(data, batch)  }
 
         },
         */
@@ -114,7 +123,8 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
     /**
@@ -138,12 +148,16 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            playerGameData: {
+
+            dynamicPlayerGameData: {
                 mathProblems: mathProblems,
-                currentStep: 2
-            }
+            },
+            currentStep: 2
+
+
         };
-        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
@@ -172,7 +186,8 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentInstructions: instructions
         };
-        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
     /**
@@ -185,7 +200,8 @@ export default class MathMasterGame {
         if (!remoteDataGroup) sgf.mainFramework.megaLog('no remoteDataGroup in prepareCheckInstructions')
 
         let currentCheckInstructions = {
-            watchTarget: "results",
+            rootObj: "results", //player, host, or results
+            watchTarget: "results",  // watchTarget is only checked if we aren't looking at the results rootObj, so going forward this line is redundant
             checkFunction: "checkToSeeIfAllPlayersAreDone"
         }
 
@@ -193,7 +209,8 @@ export default class MathMasterGame {
         let dataToUpdate = {
             currentCheckInstructions: currentCheckInstructions
         };
-        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
 
@@ -204,9 +221,7 @@ export default class MathMasterGame {
      */
     pickAWinnerAndDisplayResults = function (remoteDataGroup, batch) {
 
-        let gd = remoteDataGroup.playerGameData;
-
-        let sorted = gd.results.sort((acc, x) => {
+        let sorted = remoteDataGroup.results.sort((acc, x) => {
             return (x.answerResults > acc.answerResults) ? x : acc;
         });
 
@@ -227,7 +242,7 @@ export default class MathMasterGame {
 
         //Get everyones score in a string.
         let totals = "SCORES: \n";
-        remoteDataGroup.playerGameData.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults} \n`);
+        remoteDataGroup.results.forEach(x => totals += `${getUserInfo(x.userId).name} : ${x.answerResults} \n`);
 
         //Get the winner string.
         let winnerString = `Top Score: ${sorted[0].answerResults} \n Winners: `;
@@ -247,12 +262,15 @@ export default class MathMasterGame {
 
         //Add to the writeBatch
         let dataToUpdate = {
-            playerGameData: {
+
+            dynamicPlayerGameData: {
                 winner: winners,
             },
             currentInstructions: instructions
         };
-        return this.dataConnector.gameplayAddToBatch(batch, "update", this.roomName, dataToUpdate);
+
+
+        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
 
     }
 
@@ -283,14 +301,15 @@ export default class MathMasterGame {
             answerResults: answerResults
         }
 
-        let gd = remoteDataGroup.playerGameData;
+        this.hostGameDataConnector.updateWholeHostGameDataViaFunction(this.roomName, (hostData) => {
 
-        if (!gd.results)
-            gd.results = [];
+            if (!hostData.results)
+                hostData.results = [];
 
-        gd.results.push(resultObj);
+            hostData.results.push(resultObj);
 
-        this.dataConnector.updatePlayerGameData(this.roomName, "results", gd.results);
+            return hostData;
+        });
     }
 
     /**
@@ -302,12 +321,18 @@ export default class MathMasterGame {
 
         if (userId == remoteDataGroup.hostId) {
 
-            let res = remoteDataGroup.playerGameData.results;
+            let res = remoteDataGroup.results;
+            let playerCount = 0;
+            remoteDataGroup.userList.forEach(user => {
+                if (user.isPlaying)
+                    playerCount++;
+            })
 
-            if (res && res.length == remoteDataGroup.userList.length) {
-                //Move to step 3 (and clear all existing instructions.)
-                this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
-                    roomData.playerGameData.currentStep = 3;
+            if (res && res.length == playerCount) {
+                //Move to step 3 (and clear all existing instructions.)           
+
+                this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (roomData) => {
+                    roomData.currentStep = 3;
                     roomData.currentCheckInstructions = null;
                     roomData.currentInstructions = null;
                     return roomData;
@@ -319,7 +344,7 @@ export default class MathMasterGame {
 
     //Go to the desired step
     // moveToStepNonBatch = function (stepNumber) {
-    //     this.dataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
+    //     this.gamePlayDataConnector.updateWholeRoomViaFunction(this.roomName, (roomData) => {
     //         roomData.playerGameData.currentStep = stepNumber;
     //         return roomData;
     //     });
@@ -337,8 +362,8 @@ export default class MathMasterGame {
         let problemLo = this.#configOptions.problemLo,
             problemHi = this.#configOptions.problemHi
 
-        let x = this.getRandomInt(problemLo, problemHi);
-        let y = this.getRandomInt(problemLo, problemHi);
+        let x = sgf.mainFramework.getRandomInt(problemLo, problemHi);
+        let y = sgf.mainFramework.getRandomInt(problemLo, problemHi);
 
         let op = this.getRandomOperator();
 
@@ -346,7 +371,7 @@ export default class MathMasterGame {
 
         let z = eval(prob);
 
-        let answerVarInt = this.getRandomInt(1, 3);
+        let answerVarInt = sgf.mainFramework.getRandomInt(1, 3);
 
         let actual = `${x} ${op} ${y} = ${z}`;
 
@@ -382,18 +407,6 @@ export default class MathMasterGame {
 
     }
 
-    /**
-     * Get a random integer between lo and hi (inclusive.)
-     * @param {number} lo 
-     * @param {number} hi 
-     */
-    getRandomInt = function (lo, hi) {
-        let min = Math.floor(lo);
-        let max = Math.floor(hi);
-
-        let rand = (Math.random() * (max - min + 1)) + min;
-        return Math.floor(rand);
-    }
 
     //TODO: we are actually excluding "/" for now - need to change how we build these to avoid fractional answers (i.e. when building a "/", multiply instead and then move things around)
     /**
@@ -401,7 +414,7 @@ export default class MathMasterGame {
      */
     getRandomOperator = function () {
 
-        let op = this.getRandomInt(1, 3);
+        let op = sgf.mainFramework.getRandomInt(1, 3);
 
         switch (op) {
             case 1: return '+';

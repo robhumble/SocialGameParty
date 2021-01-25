@@ -1,37 +1,29 @@
 <template>
   <div>
-    <v-chip v-if="!isEditMode" class="user-info-chip" @click="tryToEdit">
-      <v-icon color="white" large>mdi-account-settings</v-icon>
-      {{currentUserName}}
-    </v-chip>
-
-    <div v-if="isEditMode">
-      <v-container>
-        <v-row>
-          <v-col>
-            <div class="user-setup-main">
-              <v-form>
-                <h1>Provide a name to display to other users.</h1>
-                <v-text-field
-                  outlined
-                  v-model="userDisplayName"
-                  label="Display Name"
-                  placeholder="Type Display Name Here..."
-                ></v-text-field>
-
-                <v-btn @click="updateCurrentUserName">Update Name</v-btn>
-                <v-btn v-if="currentUserName" @click="isEditMode=false">Cancel</v-btn>
-              </v-form>
-            </div>
-          </v-col>
-          <v-col v-if="currentUserName"></v-col>
-          <v-col v-if="currentUserName"></v-col>
-        </v-row>
-      </v-container>
-    </div>
+    <v-btn class="user-info-chip" @click="tryToEdit">
+      <v-icon color="white std-icon-size" medium>mdi-account-settings</v-icon>
+      {{ currentUserName }}
+    </v-btn>
+    <span v-if="!currentUserName && !isDialogOpen">
+      &#x3C;- Use the blue button to choose a username.
+    </span>
+    <v-dialog v-model="isDialogOpen" persistent width="650">
+      <div class="user-setup-main">
+        <h1>Provide a name to display to other users.</h1>
+        <v-text-field
+          outlined
+          v-model="userDisplayName"
+          label="Display Name"
+          placeholder="Type Display Name Here..."
+        ></v-text-field>
+        <v-btn @click="updateCurrentUserName">Update Name</v-btn>
+        <v-btn v-if="currentUserName" @click="isDialogOpen = false"
+          >close</v-btn
+        >
+      </div>
+    </v-dialog>
   </div>
 </template>
-
 
 <script>
 import { mapGetters } from "vuex";
@@ -45,7 +37,7 @@ export default {
   components: {},
   data: () => ({
     userDisplayName: null,
-    isEditMode: false,
+    isDialogOpen: false,
   }),
   mounted: function () {
     if (!this.currentUserName) this.tryToEdit();
@@ -66,7 +58,7 @@ export default {
           "UpdateCurrentUserDisplayName",
           this.userDisplayName
         );
-        this.isEditMode = false;
+        this.isDialogOpen = false;
       }
     },
 
@@ -75,7 +67,7 @@ export default {
         alert(
           "If you would like to update your display name, please leave the current room and try again!"
         );
-      else this.isEditMode = true;
+      else this.isDialogOpen = true;
     },
   },
 };
@@ -88,6 +80,7 @@ export default {
   border-style: solid;
   color: $social-game-party-blue !important;
   border-color: $social-game-party-blue !important;
+  background-color: white;
   padding: 5px;
 }
 

@@ -52,9 +52,11 @@ export default class DataConnector {
       return transaction.get(documentRef).then(function (targetDocument) {
 
         let currentDocData = targetDocument.data();
-        let updateDocData = updateFunc(currentDocData);
+        let updatedDocData = updateFunc(currentDocData);
 
-        transaction.update(documentRef, updateDocData);
+        //Only update if the doc data exists
+        if (updatedDocData)
+          transaction.update(documentRef, updatedDocData);
       })
     })
   }
