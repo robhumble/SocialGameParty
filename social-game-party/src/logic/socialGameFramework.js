@@ -354,13 +354,14 @@ export var mainFramework = {
         },
 
 
-        //c should be the Q uestionAndAnswer component or the YesNoQuestion component
-        buildQuestionAndAnswerInstructions: function (c, qText, followFunc, targetUserId = null) {
+        //c should be the QuestionAndAnswer component or the YesNoQuestion component
+        buildQuestionAndAnswerInstructions: function (c, qText, followFunc, validationFunc = '', targetUserId = null) {
             let instructions = {
                 type: this.instructionTypes.Display,
                 comp: c,
                 questionText: qText,
-                followUpFunction: followFunc
+                followUpFunction: followFunc,
+                validationFunction: validationFunc
             }
 
             if (targetUserId)

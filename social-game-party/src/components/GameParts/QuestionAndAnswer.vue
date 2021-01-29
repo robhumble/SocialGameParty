@@ -1,17 +1,20 @@
 <template>
-   <div style="text-align:center;">
+  <div style="text-align: center">
     <div class="d-flex justify-center">
-      <v-card max-width="80%" rounded outlined class="question-answer-card ">
+      <v-card max-width="80%" rounded outlined class="question-answer-card">
         <v-card-title class="text-center">Question!</v-card-title>
 
-        <h1>{{questionText}}</h1>
+        <h1>{{ questionText }}</h1>
 
-        <input class="basic-text-input" v-model="answerText" @keydown.enter="submitAnswer">
+        <input
+          class="basic-text-input"
+          v-model="answerText"
+          @keydown.enter="submitAnswer"
+        />
 
         <v-btn @click="submitAnswer">Submit</v-btn>
- 
       </v-card>
-    </div>  
+    </div>
   </div>
 </template>
 
@@ -26,38 +29,51 @@ import { mapGetters } from "vuex";
 export default {
   name: "QuestionAndAnswer",
   components: {},
-  props: ['questionText'],
+  props: ["validationFunction", "gameClass", "questionText"],
   data: () => ({
-  
-    answerText: ""
+    answerText: "",
   }),
   mounted: function () {},
   computed: {
-    ...mapGetters(["projectName", "currentSession"]),    
+    ...mapGetters([
+      "projectName",
+      "currentSession",
+      "getRemoteDataGroup",
+      "currentUserId",
+    ]),
   },
-  watch: {
-
-  },
+  watch: {},
   methods: {
+    submitAnswer: function () {
+      //Validate answer if we know how.
+      let validationResultMsg = "";
+      if (this.validationFunction && this.gameClass) {
+        validationResultMsg = this.gameClass[this.validationFunction](
+          this.getRemoteDataGroup,
+          this.currentUserId,
+          this.answerText
+        );
+      }
 
-    submitAnswer: function(){
-      //alert("This is the answer:"+this.answerText);      
+      //If there's a msg the validation failed, show the message to the screen and clear the answertext
+      if (validationResultMsg) {
+        this.answerText = "";
+        alert(validationResultMsg);
+      } else {
+        this.$emit("answerEvent", this.answerText);
+        this.answerText = "";
+      }
       
-      this.$emit("answerEvent", this.answerText)
-      this.answerText="";      
     },
-
   },
 };
 </script>
 <style lang="scss" scoped>
-
- @import "@/assets/custom.scss";
+@import "@/assets/custom.scss";
 
 .question-answer-card {
   color: $social-game-party-orange !important;
   border-color: $social-game-party-orange !important;
   padding: 5px;
 }
-
 </style>

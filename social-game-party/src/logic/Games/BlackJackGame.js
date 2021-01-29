@@ -16,6 +16,7 @@ export default class BlackJackGame extends BaseGame {
         //Setup Configuration
         this.configOptions.startingMoney = 100;
         this.configOptions.naturalMultiplier = 1.5;
+        this.configOptions.minimumBet = 5;
 
         //...Quick access to framework functions
         this.convertCardArrayToMapArray = sgf.mainFramework.gameTools.convertCardArrayToMapArray;
@@ -390,7 +391,8 @@ export default class BlackJackGame extends BaseGame {
         let qaInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
             sgf.mainFramework.gameTools.gameComponents.QuestionAndAnswer,
             "How much will you bet?", //question Text
-            "writePlayerBet" //follow up function
+            "writePlayerBet", //follow up function,
+            "betValidationFunc", //validation function
         );
 
 
@@ -597,18 +599,39 @@ export default class BlackJackGame extends BaseGame {
         batch = this.setupLoadingScreen(remoteDataGroup, batch)
 
 
-        //Call first players turn setup function
-        let firstPlayerId = playerInfo.find(x => !x.turnComplete).id;
-        let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(firstPlayerId);
+        //Call first players turn setup function, if we find a player that hasn't gone yet  
+        let fp = playerInfo.find(x => !x.turnComplete);
 
-        let dataToUpdate = {
-            "dynamicPlayerGameData.currentPlayerIndex": 0,
-            "dynamicPlayerGameData.allRoundsComplete": false,
+        if (fp) {
 
-            currentTargetedInstructions: [targetedInstructions],
-        };
+            let firstPlayerId = fp.id;
+            let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(firstPlayerId);
 
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+            let dataToUpdate = {
+                "dynamicPlayerGameData.currentPlayerIndex": 0,
+                "dynamicPlayerGameData.allRoundsComplete": false,
+
+                currentTargetedInstructions: [targetedInstructions],
+            };
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        }
+        else {
+
+            sgf.mainFramework.megaLog('No players had incomplete turns.....jumping to the end.');
+
+            //If the dealer has a natural, the round is over so skip to the end by building the end of round instructions          
+            let endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+
+            //Add to the writeBatch
+            let dataToUpdate = {
+                currentInstructions: endOfRoundInstructions.currentInstructions,
+                currentTargetedInstructions: endOfRoundInstructions.currentTargetedInstructions,
+            };
+
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        }
+
+
     }
 
     //Step 5 Check setup
@@ -961,16 +984,31 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    /**
+     * Get Data for the alternate views scoreboard.
+     * @param {*} remoteDataGroup 
+     * @param {*} userId 
+     */
     getScoreBoardData(remoteDataGroup, userId) {
 
         if (!remoteDataGroup || !userId) sgf.mainFramework.megaLog('oh no!')
 
-        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
-        let userList = remoteDataGroup.userList;
 
         let scoreCardData = []
 
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+        let userList = remoteDataGroup.userList;
+
         let buildScoreDetail = (t, d) => { return { "title": t, "data": d } };
+
+        let getHandString = (handArr) => {
+            let handStr = handArr.reduce((acc, cur) => {
+                return acc += `[${cur.Value}${cur.Suit}] `
+            }, '');
+            return handStr;
+        }
+
+
 
         //Players
         playerInfo.forEach(curInfo => {
@@ -985,8 +1023,19 @@ export default class BlackJackGame extends BaseGame {
             }
 
             playerInfoCard.details.push(buildScoreDetail("Bank", curInfo.money));
-            playerInfoCard.details.push(buildScoreDetail("Current Bet", curInfo.bet));
+
+            if (curInfo.cards) {
+                let handString = getHandString(curInfo.cards);
+                playerInfoCard.details.push(buildScoreDetail("Hand", handString));
+            }
+
+            playerInfoCard.details.push(buildScoreDetail("Final Hand Total", curInfo.finalHandTotal));
+
+            playerInfoCard.details.push(buildScoreDetail("Bust?", curInfo.bust));
             playerInfoCard.details.push(buildScoreDetail("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
+
+
+
 
             scoreCardData.push(playerInfoCard);
         })
@@ -999,12 +1048,44 @@ export default class BlackJackGame extends BaseGame {
         }
 
         dCard.details.push(buildScoreDetail("Bank", dealerInfo.money));
-        dCard.details.push(buildScoreDetail("Current Bet", dealerInfo.bet));
+        if (dealerInfo.cards) {
+            let handString = getHandString(dealerInfo.cards);
+            dCard.details.push(buildScoreDetail("Hand", handString));
+        }
+
+        dCard.details.push(buildScoreDetail("Final Hand Total", dealerInfo.finalHandTotal));
+
+        dCard.details.push(buildScoreDetail("Bust?", dealerInfo.bust));
         dCard.details.push(buildScoreDetail("Turn Status", dealerInfo.turnComplete ? "Complete" : "Incomplete"));
 
         scoreCardData.push(dCard);
 
         return scoreCardData;
+    }
+
+
+    /**
+     * Determine if the betAmt entered by the user is valid. Return a message if invalid, if valid return ''.
+     * @param {*} remoteDataGroup 
+     * @param {*} userId 
+     * @param {*} betAmt 
+     */
+    betValidationFunc(remoteDataGroup, userId, betAmt) {
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+        let curInfo = playerInfo.find(x => x.id == userId);
+
+        if (isNaN(betAmt))
+            return "Your bet must be a numeric value! Please enter a different bet.";
+
+        if (betAmt > curInfo.money)
+            return "Your can't bet more money than you have! Please enter a different bet.";
+
+        if (betAmt < this.configOptions.minimumBet)
+            return `You must at least bet the minimum bet of $${this.configOptions.minimumBet}! Please enter a different bet.`;
+
+        return '';
     }
 
 
@@ -1205,7 +1286,7 @@ export default class BlackJackGame extends BaseGame {
         let questionText = "Do you want to continue playing? (Yes starts another round, No will end the game here)";
         let followFunc = "endOfRoundHostDecision";
 
-        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, remoteDataGroup.hostId);
+        let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, '', remoteDataGroup.hostId);
 
         //All other players    
         let generalInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen,

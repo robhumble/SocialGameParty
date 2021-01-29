@@ -11,13 +11,11 @@
         <v-tabs-slider></v-tabs-slider>
 
         <v-tab :class="!altViewInstructions ? 'hide-me' : ''">
-          GAME
-          <!-- <v-icon>mdi-phone</v-icon> -->
+          GAME        
         </v-tab>
 
         <v-tab v-if="altViewInstructions">
           ALT
-          <!-- <v-icon>mdi-phone</v-icon> -->
         </v-tab>
 
         <v-tabs-items v-model="tab">
@@ -41,6 +39,8 @@
             <div class="game-components">
               <QuestionAndAnswer
                 v-if="currentGameComponent == 'QuestionAndAnswer'"
+                :validationFunction="(displayInstructions)? displayInstructions.validationFunction:''"
+                :gameClass="gameClass"
                 :questionText="questionAndAnswerQuestionText"
                 @answerEvent="questionAndAnswerHandler"
               ></QuestionAndAnswer>
