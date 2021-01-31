@@ -188,6 +188,16 @@ export var mainFramework = {
             return cardArray;
         },
 
+        getSuitHtml(suitName){
+
+            switch(suitName){
+                case "heart": return "&#9829;";
+                case "diamond": return "&#9830;";
+                case "spade": return "&#9824;";
+                case "club": return "&#9827;";
+            }
+        },
+
 
         //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
         //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  

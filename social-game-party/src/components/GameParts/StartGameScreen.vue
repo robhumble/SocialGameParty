@@ -2,7 +2,7 @@
   <div style="text-align: center">
     <div class="d-flex justify-center">
       <v-card max-width="80%" rounded outlined class="start-game-card">
-        <v-card-title class="text-center">Start Game?</v-card-title>
+        <v-card-title class="text-center">Game Selection</v-card-title>
 
         <h1>{{ titleText }}</h1>
         <p>{{ bodyText }}</p>
@@ -15,7 +15,7 @@
           </select>
         </div>
 
-        <v-btn @click="startTheGame">START!!!!!!!!</v-btn>
+        <v-btn @click="startTheGame">START!!!</v-btn>
       </v-card>
     </div>
   </div>

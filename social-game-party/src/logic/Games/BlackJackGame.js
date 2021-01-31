@@ -473,7 +473,9 @@ export default class BlackJackGame extends BaseGame {
         //Deal 2 cards to the dealer.
         let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
         let c1 = gameDeck.dealACard();
+        c1.isFaceUp = true;
         let c2 = gameDeck.dealACard();
+        c2.isFaceUp = false; //Dealers second card is always down on the deal.
         dealerInfo.cards.push(c1.toMap(), c2.toMap());
 
 
@@ -522,6 +524,8 @@ export default class BlackJackGame extends BaseGame {
 
 
         if (dealerHasNatural) {
+
+            dealerInfo.cards.forEach(c => c.isFaceUp = true); //flip all of the dealers cards face up.
 
             //If a dealer has a natural the round is over
             //Collect bets of players who do not have naturals
@@ -1003,7 +1007,13 @@ export default class BlackJackGame extends BaseGame {
 
         let getHandString = (handArr) => {
             let handStr = handArr.reduce((acc, cur) => {
-                return acc += `[${cur.Value}${cur.Suit}] `
+
+                if ((cur.isFaceUp)) {
+                    let suitHtml = sgf.mainFramework.gameTools.getSuitHtml(cur.Suit);
+                    return acc += `[${cur.Value}${suitHtml}] `                    
+                }
+                else                    
+                    return acc += "[?]";               
             }, '');
             return handStr;
         }
@@ -1043,7 +1053,7 @@ export default class BlackJackGame extends BaseGame {
         //Dealer
         let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
         let dCard = {
-            "playerName": "Dealer(Host Machine)",
+            "playerName": "Dealer(Host)",
             "details": []
         }
 
@@ -1204,6 +1214,8 @@ export default class BlackJackGame extends BaseGame {
         }
 
         let finalDealerTotal = this.getHandValue(dealerInfo.cards);
+
+        dealerInfo.cards.forEach(c => c.isFaceUp = true);
 
         if (finalDealerTotal > 21)
             dealerInfo.bust = true;

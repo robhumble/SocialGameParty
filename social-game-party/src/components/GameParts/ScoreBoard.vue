@@ -14,7 +14,7 @@
           <v-card-title>{{ sc.playerName }}</v-card-title>
           <v-card-text>
             <v-row v-for="d in sc.details" :key="d.title" class="mx-0 my-1">
-              <b>{{ d.title }}</b> : {{ d.data }}
+              <b>{{ d.title }}</b> : <span v-html="d.data"></span>
             </v-row>
           </v-card-text>
         </v-card>
