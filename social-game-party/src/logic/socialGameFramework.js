@@ -13,12 +13,12 @@ export var mainFramework = {
     */
     scrollToBottom: function (elementId) {
 
-        var mainChat = document.getElementById(elementId);
-        if (mainChat)
-            mainChat.scrollTop = mainChat.scrollHeight;
+        var textAreaElement = document.getElementById(elementId);
+        if (textAreaElement)
+            textAreaElement.scrollTop = textAreaElement.scrollHeight;
     },
 
-    //TODO: Make this recursive to check for nested objects and Arrays
+    //TODO: Make this recursive to check for nested objects and Arrays.....make it a deeper comparison
     /**
      * (Shallow Compare) Quick check to see if an object is "roughly" the same. 
      * @param {object} objectA 
@@ -61,12 +61,15 @@ export var mainFramework = {
         return true;
     },
 
-    //TODO: This needs to be tested since I moved it.
+    
     /**
-     * Quick sleep function to wait in between transactions 
+     * Quick async sleep function to wait in between transactions 
      */
-    slowDown: function (sleepInMs) {
-        setTimeout(() => { this.megLog(`slowing down for ${sleepInMs}....`), sleepInMs });
+    slowDown: async function (sleepInMs) {        
+        return new Promise(resolution => {
+            this.megaLog(`slowing down for ${sleepInMs}....`, true);
+            setTimeout(resolution, sleepInMs)
+        });        
     },
 
 
@@ -188,9 +191,9 @@ export var mainFramework = {
             return cardArray;
         },
 
-        getSuitHtml(suitName){
+        getSuitHtml(suitName) {
 
-            switch(suitName){
+            switch (suitName) {
                 case "heart": return "&#9829;";
                 case "diamond": return "&#9830;";
                 case "spade": return "&#9824;";

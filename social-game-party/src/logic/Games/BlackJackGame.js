@@ -17,6 +17,7 @@ export default class BlackJackGame extends BaseGame {
         this.configOptions.startingMoney = 100;
         this.configOptions.naturalMultiplier = 1.5;
         this.configOptions.minimumBet = 5;
+        this.configOptions.delayEndOfRoundOptionsMS = 7000;
 
         //...Quick access to framework functions
         this.convertCardArrayToMapArray = sgf.mainFramework.gameTools.convertCardArrayToMapArray;
@@ -227,20 +228,23 @@ export default class BlackJackGame extends BaseGame {
             },
             */
 
-            //Now called directly by step 3 OR step 5/6
-            /*
+            //Now called directly by step 3 OR step 5/6......SCRATCH THAT - 3,5,6 will show the dealers hand as their last step - THEN this will be called (after a delayed start) which will give the host user a chance to continue as I originally planned
+
             {
                 //7) Machine/dealer gives option to host to continue or to end game early (which would declare the user with the most money as the winner)
-
 
                 stepNum: 7,
                 desc: "Machine/dealer gives option to host to continue or to end game early (which would declare the user with the most money as the winner)",
                 cleanInstructionsFirst: false,
-          
+
                 target: 'host',
-                stepFunction: (data, batch) => { return this.setupEndOfRoundOptions(data, batch) },
+                stepFunction: (data, batch) => { return this.delayedStartHostContinueChoice(data, batch) },
             },
-            */
+
+
+
+
+
 
             {
                 //8) Host has chosen to end the game - show a final end screen
@@ -662,6 +666,28 @@ export default class BlackJackGame extends BaseGame {
         return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
     }
 
+    //Step 7
+    delayedStartHostContinueChoice = function (remoteDataGroup, batch) {
+
+        var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+
+        //Delayed start - this runs async
+        setTimeout(() => {
+            //Step 7 tasks
+            this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+
+                aData.currentInstructions = endOfRoundInstructions.currentInstructions;
+                aData.currentTargetedInstructions = endOfRoundInstructions.currentTargetedInstructions;
+
+                return aData;
+            });
+        }
+            , this.configOptions.delayEndOfRoundOptionsMS);
+
+
+        //Always return the batch (even if we don't do anything with it) - this runs synchronously so we just return the batch instantly.
+        return batch;
+    }
 
     //Step 8
     /**
@@ -1010,10 +1036,10 @@ export default class BlackJackGame extends BaseGame {
 
                 if ((cur.isFaceUp)) {
                     let suitHtml = sgf.mainFramework.gameTools.getSuitHtml(cur.Suit);
-                    return acc += `[${cur.Value}${suitHtml}] `                    
+                    return acc += `[${cur.Value}${suitHtml}] `
                 }
-                else                    
-                    return acc += "[?]";               
+                else
+                    return acc += "[?]";
             }, '');
             return handStr;
         }
@@ -1258,8 +1284,10 @@ export default class BlackJackGame extends BaseGame {
 
         //Calling this step directly from a check function now.....so no batch anymore
 
+        //TODO: Build card Table instructions for show the dealers hand to all users.
         //Replacing step 7 here
-        var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+        //var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
+        var placeHolderInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen, "PLACEHOLDER", "The Dealer hand will be here soon.....");
 
         //All rounds are complete - clean up and move on to the next step.
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
@@ -1273,9 +1301,10 @@ export default class BlackJackGame extends BaseGame {
             aData.dynamicPlayerGameData.playerInfo = playerInfo;
             aData.dynamicPlayerGameData.dealerInfo = dealerInfo;
 
-            //Step 7
-            aData.currentInstructions = endOfRoundInstructions.currentInstructions;
-            aData.currentTargetedInstructions = endOfRoundInstructions.currentTargetedInstructions;
+            //TODO: #68 This will be where we show all the players the dealers hand - place holder for this commit.      
+            aData.currentInstructions = placeHolderInstructions;
+            aData.currentTargetedInstructions = null;
+            aData.currentStep = 7;
 
             return aData;
         });

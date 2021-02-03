@@ -1,5 +1,8 @@
 <template>
   <div>
+
+   <button @click="slowAlert">Alert</button>
+
     <div class="test-div">
       <button @click="toggleDrop">Drop</button>
 
@@ -13,7 +16,7 @@
 
 <script>
 import { mapGetters } from "vuex";
-// import * as sgf from "@/logic/socialGameFramework.js";
+import * as sgf from "@/logic/socialGameFramework.js";
 // import SessionInfo from "@/logic/SessionInfo.js";
 // import { SessionRoom, SessionUser } from "@/logic/SessionInfo.js";
 // import MathMasterGameTools from "@/logic/Games/MathMasterGame.js";
@@ -69,6 +72,14 @@ export default {
     toggleDrop: function () {
       this.isDroppedIn = !this.isDroppedIn;
     },
+
+    slowAlert: async function  () {
+
+      await sgf.mainFramework.slowDown(2000)
+
+      alert("hello world");
+    },
+
   },
 };
 </script>
