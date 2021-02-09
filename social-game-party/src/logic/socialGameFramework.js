@@ -61,15 +61,15 @@ export var mainFramework = {
         return true;
     },
 
-    
+
     /**
      * Quick async sleep function to wait in between transactions 
      */
-    slowDown: async function (sleepInMs) {        
+    slowDown: async function (sleepInMs) {
         return new Promise(resolution => {
             this.megaLog(`slowing down for ${sleepInMs}....`, true);
             setTimeout(resolution, sleepInMs)
-        });        
+        });
     },
 
 
@@ -213,7 +213,7 @@ export var mainFramework = {
         //dN (deckName) - the name of the deck map in the deck location
         //pIL (playerInfoLocation) - the remote object where the playerInfo array is located (everything about the players - including thier hand - which we assume will be called "cards")
         //pIN (playerInfoName) the name of the array of playerInfo maps in the pIN
-        buildCardTableConfig: function (gn, dL, dN, pIL, pIN) {
+        buildCardTableConfig: function (gn, deckL, deckN, playerInfoL, playerInfoN, dealerInfoL, dealerInfoN) {
 
 
             //...current card table component data
@@ -235,10 +235,15 @@ export var mainFramework = {
 
                 //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE
                 //Describe the location and name of the deck and the player hand object in the remote document...
-                deckLocation: dL,
-                deckName: dN,
-                playerInfoLocation: pIL,
-                playerInfoName: pIN,
+                deckLocation: deckL,
+                deckName: deckN,
+                playerInfoLocation: playerInfoL,
+                playerInfoName: playerInfoN,
+
+                dealerInfoLocation: dealerInfoL,
+                dealerInfoName: dealerInfoN,
+
+
 
                 //Deck 
                 showContentsOfDeck: false,
@@ -246,21 +251,30 @@ export var mainFramework = {
                 //Deck Controls
 
 
-                //Hands
+                //Hands                
                 showCurrentPlayerHand: false,
                 showAllPlayerHands: false,
+
+                showDealerHand: false,
 
                 //Hand Controls                
                 //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
                 showHitControl: false,
                 hitControlFunctionName: null,
-                hitControlFunc: null,
+                //hitControlFunc: null,
 
                 showStandControl: false,
                 standControlFunctionName: null,
-                standControlFunc: null,
+                //standControlFunc: null,
 
-                endTurnFunctionName: null
+                endTurnFunctionName: null,
+
+
+                // Messages
+                showMessage: false,
+                simpleMessage: null,
+                messageFunctionName: null
+
             }
 
 

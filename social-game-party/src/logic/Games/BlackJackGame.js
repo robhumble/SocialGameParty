@@ -354,6 +354,7 @@ export default class BlackJackGame extends BaseGame {
             x.turnComplete = false;
             x.bust = false;
             x.paidOutForTheRound = false;
+            x.roundResultStatus = "";
         });
 
         //Reset Dealer
@@ -540,7 +541,8 @@ export default class BlackJackGame extends BaseGame {
                     x.bet = 0;
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
-                    x.finalHandTotal = 21
+                    x.finalHandTotal = 21;
+                    x.roundResultStatus = "tie";
                 }
                 else {
                     x.money = parseInt(x.money) - parseInt(x.bet);
@@ -548,6 +550,7 @@ export default class BlackJackGame extends BaseGame {
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
                     x.finalHandTotal = 0;
+                    x.roundResultStatus = "lose";
                 }
             });
 
@@ -576,6 +579,7 @@ export default class BlackJackGame extends BaseGame {
                     x.turnComplete = true;
                     x.paidOutForTheRound = true;
                     x.finalHandTotal = 21;
+                    x.roundResultStatus = "win";
                 }
             });
 
@@ -669,9 +673,16 @@ export default class BlackJackGame extends BaseGame {
     //Step 7
     delayedStartHostContinueChoice = function (remoteDataGroup, batch) {
 
+        //Show Temporary Dealer Results
+        var endOfRoundDealerResults = this.setupEndingDealerHandResults();
+        this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
+            aData.currentInstructions = endOfRoundDealerResults;
+            return aData;
+        });
+
+        //Ask dealer if they want to continue - Delayed start (this runs async)
         var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
 
-        //Delayed start - this runs async
         setTimeout(() => {
             //Step 7 tasks
             this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
@@ -1044,8 +1055,6 @@ export default class BlackJackGame extends BaseGame {
             return handStr;
         }
 
-
-
         //Players
         playerInfo.forEach(curInfo => {
 
@@ -1069,9 +1078,6 @@ export default class BlackJackGame extends BaseGame {
 
             playerInfoCard.details.push(buildScoreDetail("Bust?", curInfo.bust));
             playerInfoCard.details.push(buildScoreDetail("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
-
-
-
 
             scoreCardData.push(playerInfoCard);
         })
@@ -1125,6 +1131,33 @@ export default class BlackJackGame extends BaseGame {
     }
 
 
+    roundResultCardTableMessageFunc(remoteDataGroup, userId) {
+        if (!remoteDataGroup || !userId) sgf.mainFramework.megaLog('oh no!')
+
+        let dealerInfo = remoteDataGroup.playerGameData.dealerInfo;
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+        let curInfo = playerInfo.find(x => x.id == userId);
+
+        let resultString = "";
+
+
+        //Dealer outcome
+        let dealerOutcome = (dealerInfo.bust) ? 'Dealer Busted.' : `vs. Dealer's ${dealerInfo.finalHandTotal}`;
+
+        switch (curInfo.roundResultStatus) {
+            case "win": resultString = `You Won! - your total was ${curInfo.finalHandTotal} (${dealerOutcome})`
+                break;
+            case "tie": resultString = `You Tied.`
+                break;
+            case "lose": resultString = `You Lost - your total was ${curInfo.finalHandTotal} (${dealerOutcome})`
+                break;
+        }
+
+        return resultString;
+    }
+
+
     //General "Private" Helper functions -----------------------------------------------------------------
 
     /**
@@ -1141,7 +1174,8 @@ export default class BlackJackGame extends BaseGame {
             finalHandTotal: 0,
             turnComplete: false,
             bust: false,
-            paidOutForTheRound: false
+            paidOutForTheRound: false,
+            roundResultStatus: "" //win, lose, tie
         }
 
         return ph;
@@ -1202,9 +1236,11 @@ export default class BlackJackGame extends BaseGame {
         let dL = "playerGameData",
             dN = "cardDeck",
             pIL = "playerGameData",
-            pIN = "playerInfo";
+            pIN = "playerInfo",
+            dIL = "playerGameData",
+            dIN = "dealerInfo";
 
-        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig(gn, dL, dN, pIL, pIN);
+        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig(gn, dL, dN, pIL, pIN, dIL, dIN);
 
         cardTableConfig.showCurrentPlayerHand = true;
         cardTableConfig.showHitControl = true;
@@ -1216,6 +1252,30 @@ export default class BlackJackGame extends BaseGame {
         let targetedInstructions = sgf.mainFramework.gameTools.buildCardTableInstructions(cardTableConfig, playerToSetupId);
 
         return targetedInstructions;
+    }
+
+
+    setupEndingDealerHandResults() {
+
+        let gn = sgf.mainFramework.gameTools.gameList.BlackJack;
+
+        //Location and names of the deck and player info maps.
+        let dL = "playerGameData",
+            dN = "cardDeck",
+            pIL = "playerGameData",
+            pIN = "playerInfo",
+            dIL = "playerGameData",
+            dIN = "dealerInfo";
+
+        let cardTableConfig = sgf.mainFramework.gameTools.buildCardTableConfig(gn, dL, dN, pIL, pIN, dIL, dIN);
+
+        cardTableConfig.showDealerHand = true;
+        cardTableConfig.showMessage = true;
+        cardTableConfig.messageFunctionName = "roundResultCardTableMessageFunc";
+
+        let instr = sgf.mainFramework.gameTools.buildCardTableInstructions(cardTableConfig);
+
+        return instr;
     }
 
 
@@ -1264,6 +1324,7 @@ export default class BlackJackGame extends BaseGame {
                 x.bet = null;
                 x.turnComplete = true;
                 x.paidOutForTheRound = true;
+                x.roundResultStatus = "lose";
             }
 
             //tie with dealer
@@ -1271,6 +1332,7 @@ export default class BlackJackGame extends BaseGame {
                 x.bet = null;
                 x.turnComplete = true;
                 x.paidOutForTheRound = true;
+                x.roundResultStatus = "tie";
             }
             //player win
             else if ((dealerInfo.bust && !x.bust) || (finalDealerTotal < x.finalHandTotal && !x.bust)) {
@@ -1278,6 +1340,7 @@ export default class BlackJackGame extends BaseGame {
                 x.bet = null;
                 x.turnComplete = true;
                 x.paidOutForTheRound = true;
+                x.roundResultStatus = "win";
             }
 
         });
@@ -1288,6 +1351,7 @@ export default class BlackJackGame extends BaseGame {
         //Replacing step 7 here
         //var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
         var placeHolderInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen, "PLACEHOLDER", "The Dealer hand will be here soon.....");
+        //var endOfRoundDealerResults = this.setupEndingDealerHandResults();
 
         //All rounds are complete - clean up and move on to the next step.
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {

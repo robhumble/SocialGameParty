@@ -71,11 +71,33 @@
     <!-- BEGIN REAL STUFF_____________________________________________________________________________ -->
 
     <div>
+      <!-- Status Display -->
       <div v-if="isTurnComplete">
         <p>{{ endOfTurnMessage }}</p>
         <p v-if="showIsBust">BUST!!!!!!!</p>
       </div>
 
+      <!-- Message -->
+      <div v-if="showMessage">
+        <h3 v-if="simpleMessage">{{ simpleMessage }}</h3>
+        <h3 v-else-if="messageFunctionName">
+          {{ getStringFromFunction(messageFunctionName) }}
+        </h3>
+      </div>
+
+      <!-- Dealer Hand -->
+      <div v-if="showDealerHand && dealerHand.length > 0" class="scroll-cards">
+        <v-label>Dealer's Hand</v-label>
+        <VisualCard
+          v-for="c in dealerHand"
+          :key="c.Suit + c.Value"
+          :cardObject="c"
+          :startFaceDown="true"
+          @flipTargetCard="flipHandCard($event)"
+        ></VisualCard>
+      </div>
+
+      <!-- Current Player Hand -->
       <div
         v-if="showCurrentPlayerHand && playerHand.length > 0"
         class="scroll-cards"
@@ -90,6 +112,7 @@
         ></VisualCard>
       </div>
 
+      <!-- Controls -->
       <div v-if="!isTurnComplete">
         <v-btn v-if="showHitControl" @click="hit">Hit!</v-btn>
         <v-btn v-if="showStandControl" @click="stand">Stand!</v-btn>
@@ -124,6 +147,7 @@ export default {
     //TODO: these should be props
     cardDeck: null, //The Deck
     playerHand: [], //The players cards
+    dealerHand: [],
 
     deckViewType: "scroll",
 
@@ -151,6 +175,8 @@ export default {
     showCurrentPlayerHand: null,
     showAllPlayerHands: null,
 
+    showDealerHand: null,
+
     //Hand Controls
     //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
     showHitControl: null,
@@ -160,6 +186,12 @@ export default {
     standControlFunctionName: null,
 
     endTurnFunctionName: null,
+
+    // Messages
+    showMessage: false,
+    simpleMessage: null,
+    messageFunctionName: null,
+
     //___________________________________________________________
 
     isTurnComplete: false,
@@ -172,31 +204,13 @@ export default {
       this.loadConfig(this.cardTableConfig);
 
       //Set up deck
-      let dl = this.deckLocation;
-      let dn = this.deckName;
-      if (dl && dn) {
-        let loc = this.getRemoteDataGroup[dl];
-        let deckMap = loc[dn];
-
-        let gameDeck = new DeckOfCards();
-        gameDeck.fromMap(deckMap);
-        this.cardDeck = gameDeck;
-      } else this.quickLog(`CARDTABLE.VUE - Can't find initial Deck!`);
+      this.setupDeck();
 
       //Set up player Hand
-      let pl = this.playerInfoLocation;
-      let pn = this.playerInfoName;
-      if (pl && pn) {
-        let loc = this.getRemoteDataGroup[pl];
-        let playerInfoArrayMap = loc[pn];
+      this.setupPlayerHand();
 
-        let playerInfo = playerInfoArrayMap.find(
-          (x) => x.id == this.currentUserId
-        );
-        this.playerHand = sgf.mainFramework.gameTools.getCardArrayFromMapArray(
-          playerInfo.cards
-        );
-      } else this.quickLog(`CARDTABLE.VUE - can't find intial player info!`);
+      //Set up dealer hand
+      this.setupDealerHand();
     } else {
       //No config loaded - show debug tools for now
       this.hasDebugTools = true;
@@ -260,14 +274,6 @@ export default {
     loadConfig(config) {
       this.gameName = config.gameName;
 
-      //  switch (this.gameName) {
-
-      //     case sgf.mainFramework.gameTools.gameList.BlackJack:
-      //       this.gameClass = new BlackJackGame(this.currentRoomName);
-      //     default:
-      //       this.gameClass = null;
-      //   }
-
       this.showDebugTools = config.showDebugTools;
 
       //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE
@@ -276,6 +282,8 @@ export default {
       this.deckName = config.deckName;
       this.playerInfoLocation = config.playerInfoLocation;
       this.playerInfoName = config.playerInfoName;
+      this.dealerInfoLocation = config.dealerInfoLocation;
+      this.dealerInfoName = config.dealerInfoName;
 
       //Deck
       this.showContentsOfDeck = config.showContentsOfDeck;
@@ -286,6 +294,8 @@ export default {
       this.showCurrentPlayerHand = config.showCurrentPlayerHand;
       this.showAllPlayerHands = config.showAllPlayerHands;
 
+      this.showDealerHand = config.showDealerHand;
+
       //Hand Controls
       //(these controls have a default behavior - providing a function name will call the function instead of using default behavior overriding the control)
       this.showHitControl = config.showHitControl;
@@ -295,7 +305,58 @@ export default {
       this.standControlFunctionName = config.standControlFunctionName;
 
       this.endTurnFunctionName = config.endTurnFunctionName;
+
+      // Messages
+      this.showMessage = config.showMessage;
+      this.simpleMessage = config.simpleMessage;
+      this.messageFunctionName = config.messageFunctionName;
     },
+
+    //Setup Functions ----------------------------------------------------------
+
+    setupDeck: function () {
+      let dl = this.deckLocation;
+      let dn = this.deckName;
+      if (dl && dn) {
+        let loc = this.getRemoteDataGroup[dl];
+        let deckMap = loc[dn];
+
+        let gameDeck = new DeckOfCards();
+        gameDeck.fromMap(deckMap);
+        this.cardDeck = gameDeck;
+      } else this.quickLog(`CARDTABLE.VUE - Can't find initial Deck!`);
+    },
+
+    setupPlayerHand: function () {
+      let pl = this.playerInfoLocation;
+      let pn = this.playerInfoName;
+      if (pl && pn) {
+        let loc = this.getRemoteDataGroup[pl];
+        let playerInfoArrayMap = loc[pn];
+
+        let playerInfo = playerInfoArrayMap.find(
+          (x) => x.id == this.currentUserId
+        );
+        this.playerHand = sgf.mainFramework.gameTools.getCardArrayFromMapArray(
+          playerInfo.cards
+        );
+      } else this.quickLog(`CARDTABLE.VUE - can't find initial player info!`);
+    },
+
+    setupDealerHand: function () {
+      let dIL = this.dealerInfoLocation;
+      let dIN = this.dealerInfoName;
+      if (dIL && dIN) {
+        let loc = this.getRemoteDataGroup[dIL];
+        let dealerInfo = loc[dIN];
+
+        this.dealerHand = sgf.mainFramework.gameTools.getCardArrayFromMapArray(
+          dealerInfo.cards
+        );
+      } else this.quickLog(`CARDTABLE.VUE - can't find initial player info!`);
+    },
+
+    //Control Functions ----------------------------------------------------------
 
     hit: function () {
       let deck = this.cardDeck;
@@ -345,6 +406,15 @@ export default {
       };
 
       this.$emit("endOfTurnEvent", endTurnResult);
+    },
+
+    getStringFromFunction: function (funcName) {
+      let resultString = this.gameClass[funcName](
+        this.getRemoteDataGroup,
+        this.currentUserId
+      );
+
+      return resultString;
     },
   },
 };
