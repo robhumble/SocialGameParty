@@ -200,19 +200,21 @@ export var mainFramework = {
                 case "club": return "&#9827;";
             }
         },
+    
 
-
-        //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
-        //Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
-        //expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())\
-
-
-        //gn is the gameName (only black jack atm)
-        //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE ----------------------
-        //dL (deckLocation) - the remote object where the deck map is located
-        //dN (deckName) - the name of the deck map in the deck location
-        //pIL (playerInfoLocation) - the remote object where the playerInfo array is located (everything about the players - including thier hand - which we assume will be called "cards")
-        //pIN (playerInfoName) the name of the array of playerInfo maps in the pIN
+        /**
+         *    //This function will be used to build the configuration object that drive what the card table shows to the user and how it behaves.
+         * Card table accepts a config object to describe the rules we want to use for black jack  (i.e. where is the deck i should use? where is the hand I should use? expose the hit control,  
+         * expose the stay control, name of call back function to use to update the results  PROBABLY writePlayerRoundResults())\
+         * @param {*} gn - gn is the gameName (only black jack atm)
+         *    //THESE WILL ALL BE IN THE RemoteDataGroup OBJECT IN THE VUEX STORE ----------------------
+         * @param {*} deckL - the remote object where the deck map is located
+         * @param {*} deckN - the name of the deck map in the deck location
+         * @param {*} playerInfoL - the remote object where the playerInfo array is located (everything about the players - including thier hand - which we assume will be called "cards")
+         * @param {*} playerInfoN -the name of the array of playerInfo maps in the pIN
+         * @param {*} dealerInfoL - location of the dealer info
+         * @param {*} dealerInfoN - name of the dealer info object
+         */
         buildCardTableConfig: function (gn, deckL, deckN, playerInfoL, playerInfoN, dealerInfoL, dealerInfoN) {
 
 

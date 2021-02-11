@@ -10,13 +10,9 @@
       >
         <v-tabs-slider></v-tabs-slider>
 
-        <v-tab :class="!altViewInstructions ? 'hide-me' : ''">
-          GAME        
-        </v-tab>
+        <v-tab :class="!altViewInstructions ? 'hide-me' : ''"> GAME </v-tab>
 
-        <v-tab v-if="altViewInstructions">
-          ALT
-        </v-tab>
+        <v-tab v-if="altViewInstructions"> ALT </v-tab>
 
         <v-tabs-items v-model="tab">
           <v-tab-item>
@@ -39,7 +35,11 @@
             <div class="game-components">
               <QuestionAndAnswer
                 v-if="currentGameComponent == 'QuestionAndAnswer'"
-                :validationFunction="(displayInstructions)? displayInstructions.validationFunction:''"
+                :validationFunction="
+                  displayInstructions
+                    ? displayInstructions.validationFunction
+                    : ''
+                "
                 :gameClass="gameClass"
                 :questionText="questionAndAnswerQuestionText"
                 @answerEvent="questionAndAnswerHandler"
@@ -193,6 +193,17 @@ export default {
     isHost: function () {
       return this.hostId == this.currentSession.currentUser.uniqueId;
     },
+
+    hasTargetedInstructionsForCurrentUser: function () {
+      if (this.currentTargetedInstructions) {
+        let instr = this.currentTargetedInstructions.find(
+          (x) => x.targetUserId == this.currentUserId
+        );
+        if (instr) return true;
+      }
+
+      return false;
+    },
   },
   watch: {
     //If the hostId gets updated, setup the game runner, or update it to reflect the new host.
@@ -247,7 +258,7 @@ export default {
 
       //Only update if the instructions are different (based on a shallow compare)
       if (n && !sgf.mainFramework.isObjectSimilar(n, o)) {
-        if (!this.currentTargetedInstructions) {
+        if (!this.hasTargetedInstructionsForCurrentUser) {
           this.setupNewInstructions(n);
         }
       }

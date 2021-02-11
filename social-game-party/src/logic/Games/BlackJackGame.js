@@ -242,10 +242,6 @@ export default class BlackJackGame extends BaseGame {
             },
 
 
-
-
-
-
             {
                 //8) Host has chosen to end the game - show a final end screen
 
@@ -355,6 +351,9 @@ export default class BlackJackGame extends BaseGame {
             x.bust = false;
             x.paidOutForTheRound = false;
             x.roundResultStatus = "";
+
+            if (x.money < 1)
+                x.isKickedOutOfGame = true;
         });
 
         //Reset Dealer
@@ -393,27 +392,41 @@ export default class BlackJackGame extends BaseGame {
      */
     askPlayersForBets = function (remoteDataGroup, batch) {
 
-        let qaInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
-            sgf.mainFramework.gameTools.gameComponents.QuestionAndAnswer,
-            "How much will you bet?", //question Text
-            "writePlayerBet", //follow up function,
-            "betValidationFunc", //validation function
-        );
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
 
+        if (this.areAllPlayersKicked(playerInfo)) {
+          
+            //If all players are kicked out - SKIP to step 7
+            return this.delayedStartHostContinueChoice(remoteDataGroup, batch);
 
-        //Setup Hud 
-        let hudInstructions = sgf.mainFramework.gameTools.buildHudInstructions(null, "getHudData");
+        }
+        else {
 
-        //Setup Alt View 
-        let altViewInstructions = sgf.mainFramework.gameTools.buildAltViewInstructions(sgf.mainFramework.gameTools.gameComponents.ScoreBoard, null, "getScoreBoardData");
+            let qaInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(
+                sgf.mainFramework.gameTools.gameComponents.QuestionAndAnswer,
+                "How much will you bet?", //question Text
+                "writePlayerBet", //follow up function,
+                "betValidationFunc", //validation function
+            );
 
-        let dataToUpdate = {
-            currentInstructions: qaInstructions,
-            currentHudInstructions: hudInstructions,
-            currentAltViewInstructions: altViewInstructions
-        };
+            //Setup Hud 
+            let hudInstructions = sgf.mainFramework.gameTools.buildHudInstructions(null, "getHudData");
 
-        return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+            //Setup Alt View 
+            let altViewInstructions = sgf.mainFramework.gameTools.buildAltViewInstructions(sgf.mainFramework.gameTools.gameComponents.ScoreBoard, null, "getScoreBoardData");
+
+            //Deny Players that are out of money       
+            let targetedInstructions = this.getKickedPlayerInstructions(playerInfo);
+
+            let dataToUpdate = {
+                currentInstructions: qaInstructions,
+                currentHudInstructions: hudInstructions,
+                currentAltViewInstructions: altViewInstructions,
+                currentTargetedInstructions: targetedInstructions
+            };
+
+            return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
+        }
 
     }
 
@@ -610,20 +623,20 @@ export default class BlackJackGame extends BaseGame {
         //setup a loading screen for all players waiting for their turn
         batch = this.setupLoadingScreen(remoteDataGroup, batch)
 
-
         //Call first players turn setup function, if we find a player that hasn't gone yet  
-        let fp = playerInfo.find(x => !x.turnComplete);
+        let fp = playerInfo.find(x => !x.turnComplete && !x.isKickedOutOfGame);
 
         if (fp) {
 
             let firstPlayerId = fp.id;
-            let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(firstPlayerId);
+            let targetedInstructions = this.getKickedPlayerInstructions(playerInfo);
+            targetedInstructions.push(this.setupTargetedInstructionsForPlayersTurn(firstPlayerId));
 
             let dataToUpdate = {
                 "dynamicPlayerGameData.currentPlayerIndex": 0,
                 "dynamicPlayerGameData.allRoundsComplete": false,
 
-                currentTargetedInstructions: [targetedInstructions],
+                currentTargetedInstructions: targetedInstructions,
             };
             return this.activePlayerGameDataConnector.activePlayerGameDataAddToBatch(batch, "update", this.roomName, dataToUpdate);
         }
@@ -884,7 +897,9 @@ export default class BlackJackGame extends BaseGame {
                 if (nextIndex != -1 && nextIndex < playerInfo.length) {
 
                     //Still players left to go through - Setup the next players turn
-                    let targetedInstructions = this.setupTargetedInstructionsForPlayersTurn(playerInfo[nextIndex].id);
+                    let targetedInstructions = this.getKickedPlayerInstructions(playerInfo)
+                    targetedInstructions.push(this.setupTargetedInstructionsForPlayersTurn(playerInfo[nextIndex].id));
+
 
                     this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
 
@@ -893,7 +908,7 @@ export default class BlackJackGame extends BaseGame {
                             return null;
                         else {
                             aData.dynamicPlayerGameData.currentPlayerIndex = nextIndex;
-                            aData.currentTargetedInstructions = [targetedInstructions];
+                            aData.currentTargetedInstructions = targetedInstructions;
                             return aData;
                         }
                     });
@@ -1078,6 +1093,7 @@ export default class BlackJackGame extends BaseGame {
 
             playerInfoCard.details.push(buildScoreDetail("Bust?", curInfo.bust));
             playerInfoCard.details.push(buildScoreDetail("Turn Status", curInfo.turnComplete ? "Complete" : "Incomplete"));
+            playerInfoCard.details.push(buildScoreDetail("Out of the Game?", curInfo.isKickedOutOfGame));
 
             scoreCardData.push(playerInfoCard);
         })
@@ -1127,10 +1143,19 @@ export default class BlackJackGame extends BaseGame {
         if (betAmt < this.configOptions.minimumBet)
             return `You must at least bet the minimum bet of $${this.configOptions.minimumBet}! Please enter a different bet.`;
 
+        let remaining = curInfo.money - betAmt;
+        if (remaining > 0 && remaining < this.configOptions.minimumBet)
+            return `You cannot make a bet that leaves you with some money but less than the minimum bet of $${this.configOptions.minimumBet}! Please enter a different bet.`
+
+
         return '';
     }
 
-
+    /**
+     * Get a Message to display to the user explaining whether or not they won the current round.
+     * @param {*} remoteDataGroup 
+     * @param {*} userId 
+     */
     roundResultCardTableMessageFunc(remoteDataGroup, userId) {
         if (!remoteDataGroup || !userId) sgf.mainFramework.megaLog('oh no!')
 
@@ -1175,7 +1200,8 @@ export default class BlackJackGame extends BaseGame {
             turnComplete: false,
             bust: false,
             paidOutForTheRound: false,
-            roundResultStatus: "" //win, lose, tie
+            roundResultStatus: "", //win, lose, tie
+            isKickedOutOfGame: false, //users are kicked out if they don't have any money.
         }
 
         return ph;
@@ -1254,7 +1280,9 @@ export default class BlackJackGame extends BaseGame {
         return targetedInstructions;
     }
 
-
+    /**
+     * Build the card table config to display the dealers hand to the user.
+     */
     setupEndingDealerHandResults() {
 
         let gn = sgf.mainFramework.gameTools.gameList.BlackJack;
@@ -1343,15 +1371,16 @@ export default class BlackJackGame extends BaseGame {
                 x.roundResultStatus = "win";
             }
 
+            //If the player is out of money - kick 'em out of the game.
+            if (x.money < 1)
+                x.isKickedOutOfGame = true;
+
         });
 
         //Calling this step directly from a check function now.....so no batch anymore
 
-        //TODO: Build card Table instructions for show the dealers hand to all users.
-        //Replacing step 7 here
-        //var endOfRoundInstructions = this.setupEndOfRoundOptions(remoteDataGroup);
-        var placeHolderInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen, "PLACEHOLDER", "The Dealer hand will be here soon.....");
-        //var endOfRoundDealerResults = this.setupEndingDealerHandResults();
+        //Get a temporary loading screen to show the users
+        var placeHolderInstructions = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen, "Loading", "Loading...");
 
         //All rounds are complete - clean up and move on to the next step.
         this.activePlayerGameDataConnector.updateWholeActivePlayerGameDataViaFunction(this.roomName, (aData) => {
@@ -1365,7 +1394,7 @@ export default class BlackJackGame extends BaseGame {
             aData.dynamicPlayerGameData.playerInfo = playerInfo;
             aData.dynamicPlayerGameData.dealerInfo = dealerInfo;
 
-            //TODO: #68 This will be where we show all the players the dealers hand - place holder for this commit.      
+            //show a temporary loading screen before displaying the dealers hand in step 7
             aData.currentInstructions = placeHolderInstructions;
             aData.currentTargetedInstructions = null;
             aData.currentStep = 7;
@@ -1388,7 +1417,12 @@ export default class BlackJackGame extends BaseGame {
 
         //Host yes/No
         let comp = sgf.mainFramework.gameTools.gameComponents.YesNoQuestion;
-        let questionText = "Do you want to continue playing? (Yes starts another round, No will end the game here)";
+
+        let playerInfo = remoteDataGroup.playerGameData.playerInfo;
+
+        
+
+        let questionText = (this.areAllPlayersKicked(playerInfo))? "It looks like all player's are out of money, do you still want to continue? (Select 'No' to end the game)": "Do you want to continue playing? (Yes starts another round, No will end the game here)";
         let followFunc = "endOfRoundHostDecision";
 
         let hostInstructions = sgf.mainFramework.gameTools.buildQuestionAndAnswerInstructions(comp, questionText, followFunc, '', remoteDataGroup.hostId);
@@ -1404,6 +1438,36 @@ export default class BlackJackGame extends BaseGame {
         };
 
         return endOfRoundInstructions;
+    }
+
+    /**
+     * Get targeted display instructions to show to users that can no longer play because they are out of money.
+     */
+    getKickedPlayerInstructions = function (playerInfoArr) {
+
+        let targetedInstructions = [];
+
+        playerInfoArr.forEach(x => {
+            if (x.isKickedOutOfGame) {
+                let kickInstr = sgf.mainFramework.gameTools.buildSimpleDisplayInstructions(sgf.mainFramework.gameTools.gameComponents.LoadingScreen, "Out of Game", "You no longer have enough money to play.  Please wait for the game to end.", x.id);
+                targetedInstructions.push(kickInstr);
+            }
+        });
+
+        return targetedInstructions;
+    }
+
+    /**
+     * Return true if all players have been kicked out of the game (i.e. because they no longer have money left to bet.)
+     * @param {*} playerInfoArr 
+     */
+    areAllPlayersKicked = function (playerInfoArr) {
+
+        if (playerInfoArr.every(x => x.isKickedOutOfGame))
+            return true;
+
+        return false;
+
     }
 }
 
